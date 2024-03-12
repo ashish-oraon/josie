@@ -1,0 +1,16 @@
+<p>login works!</p>
+<mat-slide-toggle>Toggle me!</mat-slide-toggle>
+<form [formGroup]="loginForm" (ngSubmit)="loginNow()">
+  <mat-form-field>
+    <mat-label>Input</mat-label>
+    <input matInput formControlName="username" />
+  </mat-form-field>
+  <mat-form-field>
+    <mat-label>Password</mat-label>
+    <input matInput formControlName="password" />
+  </mat-form-field>
+  <button mat-fab extended>
+    <mat-icon>home</mat-icon>
+    Submit
+  </button>
+</form>
