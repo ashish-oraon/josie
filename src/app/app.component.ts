@@ -12,5 +12,5 @@ import { LoginComponent } from './login/login.component';
 export class AppComponent {
   title = 'josie';
 
-  //path = /home/oraon-as/.nvm/versions/node/v20.11.1/bin
+  //path = /home/oraon-as/.nvm/versions/node/v20.11.1/bin/ng
 }
