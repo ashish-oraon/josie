@@ -1,1 +1,31 @@
-<p>expense-tracker works!</p>
+<div class="container mat-drawer-container">
+  <mat-spinner *ngIf="isLoading$ | async; else loaded"></mat-spinner>
+
+  <ng-template #loaded>
+    <router-outlet></router-outlet>
+    <mat-toolbar class="navigation-panel" color="primary">
+      <mat-toolbar-row>
+        <button
+          mat-icon-button
+          routerLink="/expense-tracker/transaction-list"
+          routerLinkActive="active"
+        >
+          <mat-icon>account_balance_wallet</mat-icon></button
+        ><button
+          mat-icon-button
+          routerLink="/tracker/add-transaction"
+          routerLinkActive="active"
+        >
+          <mat-icon>add_circle_outline</mat-icon>
+        </button>
+        <button
+          mat-icon-button
+          routerLink="/expense-tracker/transaction-report"
+          routerLinkActive="active"
+        >
+          <mat-icon>pie_chart</mat-icon>
+        </button>
+      </mat-toolbar-row>
+    </mat-toolbar>
+  </ng-template>
+</div>
