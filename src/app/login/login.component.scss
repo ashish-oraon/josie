@@ -101,6 +101,18 @@ section .signin .content .form .inputBox input {
   font-weight: 500;
   font-size: 1em;
 }
+.inputBox button {
+  position: relative;
+  width: 100%;
+  background: #333;
+  border: none;
+  outline: none;
+  padding: 25px 10px;
+  border-radius: 4px;
+  color: #fff;
+  font-weight: 500;
+  font-size: 1em;
+}
 section .signin .content .form .inputBox i {
   position: absolute;
   left: 0;
@@ -154,6 +166,6 @@ input[type="submit"]:active {
     height: calc(20vw - 2px);
   }
   section .signin {
-    width: 95vw;
+    width: 80vw;
   }
 }

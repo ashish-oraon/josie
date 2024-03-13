@@ -58,16 +58,27 @@
       <form [formGroup]="loginForm" (ngSubmit)="loginNow()">
         <div class="form">
           <div class="inputBox">
-            <input type="text" formControlName="username" required /> <i>Username</i>
+            <input type="text" formControlName="username" required />
+            <i>Username</i>
           </div>
 
           <div class="inputBox">
-            <input type="password" formControlName="password" required /> <i>Password</i>
+            <input type="password" formControlName="password" required />
+            <i>Password</i>
           </div>
 
-
           <div class="inputBox">
-            <input type="submit" value="Login" />
+            <button
+              mat-raised-button
+              class="btn"
+              [disabled]="!loginForm.valid || isLoading"
+            >
+              Login @if(isLoading){
+              <mat-icon
+                ><mat-spinner color="accent" diameter="20"> </mat-spinner
+              ></mat-icon>
+              }
+            </button>
           </div>
         </div>
       </form>
