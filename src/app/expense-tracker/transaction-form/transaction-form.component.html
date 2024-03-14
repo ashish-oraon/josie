@@ -68,7 +68,9 @@
       </div>
     </mat-card-content>
     <mat-card-actions>
-      <button mat-stroked-button>Update</button>
+      <button mat-stroked-button [disabled]="!transactionForm.valid">
+        Update
+      </button>
     </mat-card-actions>
   </form>
 </mat-card>
