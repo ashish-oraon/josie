@@ -2,8 +2,10 @@
   <mat-spinner *ngIf="isLoading$ | async; else loaded"></mat-spinner>
 
   <ng-template #loaded>
-    <router-outlet></router-outlet>
-    <mat-toolbar class="navigation-panel" color="primary">
+    <div style="height: 90vh">
+      <router-outlet></router-outlet>
+    </div>
+    <mat-toolbar class="navigation-panel" color="primary" style="height: 5vh">
       <mat-toolbar-row>
         <button
           mat-icon-button
@@ -13,7 +15,7 @@
           <mat-icon>account_balance_wallet</mat-icon></button
         ><button
           mat-icon-button
-          routerLink="/tracker/add-transaction"
+          routerLink="/expense-tracker/add-transaction"
           routerLinkActive="active"
         >
           <mat-icon>add_circle_outline</mat-icon>

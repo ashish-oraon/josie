@@ -1,0 +1,73 @@
+<mat-card class="example-card">
+  <mat-card-header>
+    <div mat-card-avatar class="example-header-image">
+      <!-- <mat-icon matListItemIcon>home</mat-icon> -->
+      <button mat-fab disabled color="primary" aria-label="Date">
+        {{ headerObj.date }}
+      </button>
+    </div>
+    <mat-card-title>
+      {{ headerObj.month | titlecase }}-{{ headerObj.year }}</mat-card-title
+    >
+    <!-- <mat-card-subtitle>Dog Breed</mat-card-subtitle> -->
+  </mat-card-header>
+  <mat-card-content>
+    <mat-tree [dataSource]="dataSource" [treeControl]="treeControl">
+      <!-- This is the tree node template for leaf nodes -->
+      <mat-tree-node *matTreeNodeDef="let node" matTreeNodePadding>
+        <!-- use a disabled button to provide padding for tree leaf -->
+        <button mat-icon-button disabled></button>
+        <ng-container *ngTemplateOutlet="singleTransaction; context: node">
+        </ng-container>
+      </mat-tree-node>
+      <!-- This is the tree node template for expandable nodes -->
+      <mat-tree-node
+        *matTreeNodeDef="let node; when: hasChild"
+        matTreeNodePadding
+      >
+        <button
+          mat-icon-button
+          matTreeNodeToggle
+          [attr.aria-label]="'Toggle ' + node.transaction"
+        >
+          <mat-icon class="mat-icon-rtl-mirror">
+            {{ treeControl.isExpanded(node) ? "expand_more" : "chevron_right" }}
+          </mat-icon>
+        </button>
+        <ng-container *ngTemplateOutlet="transactionHeader; context: node">
+        </ng-container>
+      </mat-tree-node>
+    </mat-tree>
+  </mat-card-content>
+</mat-card>
+
+<!-- <ng-template
+  #singleTransaction
+  let-transactionName="amount"
+  let-transactionCategory="category"
+>
+</ng-template> -->
+
+<ng-template #singleTransaction let-transaction="transaction" let-title="title">
+  <div class="container_row">
+    <mat-list>
+      <mat-list-item>
+        <span matListItemTitle>{{ transaction.note | titlecase }}</span>
+        <span matListItemMeta>{{ transaction.amount | currency : "EUR" }}</span>
+      </mat-list-item>
+    </mat-list>
+  </div>
+</ng-template>
+<ng-template #transactionHeader let-transaction="transaction" let-title="title">
+  <div class="container_row">
+    <mat-list>
+      <mat-list-item>
+        <span matListItemIcon
+          ><mat-icon matListItemIcon>{{ transaction.icon }}</mat-icon>
+        </span>
+        <span matListItemTitle>{{ transaction.category | titlecase }}</span>
+        <span matListItemMeta>{{ transaction.amount | currency : "EUR" }}</span>
+      </mat-list-item>
+    </mat-list>
+  </div>
+</ng-template>

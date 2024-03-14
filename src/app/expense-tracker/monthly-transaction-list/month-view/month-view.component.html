@@ -1,0 +1,9 @@
+<div class="p-2">
+  @for( date of datesInTheMonth; track date){
+  <tracker-day-card
+    [date]="date"
+    class="p-2"
+    [transactions]="transactionMap.get(date)"
+  ></tracker-day-card>
+  }
+</div>
