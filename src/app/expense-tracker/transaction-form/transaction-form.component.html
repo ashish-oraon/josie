@@ -22,9 +22,10 @@
       </mat-form-field>
       <mat-form-field>
         <mat-label>Select</mat-label>
-        <mat-select>
-          <mat-option value="one">First option</mat-option>
-          <mat-option value="two">Second option</mat-option>
+        <mat-select formControlName="paymentMethod">
+          @for (category of availableCategories; track category) {
+          <mat-option [value]="category">{{ category | titlecase }}</mat-option
+          >}
         </mat-select>
       </mat-form-field>
       <mat-form-field>
@@ -46,18 +47,21 @@
           <mat-option value="one">First option</mat-option>
         </mat-select>
       </mat-form-field>
-      <mat-label id="example-radio-group-label">Paid By</mat-label>
-      <mat-radio-group
-        aria-labelledby="example-radio-group-label"
-        class="example-radio-group"
-        formControlName="paidBy"
-      >
-        @for (payee of payees; track payee) {
-        <mat-radio-button class="example-radio-button" [value]="payee">{{
-          payee
-        }}</mat-radio-button>
-        }
-      </mat-radio-group>
+      <!-- <mat-label id="example-radio-group-label"></mat-label> -->
+      <fieldset>
+        <legend>Paid By</legend>
+        <mat-radio-group
+          aria-labelledby="example-radio-group-label"
+          class="example-radio-group"
+          formControlName="paidBy"
+        >
+          @for (payee of payees; track payee) {
+          <mat-radio-button class="example-radio-button" [value]="payee">{{
+            payee
+          }}</mat-radio-button>
+          }
+        </mat-radio-group>
+      </fieldset>
     </form>
   </mat-card-content>
   <mat-card-actions>

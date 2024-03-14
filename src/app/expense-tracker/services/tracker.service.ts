@@ -16,6 +16,7 @@ import { ITransaction } from '../interfaces/transaction';
 import { environment } from '../../environments/environment';
 import { GoogleSheetService } from '../../gsheet.service';
 import { CommonService } from '../../shared/common.service';
+import { ICategory } from '../interfaces/category';
 
 const monthNameMap: string[] = [
   'January',
@@ -38,7 +39,7 @@ const PREVIOUSMONTHSTOSHOW = environment.previousMonthsToShow;
 })
 export class TrackerService {
   transactions: Observable<ITransaction[]>;
-  allCategories: Observable<any[]>;
+  allCategories: Observable<ICategory[]>;
   transactionsDates: Observable<{ date: string; total: number }[]>;
   allTransactionsWithCategories$: Observable<ITransaction[]>;
 

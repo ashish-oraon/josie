@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import {
   FormBuilder,
   FormGroup,
@@ -19,6 +19,7 @@ import { provideMomentDateAdapter } from '@angular/material-moment-adapter';
 import { MatRadioModule } from '@angular/material/radio';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MAT_DATE_LOCALE } from '@angular/material/core';
+import { TrackerService } from '../services/tracker.service';
 
 @Component({
   selector: 'transaction-form',
@@ -49,7 +50,7 @@ import { MAT_DATE_LOCALE } from '@angular/material/core';
   templateUrl: './transaction-form.component.html',
   styleUrl: './transaction-form.component.scss',
 })
-export class TransactionFormComponent {
+export class TransactionFormComponent implements OnInit {
   paidBy: string | undefined;
 
   payees: string[] = ['Ai', 'As'];
@@ -61,11 +62,13 @@ export class TransactionFormComponent {
   ];
 
   transactionForm: FormGroup<any>;
+  availableCategories: string[] = [];
 
   constructor(
     private router: Router,
     private route: ActivatedRoute,
-    private fb: FormBuilder
+    private fb: FormBuilder,
+    private trackerService: TrackerService
   ) {
     this.transactionForm = this.fb.group({
       amount: [null, Validators.required],
@@ -74,6 +77,12 @@ export class TransactionFormComponent {
       date: [new Date(), Validators.required],
       paymentMethod: [this.paymentMethods[0], Validators.required],
       paidBy: [this.payees[0], Validators.required],
+    });
+  }
+  ngOnInit(): void {
+    this.trackerService.allCategories.subscribe((data) => {
+      console.log(data);
+      this.availableCategories = data.map((el) => el.name);
     });
   }
 
@@ -87,6 +96,4 @@ export class TransactionFormComponent {
   goBack() {
     this.router.navigate(['../transaction-list'], { relativeTo: this.route });
   }
-
-  
 }
