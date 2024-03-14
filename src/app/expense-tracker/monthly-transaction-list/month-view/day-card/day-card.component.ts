@@ -21,6 +21,9 @@ import { MatListModule } from '@angular/material/list';
 import { CdkDragExit, DragDropModule } from '@angular/cdk/drag-drop';
 import { MatCardModule } from '@angular/material/card';
 import { CommonService } from '../../../../shared/common.service';
+import { MatDialog } from '@angular/material/dialog';
+import { TransactionFormComponent } from '../../../transaction-form/transaction-form.component';
+import { ActivatedRoute, Router } from '@angular/router';
 
 interface ITransactionNode {
   transaction: any;
@@ -94,11 +97,14 @@ export class DayCardComponent implements OnChanges {
   dataSource = new MatTreeFlatDataSource(this.treeControl, this.treeFlattener);
   headerObj!: { date: number; month: string; year: number };
 
-  constructor() {}
+  constructor(
+    public dialog: MatDialog,
+    private router: Router,
+    private route: ActivatedRoute
+  ) {}
   ngOnChanges(changes: SimpleChanges): void {
     this.prepareHeader();
     const mapp: Map<string, any> = new Map<string, any>();
-    console.log(this.transactions);
     if (this.transactions) {
       for (let t of [...this.transactions]) {
         if (mapp.has(t.category)) {
@@ -113,7 +119,6 @@ export class DayCardComponent implements OnChanges {
           mapp.set(t.category, newObj);
         }
       }
-      console.log(mapp);
 
       this.dataSource.data = [...mapp.values()];
     }
@@ -156,5 +161,12 @@ export class DayCardComponent implements OnChanges {
 
   onItemExited(event: CdkDragExit<string[]>) {
     this.draggedItemIndex = -1;
+  }
+
+  editTransaction(transaction: ITransaction | undefined) {
+    this.router.navigate(['../add-transaction'], {
+      relativeTo: this.route,
+      state: { transaction, action: 'edit' },
+    });
   }
 }

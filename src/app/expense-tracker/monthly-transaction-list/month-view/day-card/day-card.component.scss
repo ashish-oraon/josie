@@ -133,3 +133,9 @@
   align-items: center;
   gap: 1rem;
 }
+.mat-tree-node {
+  padding-left: 0 !important;
+}
+.mat-tree-node > button.mat-mdc-button-disabled {
+  display: none;
+}

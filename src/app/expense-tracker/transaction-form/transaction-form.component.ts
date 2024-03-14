@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component, Inject, OnInit } from '@angular/core';
 import {
   FormBuilder,
   FormGroup,
@@ -20,7 +20,14 @@ import { MatRadioModule } from '@angular/material/radio';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MAT_DATE_LOCALE } from '@angular/material/core';
 import { TrackerService } from '../services/tracker.service';
+import { ICategory } from '../interfaces/category';
+import { ITransaction } from '../interfaces/transaction';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 
+export interface DialogData {
+  type: string;
+  transaction: ITransaction;
+}
 @Component({
   selector: 'transaction-form',
   standalone: true,
@@ -36,6 +43,7 @@ import { TrackerService } from '../services/tracker.service';
     MatInputModule,
     CommonModule,
     MatRadioModule,
+    MatSnackBarModule,
   ],
   providers: [
     // The locale would typically be provided on the root module of your application. We do it at
@@ -62,14 +70,19 @@ export class TransactionFormComponent implements OnInit {
   ];
 
   transactionForm: FormGroup<any>;
-  availableCategories: string[] = [];
-
+  availableCategories: ICategory[] = [];
+  availableCategoriesNames: string[] = [];
+  navigationExtras: any;
+  selectedTransaction: any;
+  formType: string = 'add';
   constructor(
     private router: Router,
     private route: ActivatedRoute,
     private fb: FormBuilder,
-    private trackerService: TrackerService
+    private trackerService: TrackerService,
+    private _snackBar: MatSnackBar
   ) {
+    this.navigationExtras = this.router.getCurrentNavigation()?.extras;
     this.transactionForm = this.fb.group({
       amount: [null, Validators.required],
       category: ['', Validators.required],
@@ -80,12 +93,32 @@ export class TransactionFormComponent implements OnInit {
     });
   }
   ngOnInit(): void {
+    if (this.navigationExtras?.state) {
+      this.selectedTransaction = this.navigationExtras.state.transaction;
+      this.formType = this.navigationExtras.state.action;
+    }
     this.trackerService.allCategories.subscribe((data) => {
-      console.log(data);
-      this.availableCategories = data.map((el) => el.name);
+      this.availableCategories = data;
+      this.availableCategoriesNames = data.map((el) => el.name);
+      if (this.selectedTransaction && this.formType !== 'add') {
+        this.setFormData();
+      }
     });
   }
-
+  setFormData() {
+    const transaction = this.selectedTransaction;
+    const selectedCategory = this.availableCategories.find(
+      (el) => el.name === transaction.category
+    );
+    this.transactionForm.setValue({
+      amount: transaction.amount,
+      category: selectedCategory,
+      note: transaction.note,
+      date: transaction.date,
+      paymentMethod: transaction.paymentMethod,
+      paidBy: transaction.paidBy,
+    });
+  }
   categorySelected($event: any) {
     throw new Error('Method not implemented.');
   }
@@ -93,7 +126,58 @@ export class TransactionFormComponent implements OnInit {
     throw new Error('Method not implemented.');
   }
 
-  goBack() {
-    this.router.navigate(['../transaction-list'], { relativeTo: this.route });
+  doSubmit() {
+    const formValue = this.transactionForm.value;
+    const payload = {
+      ...this.transactionForm.value,
+      category: formValue.category.name,
+      type: formValue.category.type,
+    };
+    if (this.formType === 'add') {
+      this.trackerService.addNewTransaction(payload).subscribe(
+        (data) => {
+          if (data.message === 'Transaction updated successfully') {
+            this.openSnackBar('Success', data.message, 3);
+            this.goBack();
+          }
+        },
+        (error) => {
+          this.openSnackBar('Success', 'Something went wrong, Try Again!', 3);
+        },
+        () => {}
+      );
+    } else {
+      if (this.selectedTransaction) {
+        this.trackerService
+          .updateTransaction(payload, this.selectedTransaction.id)
+          .subscribe(
+            (data) => {
+              if (data.message === 'Transaction updated successfully') {
+                this.openSnackBar('Success', data.message, 3);
+                this.goBack();
+              }
+            },
+            (error) => {
+              this.openSnackBar(
+                'Success',
+                'Something went wrong, Try Again!',
+                3
+              );
+            },
+            () => {}
+          );
+      }
+    }
   }
+
+  openSnackBar(message: string, action: string, durationInS: number) {
+    this._snackBar.open(message, action, {
+      duration: durationInS * 1000,
+    });
+  }
+  goBack() {
+    this.router.navigate(['/expense-tracker/transaction-list']);
+  }
+
+  onNoClick(): void {}
 }

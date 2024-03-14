@@ -78,7 +78,6 @@ export class TrackerService {
     this.transactions = this.googleSheetsService
       .readData('readTransactions', this.sheet)
       .pipe(
-        tap((data) => console.log('data base call triggered')),
         map((arr: { data: any[]; length: number }) => {
           return arr.data.filter((el) => !el.isDeleted);
         })
@@ -125,8 +124,45 @@ export class TrackerService {
     return objArr.reduce((a, c) => (a += c.date === date ? c.amount : 0), 0);
   }
 
-  updateTransaction(data: any, id: number) {
-    return this.googleSheetsService.updateData(data, id, data.sheetName);
+  addNewTransaction(transactionDetails: ITransaction) {
+    let dt: Date = new Date(transactionDetails.date);
+    transactionDetails.date = this.commonService.parseDate(dt);
+    const payload = {
+      ...transactionDetails,
+      date: this.commonService.parseDate(dt),
+      sheetName: this.commonService.getSheetName(dt),
+    };
+    return this.googleSheetsService.createData(payload);
+  }
+
+  updateTransaction(transactionDetails: ITransaction, transactionId:number) {
+    let dt: Date = new Date(transactionDetails.date);
+    const payload = {
+      amount: transactionDetails.amount,
+      category: transactionDetails.category,
+      note: transactionDetails.note,
+      date: this.commonService.parseDate(dt),
+      paymentMethod: transactionDetails.paymentMethod,
+      paidBy: transactionDetails.paidBy,
+      sheetName: this.commonService.getSheetName(dt),
+    };
+
+    /*  {
+      "amount": 48,
+      "category": "travel",
+      "note": "545",
+      "date": "14-3-2024",
+      "paymentMethod": "Debit Card",
+      "paidBy": "Ai",
+      "type": "expense",
+      "sheetName": "March-2024"
+  } */
+
+    return this.googleSheetsService.updateData(
+      payload,
+      transactionId,
+      payload.sheetName
+    );
   }
   deleteTransaction(data: any, id: number) {
     return this.googleSheetsService.deleteData(id, data.sheetName);

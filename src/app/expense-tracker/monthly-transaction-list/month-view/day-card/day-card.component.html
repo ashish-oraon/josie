@@ -14,7 +14,11 @@
   <mat-card-content>
     <mat-tree [dataSource]="dataSource" [treeControl]="treeControl">
       <!-- This is the tree node template for leaf nodes -->
-      <mat-tree-node *matTreeNodeDef="let node" matTreeNodePadding>
+      <mat-tree-node
+        *matTreeNodeDef="let node"
+        matTreeNodePadding
+        style="padding-left: 0.25rem !important"
+      >
         <!-- use a disabled button to provide padding for tree leaf -->
         <button mat-icon-button disabled></button>
         <ng-container *ngTemplateOutlet="singleTransaction; context: node">
@@ -24,6 +28,7 @@
       <mat-tree-node
         *matTreeNodeDef="let node; when: hasChild"
         matTreeNodePadding
+        style="padding-left: 0.25rem !important"
       >
         <button
           mat-icon-button
@@ -52,6 +57,10 @@
   <div class="container_row">
     <mat-list>
       <mat-list-item>
+        <span matListItemIcon (click)="editTransaction(transaction)"
+          ><mat-icon matListItemIcon>edit</mat-icon></span
+        >
+
         <span matListItemTitle>{{ transaction.note | titlecase }}</span>
         <span matListItemMeta>{{ transaction.amount | currency : "EUR" }}</span>
       </mat-list-item>

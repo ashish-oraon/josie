@@ -9268,10 +9268,10 @@ export class GoogleSheetService {
   ): Observable<any> {
     switch (type) {
       case 'readTransactions':
-        return of(staticData);
-      // return this.http.get<any>(
-      //   `${this.apiUrl}?action=${type}&sheet=${sheet}`
-      // );
+        // return of(staticData);
+      return this.http.get<any>(
+        `${this.apiUrl}?action=${type}&sheet=${sheet}`
+      );
       case 'readSingleTransaction':
         return this.http.get<any>(
           `${this.apiUrl}?action=${type}&sheet=${sheet}&id=${id}`

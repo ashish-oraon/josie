@@ -33,7 +33,6 @@ export class MonthViewComponent implements OnChanges {
 
   constructor(private trackerService: TrackerService) {}
   ngOnChanges(changes: SimpleChanges): void {
-    console.log(this.monthDetail);
     const { month, year } = this.monthDetail;
     this.trackerService.allTransactionsWithCategories$
       .pipe(
