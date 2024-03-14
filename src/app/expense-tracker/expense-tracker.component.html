@@ -2,7 +2,7 @@
   <mat-spinner *ngIf="isLoading$ | async; else loaded"></mat-spinner>
 
   <ng-template #loaded>
-    <div style="height: 90vh">
+    <div style="height: 80vh">
       <router-outlet></router-outlet>
     </div>
     <mat-toolbar class="navigation-panel" color="primary" style="height: 5vh">

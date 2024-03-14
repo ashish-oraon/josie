@@ -3,8 +3,8 @@
   align-items: center;
 }
 .mat-mdc-card {
-  height: 95vh;
-  padding-bottom: 2rem;
+  max-height: 80vh;
+  padding-bottom: 4rem;
 }
 .mat-mdc-card-content {
   height: 100%;
@@ -23,4 +23,8 @@
 .header-image {
   display: flex;
   align-items: center;
+}
+
+.transactionForm {
+  padding-bottom: 5rem;
 }
