@@ -34,6 +34,11 @@ export const routes: Routes = [
         path: 'transaction-report',
         component: MonthlyTransactionReportComponent,
       },
+      {
+        path: '',
+        redirectTo:'transaction-list',
+        pathMatch:'full'
+      },
     ],
   },
   {

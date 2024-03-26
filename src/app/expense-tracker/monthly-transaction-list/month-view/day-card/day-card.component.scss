@@ -89,6 +89,7 @@
 }
 .container_row {
   display: grid;
+  width: 100%;
 }
 
 .layer1,
@@ -133,9 +134,31 @@
   align-items: center;
   gap: 1rem;
 }
-.mat-tree-node {
-  padding-left: 0 !important;
-}
+
 .mat-tree-node > button.mat-mdc-button-disabled {
   display: none;
+}
+
+span.day-amount {
+  font-weight: bolder;
+}
+
+.example-list {
+  width: 100px;
+  border: solid 1px #ccc;
+  border-radius: 5px;
+  background: #fff;
+  text-align: center;
+  padding: 10px;
+  margin: 0;
+}
+
+.example-list > li {
+  list-style-type: none;
+  border-bottom: solid 1px #8b8b8b;
+  padding: 8px 0;
+}
+
+.example-list > li:last-child {
+  border-bottom: none;
 }

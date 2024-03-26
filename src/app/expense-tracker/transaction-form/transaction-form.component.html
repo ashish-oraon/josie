@@ -69,7 +69,11 @@
     </mat-card-content>
     <mat-card-actions>
       <button mat-stroked-button [disabled]="!transactionForm.valid">
-        Update
+        Update @if(isLoading$ | async){
+        <mat-icon
+          ><mat-spinner color="accent" diameter="20"> </mat-spinner
+        ></mat-icon>
+        }
       </button>
     </mat-card-actions>
   </form>

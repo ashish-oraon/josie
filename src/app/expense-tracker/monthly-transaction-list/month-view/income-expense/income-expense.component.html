@@ -1,0 +1,23 @@
+<!-- @if (totalIncome>0 || totalExpense>0){ -->
+<mat-card>
+  <mat-card-content>
+    <mat-list>
+      <mat-list-item>
+        <span matListItemTitle>Income</span>
+        <span matListItemMeta>{{ totalIncome | currency : "EUR" }}</span>
+      </mat-list-item>
+      <mat-list-item>
+        <span matListItemTitle>Expense</span>
+        <span matListItemMeta> {{ totalExpense | currency : "EUR" }}</span>
+      </mat-list-item>
+      <mat-divider></mat-divider>
+      <mat-list-item color="primary">
+        <span matListItemTitle></span>
+        <span matListItemMeta>{{
+          totalIncome - totalExpense | currency : "EUR"
+        }}</span>
+      </mat-list-item>
+    </mat-list>
+  </mat-card-content>
+</mat-card>
+<!-- } -->

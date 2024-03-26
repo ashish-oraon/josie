@@ -23,7 +23,8 @@ import { TrackerService } from '../services/tracker.service';
 import { ICategory } from '../interfaces/category';
 import { ITransaction } from '../interfaces/transaction';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-
+import { LoaderService } from '../../shared/loader.service';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 export interface DialogData {
   type: string;
   transaction: ITransaction;
@@ -44,6 +45,7 @@ export interface DialogData {
     CommonModule,
     MatRadioModule,
     MatSnackBarModule,
+    MatProgressSpinnerModule,
   ],
   providers: [
     // The locale would typically be provided on the root module of your application. We do it at
@@ -75,13 +77,16 @@ export class TransactionFormComponent implements OnInit {
   navigationExtras: any;
   selectedTransaction: any;
   formType: string = 'add';
+  isLoading$: any;
   constructor(
     private router: Router,
     private route: ActivatedRoute,
     private fb: FormBuilder,
     private trackerService: TrackerService,
+    private loaderService: LoaderService,
     private _snackBar: MatSnackBar
   ) {
+    this.isLoading$ = this.loaderService.isLoading$;
     this.navigationExtras = this.router.getCurrentNavigation()?.extras;
     this.transactionForm = this.fb.group({
       amount: [null, Validators.required],
@@ -134,20 +139,24 @@ export class TransactionFormComponent implements OnInit {
       type: formValue.category.type,
     };
     if (this.formType === 'add') {
+      this.loaderService.show();
       this.trackerService.addNewTransaction(payload).subscribe(
         (data) => {
           if (data.message === 'Transaction updated successfully') {
-            this.openSnackBar('Success', data.message, 3);
+            this.openSnackBar(data.message, '', 3);
             this.goBack();
           }
         },
         (error) => {
-          this.openSnackBar('Success', 'Something went wrong, Try Again!', 3);
+          this.openSnackBar('Something went wrong, Try Again!', '', 3);
         },
-        () => {}
+        () => {
+          this.loaderService.hide();
+        }
       );
     } else {
       if (this.selectedTransaction) {
+        this.loaderService.show();
         this.trackerService
           .updateTransaction(payload, this.selectedTransaction.id)
           .subscribe(
@@ -164,7 +173,9 @@ export class TransactionFormComponent implements OnInit {
                 3
               );
             },
-            () => {}
+            () => {
+              this.loaderService.hide();
+            }
           );
       }
     }

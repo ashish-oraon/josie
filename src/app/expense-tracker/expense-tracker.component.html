@@ -1,7 +1,4 @@
 <div class="container mat-drawer-container">
-  <mat-spinner *ngIf="isLoading$ | async; else loaded"></mat-spinner>
-
-  <ng-template #loaded>
     <div style="height: 80vh">
       <router-outlet></router-outlet>
     </div>
@@ -29,5 +26,4 @@
         </button>
       </mat-toolbar-row>
     </mat-toolbar>
-  </ng-template>
 </div>

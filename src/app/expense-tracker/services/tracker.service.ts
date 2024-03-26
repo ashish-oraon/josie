@@ -48,7 +48,7 @@ export class TrackerService {
   );
   selectedTab: Observable<any> = this.selectTransactionAction
     .asObservable()
-    .pipe(shareReplay(1));
+    .pipe();
 
   sheet: string = 'March-2024';
 
@@ -135,7 +135,7 @@ export class TrackerService {
     return this.googleSheetsService.createData(payload);
   }
 
-  updateTransaction(transactionDetails: ITransaction, transactionId:number) {
+  updateTransaction(transactionDetails: ITransaction, transactionId: number) {
     let dt: Date = new Date(transactionDetails.date);
     const payload = {
       amount: transactionDetails.amount,
@@ -164,8 +164,10 @@ export class TrackerService {
       payload.sheetName
     );
   }
-  deleteTransaction(data: any, id: number) {
-    return this.googleSheetsService.deleteData(id, data.sheetName);
+  deleteTransaction(transactionDetails: ITransaction, transactionId: number) {
+    let dt: Date = new Date(transactionDetails.date);
+    const sheetName = this.commonService.getSheetName(dt);
+    return this.googleSheetsService.deleteData(transactionId, sheetName);
   }
 
   parseDate(date: Date): string {
@@ -207,8 +209,7 @@ export class TrackerService {
               })
             )
             .filter((el) => !el.isDeleted);
-        }),
-        shareReplay(1)
+        })
       );
   }
 

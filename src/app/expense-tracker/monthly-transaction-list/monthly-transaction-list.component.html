@@ -11,5 +11,5 @@
   }
 </nav>
 <mat-tab-nav-panel #tabPanel>
-  <month-view [monthDetail]="activeLink"></month-view>
+  <month-view [monthDetail]="activeLink" [triggerChange]="triggerBoolean" (mEvent)="handleOutput($event)"></month-view>
 </mat-tab-nav-panel>

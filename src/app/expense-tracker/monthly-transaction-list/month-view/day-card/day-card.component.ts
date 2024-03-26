@@ -1,9 +1,13 @@
 import { CommonModule } from '@angular/common';
 import {
   Component,
+  EventEmitter,
   Input,
   OnChanges,
+  Output,
+  QueryList,
   SimpleChanges,
+  ViewChildren,
   inject,
 } from '@angular/core';
 import { ITransaction } from '../../../interfaces/transaction';
@@ -18,12 +22,14 @@ import { FlatTreeControl } from '@angular/cdk/tree';
 
 import { MatButtonModule } from '@angular/material/button';
 import { MatListModule } from '@angular/material/list';
-import { CdkDragExit, DragDropModule } from '@angular/cdk/drag-drop';
+import { CdkDrag, CdkDragExit, DragDropModule } from '@angular/cdk/drag-drop';
 import { MatCardModule } from '@angular/material/card';
 import { CommonService } from '../../../../shared/common.service';
 import { MatDialog } from '@angular/material/dialog';
-import { TransactionFormComponent } from '../../../transaction-form/transaction-form.component';
+import { OverlayModule } from '@angular/cdk/overlay';
 import { ActivatedRoute, Router } from '@angular/router';
+import { TrackerService } from '../../../services/tracker.service';
+import { HighlightDirective } from '../../../../shared/highlight.directive';
 
 interface ITransactionNode {
   transaction: any;
@@ -58,16 +64,57 @@ interface ExampleFlatNode {
     MatListModule,
     DragDropModule,
     MatCardModule,
+    HighlightDirective,
+    OverlayModule,
   ],
   templateUrl: './day-card.component.html',
   styleUrl: './day-card.component.scss',
 })
 export class DayCardComponent implements OnChanges {
+  clickHandler(eb: any) {
+    alert('dasdasd');
+    console.log(eb);
+  }
+  @ViewChildren(CdkDrag) dragItems!: QueryList<CdkDrag>;
+
+  draggedItemIndex: number = -1;
+
+  onItemEntered(event: any) {
+    // this.draggedItemIndex = this.dragItems.indexOf(event.item.data);
+    this.resetDraggedItemPosition();
+  }
+
+  private resetDraggedItemPosition() {
+    const draggedItem: any = document.querySelector('.cdk-drag-dragging');
+    const otherItems: any = document.querySelectorAll(
+      '.cdk-drag:not(.cdk-drag-dragging)'
+    );
+
+    if (draggedItem) {
+      draggedItem['style'].transform = 'translate3d(20px, 0, 0)';
+    }
+
+    otherItems.forEach((item: { style: { transform: string } }) => {
+      item.style.transform = 'none';
+    });
+  }
+
+  onItemExited(event: CdkDragExit<string[]>) {
+    this.draggedItemIndex = -1;
+  }
+
+  onDrop(event: any) {
+    // Retrieve the updated items array after the drop
+    this.dragItems = event.container.data;
+  }
+
   @Input()
   date!: string;
   @Input()
   transactions: ITransaction[] | undefined;
+  @Output() dayEvent = new EventEmitter<any>();
 
+  isOpen: boolean = false;
   commonService: CommonService = inject(CommonService);
 
   totalEstimate = 10;
@@ -96,17 +143,20 @@ export class DayCardComponent implements OnChanges {
 
   dataSource = new MatTreeFlatDataSource(this.treeControl, this.treeFlattener);
   headerObj!: { date: number; month: string; year: number };
+  totalOfTheDay: number = 0;
 
   constructor(
     public dialog: MatDialog,
     private router: Router,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private trackerService: TrackerService
   ) {}
   ngOnChanges(changes: SimpleChanges): void {
     this.prepareHeader();
     const mapp: Map<string, any> = new Map<string, any>();
     if (this.transactions) {
       for (let t of [...this.transactions]) {
+        this.totalOfTheDay += t.amount;
         if (mapp.has(t.category)) {
           const { children, transaction } = mapp.get(t.category);
           children.push({ transaction: { ...t } });
@@ -137,36 +187,27 @@ export class DayCardComponent implements OnChanges {
   doAction(arg0: { type: string; transaction: any }) {
     throw new Error('Method not implemented.');
   }
-  draggedItemIndex: number = 0;
-  currency: string = 'EUR';
-  onItemEntered(event: any) {
-    // this.draggedItemIndex = this.dragItems.indexOf(event.item.data);
-    this.resetDraggedItemPosition();
-  }
-
-  private resetDraggedItemPosition() {
-    const draggedItem: any = document.querySelector('.cdk-drag-dragging');
-    const otherItems: any = document.querySelectorAll(
-      '.cdk-drag:not(.cdk-drag-dragging)'
-    );
-
-    if (draggedItem) {
-      draggedItem['style'].transform = 'translate3d(20px, 0, 0)';
-    }
-
-    otherItems.forEach((item: { style: { transform: string } }) => {
-      item.style.transform = 'none';
-    });
-  }
-
-  onItemExited(event: CdkDragExit<string[]>) {
-    this.draggedItemIndex = -1;
-  }
 
   editTransaction(transaction: ITransaction | undefined) {
     this.router.navigate(['../add-transaction'], {
       relativeTo: this.route,
       state: { transaction, action: 'edit' },
     });
+  }
+
+  deleteTransaction(transaction: ITransaction) {
+    alert('dasdsa');
+    this.dayEvent.emit({
+      action: 'delete',
+      data: { transaction },
+    });
+
+    // this.trackerService
+    //   .deleteTransaction(transaction, transaction.id)
+    //   .subscribe(
+    //     (data) => {},
+    //     () => {},
+    //     () => {}
+    //   );
   }
 }
