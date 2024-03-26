@@ -50,11 +50,9 @@ export class LoginComponent implements OnInit {
   }
 
   loginNow() {
-    console.log(this.loginForm.value);
     this.isLoading = true;
     this.loginService.loginCred(this.loginForm.value).subscribe(
       (data) => {
-        console.log(data);
         this.router.navigate(['/home']);
       },
       (error) => {},

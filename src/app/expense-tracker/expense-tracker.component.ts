@@ -4,9 +4,11 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { Observable } from 'rxjs';
-import { LoaderService } from '../shared/services/loader.service';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { CommonModule } from '@angular/common';
+import { LoaderService } from '../shared/loader.service';
+import { MatDialog } from '@angular/material/dialog';
+import { TransactionFormComponent } from './transaction-form/transaction-form.component';
 
 @Component({
   selector: 'app-expense-tracker',
@@ -24,7 +26,16 @@ import { CommonModule } from '@angular/common';
 })
 export class ExpenseTrackerComponent {
   isLoading$: Observable<boolean>;
-  constructor(private loaderService: LoaderService) {
+  constructor(private loaderService: LoaderService, public dialog: MatDialog) {
     this.isLoading$ = this.loaderService.isLoading$;
+  }
+
+  addTransaction() {
+    const dialogRef = this.dialog.open(TransactionFormComponent, {
+      data: { type: 'Edit Transaction' },
+    });
+
+    dialogRef.afterClosed().subscribe((result) => {
+    });
   }
 }

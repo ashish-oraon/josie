@@ -1,0 +1,29 @@
+.mat-mdc-card-title {
+  display: flex;
+  align-items: center;
+}
+.mat-mdc-card {
+  padding-bottom: 8rem;
+}
+.mat-mdc-card-content {
+  height: 100%;
+}
+.form-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 100%;
+}
+.mat-mdc-card-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.header-image {
+  display: flex;
+  align-items: center;
+}
+
+.transactionForm {
+  padding-bottom: 5rem;
+}

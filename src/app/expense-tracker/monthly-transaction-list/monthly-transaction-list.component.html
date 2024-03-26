@@ -1,12 +1,15 @@
-<nav mat-tab-nav-bar [backgroundColor]="background" [tabPanel]="tabPanel">
-  @for (link of links; track link) {
+<nav
+  mat-tab-nav-bar
+  [backgroundColor]="background"
+  [tabPanel]="tabPanel"
+  [selectedIndex]="selectedTab"
+>
+  @for (link of tabs; track link) {
   <a mat-tab-link (click)="activeLink = link" [active]="activeLink == link">
-    {{ link }}
+    {{ link.header }}
   </a>
   }
 </nav>
 <mat-tab-nav-panel #tabPanel>
-   <h2>{{activeLink}}</h2>
-
-   
+  <month-view [monthDetail]="activeLink" [triggerChange]="triggerBoolean" (mEvent)="handleOutput($event)"></month-view>
 </mat-tab-nav-panel>

@@ -6,19 +6,13 @@ import { BehaviorSubject, tap } from 'rxjs';
 })
 export class LoaderService {
   private loadingAction = new BehaviorSubject<boolean>(false);
-  isLoading$ = this.loadingAction
-    .asObservable()
-    .pipe(tap((val) => console.log(`loading: ${val}`)));
+  isLoading$ = this.loadingAction.asObservable().pipe();
 
   show(): void {
-    setTimeout(() => {
-      this.loadingAction.next(true);
-    }, 0);
+    this.loadingAction.next(true);
   }
 
   hide(): void {
-    setTimeout(() => {
-      this.loadingAction.next(false);
-    }, 0);
+    this.loadingAction.next(false);
   }
 }

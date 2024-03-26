@@ -1,0 +1,17 @@
+<h2 mat-dialog-title>Add Shopping Item</h2>
+<mat-dialog-content>
+  <mat-form-field>
+    <input matInput [(ngModel)]="itemName" placeholder="Item Name" />
+  </mat-form-field>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button
+    mat-button
+    [mat-dialog-close]="itemName"
+    color="primary"
+    [disabled]="!itemName"
+  >
+    OK
+  </button>
+  <button mat-button mat-dialog-close>Cancel</button>
+</mat-dialog-actions>
