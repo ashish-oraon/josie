@@ -25,6 +25,7 @@ import { ITransaction } from '../interfaces/transaction';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { LoaderService } from '../../shared/loader.service';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { provideNativeDateAdapter } from '@angular/material/core';
 export interface DialogData {
   type: string;
   transaction: ITransaction;
@@ -50,12 +51,13 @@ export interface DialogData {
   providers: [
     // The locale would typically be provided on the root module of your application. We do it at
     // the component level here, due to limitations of our example generation script.
-    { provide: MAT_DATE_LOCALE, useValue: 'ja-JP' },
+    { provide: MAT_DATE_LOCALE, useValue: 'en-IN' },
 
     // Moment can be provided globally to your app by adding `provideMomentDateAdapter`
     // to your app config. We provide it at the component level here, due to limitations
     // of our example generation script.
     provideMomentDateAdapter(),
+    provideNativeDateAdapter(),
   ],
   templateUrl: './transaction-form.component.html',
   styleUrl: './transaction-form.component.scss',

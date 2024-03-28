@@ -16,8 +16,6 @@ export const routes: Routes = [
     path: 'home',
     component: HomeComponent,
   },
-
-  { path: 'month-view', component: ExpenseTrackerComponent },
   {
     path: 'expense-tracker',
     component: ExpenseTrackerComponent,
@@ -25,6 +23,7 @@ export const routes: Routes = [
       {
         path: 'transaction-list',
         component: MonthlyTransactionListComponent,
+        data: { type: 'list' },
       },
       {
         path: 'add-transaction',
@@ -32,12 +31,13 @@ export const routes: Routes = [
       },
       {
         path: 'transaction-report',
-        component: MonthlyTransactionReportComponent,
+        component: MonthlyTransactionListComponent,
+        data: { type: 'report' },
       },
       {
         path: '',
-        redirectTo:'transaction-list',
-        pathMatch:'full'
+        redirectTo: 'transaction-list',
+        pathMatch: 'full',
       },
     ],
   },

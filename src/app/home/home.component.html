@@ -1,2 +1,22 @@
-<a routerLink="/expense-tracker">Tracker</a>
-<a routerLink="/shopping-list">Shopping List</a>
+<div class="container">
+  <mat-card (click)="redirectTo('expense-tracker')">
+    <mat-card-content>
+      <mat-icon
+        color="primary"
+        aria-hidden="false"
+        aria-label="Example home icon"
+        fontIcon="view_list"
+      ></mat-icon>
+    </mat-card-content>
+  </mat-card>
+  <mat-card (click)="redirectTo('shopping-list')">
+    <mat-card-content
+      ><mat-icon
+        color="accent"
+        aria-hidden="false"
+        aria-label="Example home icon"
+        fontIcon="add_shopping_cart"
+      ></mat-icon
+    ></mat-card-content>
+  </mat-card>
+</div>

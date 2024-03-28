@@ -19,7 +19,6 @@ export class HighlightDirective implements OnChanges {
 
   matches: number[] = [];
   constructor(private el: ElementRef, private renderer: Renderer2) {
-    console.log('consturcuter executed');
     this.appendElement();
   }
   ngOnChanges(changes: SimpleChanges): void {
@@ -29,7 +28,6 @@ export class HighlightDirective implements OnChanges {
     }
     if (this.localSearchString.length > 3) {
       const content = this.el.nativeElement as HTMLElement;
-      console.log(content);
       this.doHighlightIn(content);
     }
   }
@@ -94,9 +92,6 @@ export class HighlightDirective implements OnChanges {
     const searchContainer = this.renderer.createElement('div');
     this.renderer.addClass(searchContainer, 'search-container');
     const searchInput = this.renderer.createElement('input');
-    console.log(searchInput);
-    // searchInput.attributes.push('matInput');
-    // console.log(searchInput);
     searchInput.setAttribute('matInput', '');
     searchInput.setAttribute('placeholder', 'Ex. Pizza');
 

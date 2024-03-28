@@ -58,7 +58,7 @@ export class MonthViewComponent implements OnChanges {
     private commonService: CommonService
   ) {}
   ngOnChanges(changes: SimpleChanges): void {
-    this.Loader.show();
+    this.transactionsOftheMonth = [];
     this.transactionMap.clear();
     this.datesInTheMonth = [];
     this.canShowSpinner = true;
@@ -67,10 +67,6 @@ export class MonthViewComponent implements OnChanges {
     this.cancellableSubscriptions['allTransactionWithCatSubs'] =
       this.trackerService.allTransactionsWithCategories$
         .pipe(
-          tap((data) => {
-            console.log('called');
-            this.transactionsOftheMonth = [];
-          }),
           map((data) =>
             data
               .filter((el) => {
@@ -134,6 +130,7 @@ export class MonthViewComponent implements OnChanges {
       .afterClosed()
       .subscribe((confirmation: boolean) => {
         if (confirmation) {
+          this.transactionsOftheMonth = [];
           this.transactionMap.clear();
           this.datesInTheMonth = [];
           this.canShowSpinner = true;

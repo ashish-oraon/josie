@@ -1,0 +1,16 @@
+<ngx-charts-pie-chart
+  (window:resize)="onResize($event)"
+  [view]="view"
+  [results]="chartData"
+  [gradient]="gradient"
+  [legend]="showLegend"
+  [legendPosition]="legendPosition"
+  [animations]="showAnimations"
+  [doughnut]="showAnimations"
+  [labels]="showLabels"
+  [doughnut]="isDoughnut"
+  (select)="onSelect($event)"
+  (activate)="onActivate($event)"
+  (deactivate)="onDeactivate($event)"
+>
+</ngx-charts-pie-chart>

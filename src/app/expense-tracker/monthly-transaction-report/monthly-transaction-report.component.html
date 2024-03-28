@@ -1,24 +1,29 @@
-<div class="conatiner">
-  <!-- <input type="text" [(ngModel)]="searchTerm" />
-  <button (click)="find()">Find</button>
-  <button (click)="findNext()">Next</button>
-  <button (click)="findPrev()">Prev</button> -->
-</div>
-
-<div
-  class="content"
-  [appHighlight]="searchTerm"
->
-  This is some searchable content with multiple words to be highlighted. You can
-  try searching for "content", "multiple", or other words. Contrary to popular
-  belief, Lorem Ipsum is not simply random text. It has roots in a piece of
-  classical Latin literature from 45 BC, making it over 2000 years old. Richard
-  McClintock, a Latin professor at Hampden-Sydney College in Virginia, looked up
-  one of the more obscure Latin words, consectetur, from a Lorem Ipsum passage,
-  and going through the cites of the word in classical literature, discovered
-  the undoubtable source. Lorem Ipsum comes from sections 1.10.32 and 1.10.33 of
-  "de Finibus Bonorum et Malorum" (The Extremes of Good and Evil) by Cicero,
-  written in 45 BC. This book is a treatise on the theory of ethics, very
-  popular during the Renaissance. The first line of Lorem Ipsum, "Lorem ipsum
-  dolor sit amet..", comes from a line in section 1.10.32.
+<div class="p-2">
+  @if (transactionsOftheMonth.length > 0){
+  <mat-accordion>
+    <mat-expansion-panel
+      [expanded]="panelOpenState"
+      (opened)="panelOpenState = true"
+      (closed)="panelOpenState = false"
+    >
+      <mat-expansion-panel-header>
+        <mat-panel-title> Category Wise Expenses </mat-panel-title>
+      </mat-expansion-panel-header>
+      <tracker-pie-chart [chartData]="categoryData"></tracker-pie-chart>
+    </mat-expansion-panel>
+    <mat-expansion-panel>
+      <mat-expansion-panel-header>
+        <mat-panel-title> Category Wise Expenses:Line Chart </mat-panel-title>
+      </mat-expansion-panel-header>
+      <tracker-line-chart [chartData]="categoryData"></tracker-line-chart>
+    </mat-expansion-panel> </mat-accordion
+  >} @else{
+  <div class="spinner-container">
+    @if(canShowSpinner){
+    <mat-spinner></mat-spinner>
+    }@else{
+    <p>No Item for the month</p>
+    }
+  </div>
+  }
 </div>

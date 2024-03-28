@@ -1,73 +1,93 @@
-<mat-card class="pb-4">
+<mat-card class="form-card">
   <mat-card-header>
-    <div mat-card-avatar class="header-image" (click)="goBack()">
-      <mat-icon>keyboard_arrow_left</mat-icon>
+    <div mat-card-avatar>
+      <button mat-icon-button class="" (click)="goBack()">
+        <mat-icon>arrow_back</mat-icon>
+      </button>
     </div>
-    <mat-card-title>
-      <button
-        mat-icon-button
-        color="primary"
-        aria-label="Example icon button with a home icon"
-      ></button>
-      <span> Add Transaction </span>
-    </mat-card-title>
+    <mat-card-title>Add Transaction</mat-card-title>
   </mat-card-header>
+  <form
+    [formGroup]="transactionForm"
+    (ngSubmit)="doSubmit()"
+    class="transaction-form"
+  >
+    <div class="form-row">
+      <mat-form-field class="form-field">
+        <mat-label>Amount</mat-label>
+        <input
+          matInput
+          formControlName="amount"
+          type="number"
+          placeholder="0.0"
+          required
+        />
+      </mat-form-field>
+    </div>
+    <div class="form-row">
+      <mat-form-field>
+        <mat-label>Select</mat-label>
+        <mat-select formControlName="category">
+          @for (category of availableCategories; track category.id) {
+          <mat-option [value]="category">{{
+            category.name | titlecase
+          }}</mat-option
+          >}
+        </mat-select>
+      </mat-form-field>
+    </div>
 
-  <form [formGroup]="transactionForm" (ngSubmit)="doSubmit()">
-    <mat-card-content>
-      <div class="form-container">
-        <mat-form-field appearance="fill">
-          <mat-label>Amount</mat-label>
-          <input matInput placeholder="0.0" formControlName="amount" />
-          <mat-icon matSuffix>money</mat-icon>
-        </mat-form-field>
-        <mat-form-field>
-          <mat-label>Select</mat-label>
-          <mat-select formControlName="category">
-            @for (category of availableCategories; track category.id) {
-            <mat-option [value]="category">{{
-              category.name | titlecase
-            }}</mat-option
-            >}
-          </mat-select>
-        </mat-form-field>
-        <mat-form-field>
-          <mat-label>Note</mat-label>
-          <textarea matInput formControlName="note"></textarea>
-        </mat-form-field>
-        <mat-form-field class="example-full-width">
-          <mat-label>Choose a date</mat-label>
-          <input matInput [matDatepicker]="picker" formControlName="date" />
-          <mat-hint>MM/DD/YYYY</mat-hint>
-          <mat-datepicker #picker></mat-datepicker>
-        </mat-form-field>
-        <mat-form-field>
-          <mat-label>Payment Method</mat-label>
-          <mat-select formControlName="paymentMethod">
-            @for (method of paymentMethods; track method) {
-            <mat-option [value]="method">{{ method | titlecase }}</mat-option>
-            }
-            <mat-option value="one">First option</mat-option>
-          </mat-select>
-        </mat-form-field>
-        <!-- <mat-label id="example-radio-group-label"></mat-label> -->
-        <fieldset>
-          <legend>Paid By</legend>
-          <mat-radio-group
-            aria-labelledby="example-radio-group-label"
-            class="example-radio-group"
-            formControlName="paidBy"
-          >
-            @for (payee of payees; track payee) {
-            <mat-radio-button class="example-radio-button" [value]="payee">{{
-              payee
-            }}</mat-radio-button>
-            }
-          </mat-radio-group>
-        </fieldset>
-      </div>
-    </mat-card-content>
-    <mat-card-actions>
+    <div class="form-row">
+      <mat-form-field class="form-field">
+        <mat-label>Transaction Note</mat-label>
+        <textarea matInput formControlName="note"></textarea>
+      </mat-form-field>
+    </div>
+
+    <div class="form-row">
+      <mat-form-field class="form-field">
+        <mat-label>Date</mat-label>
+        <input
+          matInput
+          [matDatepicker]="picker"
+          formControlName="date"
+          required
+          (click)="picker.open()"
+        />
+        <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+        <mat-datepicker touchUi #picker></mat-datepicker>
+      </mat-form-field>
+    </div>
+
+    <div class="form-row">
+      <mat-form-field class="form-field">
+        <mat-label>Payment Method</mat-label>
+        <mat-select formControlName="paymentMethod" required>
+          <mat-option *ngFor="let method of paymentMethods" [value]="method">
+            {{ method }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    <div class="form-row">
+      <fieldset>
+        <legend>Paid By</legend>
+        <mat-radio-group
+          aria-labelledby="example-radio-group-label"
+          class="example-radio-group"
+          formControlName="paidBy"
+        >
+          @for (payee of payees; track payee) {
+          <mat-radio-button class="example-radio-button" [value]="payee">{{
+            payee
+          }}</mat-radio-button>
+          }
+        </mat-radio-group>
+      </fieldset>
+    </div>
+
+    <div class="form-row full-width button-row">
       <button mat-stroked-button [disabled]="!transactionForm.valid">
         Update @if(isLoading$ | async){
         <mat-icon
@@ -75,6 +95,6 @@
         ></mat-icon>
         }
       </button>
-    </mat-card-actions>
+    </div>
   </form>
 </mat-card>
