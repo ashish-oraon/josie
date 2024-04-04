@@ -72,8 +72,6 @@ interface ExampleFlatNode {
 })
 export class DayCardComponent implements OnChanges {
   clickHandler(eb: any) {
-    alert('dasdasd');
-    console.log(eb);
   }
   @ViewChildren(CdkDrag) dragItems!: QueryList<CdkDrag>;
 
@@ -196,7 +194,6 @@ export class DayCardComponent implements OnChanges {
   }
 
   deleteTransaction(transaction: ITransaction) {
-    alert('dasdsa');
     this.dayEvent.emit({
       action: 'delete',
       data: { transaction },
