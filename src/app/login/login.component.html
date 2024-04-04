@@ -65,6 +65,9 @@
           <div class="inputBox">
             <input type="password" formControlName="password" required />
             <i>Password</i>
+            @if (error) {
+            <mat-error>{{ error }}</mat-error>
+            }
           </div>
 
           <div class="inputBox">

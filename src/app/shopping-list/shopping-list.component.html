@@ -1,1 +1,87 @@
-<p>shopping-list works!</p>
+@if(shoppingItems.length === 0 || isLoading){
+<div class="spinner-container">
+  <mat-spinner></mat-spinner>
+</div>
+}@else{
+<mat-toolbar>
+  <button
+    mat-icon-button
+    class="icon"
+    aria-label="icon-button with menu icon"
+    routerLink="/home"
+  >
+    <mat-icon>home</mat-icon>
+  </button>
+  <span>Shopping Cart <mat-icon></mat-icon></span>
+  <span class="spacer"></span>
+  <button
+    mat-icon-button
+    class="icon favorite-icon"
+    aria-label="icon-button with heart icon"
+  >
+    <mat-icon [matBadge]="inCart.length" matBadgeColor="warn"
+      >shopping_cart</mat-icon
+    >
+    <span class="cdk-visually-hidden">
+      Shopping cart with overlaid badge showing {{ inCart.length }}
+    </span>
+  </button>
+  <button
+    mat-icon-button
+    color="primary"
+    (click)="saveAll()"
+    [disabled]="!unsavedChangesExist"
+  >
+    <mat-icon>save</mat-icon>
+  </button>
+  <button mat-icon-button color="primary" (click)="openDialog()">
+    <mat-icon>add</mat-icon>
+  </button>
+</mat-toolbar>
+
+<div class="item-container">
+  <div
+    cdkDropList
+    #todoList="cdkDropList"
+    [cdkDropListData]="inCart"
+    [cdkDropListConnectedTo]="[doneList]"
+    class="item-list"
+    (cdkDropListDropped)="drop($event)"
+  >
+    @for (item of inCart; track item) {
+    <div cdkDrag [cdkDragData]="item">
+      <mat-form-field>
+        <mat-label> {{ item.name }}</mat-label>
+        <input matInput placeholder="Ex. 1kg" [(ngModel)]="item.quantity" />
+        <button
+          matSuffix
+          mat-icon-button
+          aria-label="Clear"
+          (click)="openDialog(item)"
+        >
+          <mat-icon>edit</mat-icon>
+        </button>
+      </mat-form-field>
+    </div>
+    }
+  </div>
+</div>
+<hr />
+<div class="item-container">
+  <div
+    cdkDropList
+    #doneList="cdkDropList"
+    [cdkDropListData]="rest"
+    [cdkDropListConnectedTo]="[todoList]"
+    class="item-list"
+    (cdkDropListDropped)="drop($event)"
+  >
+    @for (item of rest; track item) {
+    <div class="item-box" cdkDrag [cdkDragData]="item">
+      {{ item.name }}
+    </div>
+    }
+  </div>
+</div>
+
+}

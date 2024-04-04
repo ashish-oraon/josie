@@ -86,11 +86,14 @@ export class MonthlyTransactionReportComponent implements OnChanges {
   }
 
   processData(transactionsOftheMonth: ITransaction[]) {
+    const expensesOfTheMonth: ITransaction[] = transactionsOftheMonth.filter(
+      (tran) => tran.type === 'expense'
+    );
     let sum: number = 0;
     // let dateSet: Set<string> = new Set<string>();
     let categoryMap: Map<string, number> = new Map<string, number>();
     // graphData: graphModel[] = []
-    for (let tr of transactionsOftheMonth) {
+    for (let tr of expensesOfTheMonth) {
       categoryMap.set(
         tr.category,
         categoryMap.get(tr.category) ?? 0 + tr.amount

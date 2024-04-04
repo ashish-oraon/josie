@@ -17,6 +17,7 @@ import { CommonModule } from '@angular/common';
 import { LoginService } from '../login.service';
 import { Router } from '@angular/router';
 import { error } from 'console';
+import { LocalStorageService } from '../shared/services/local-storage.service';
 
 @Component({
   selector: 'login-form',
@@ -39,8 +40,10 @@ import { error } from 'console';
 export class LoginComponent implements OnInit {
   loginForm!: FormGroup<any>;
   loginService: LoginService = inject(LoginService);
+  localStorage: LocalStorageService = inject(LocalStorageService);
   private router: Router = inject(Router);
   isLoading: boolean = false;
+  error: any;
 
   ngOnInit(): void {
     this.loginForm = new FormGroup({
@@ -53,7 +56,12 @@ export class LoginComponent implements OnInit {
     this.isLoading = true;
     this.loginService.loginCred(this.loginForm.value).subscribe(
       (data) => {
-        this.router.navigate(['/home']);
+        if (data.message === 'Login successful!') {
+          this.localStorage.setItem('token', data.token);
+          this.router.navigate(['/home']);
+        } else {
+          this.error = data.message;
+        }
       },
       (error) => {},
       () => (this.isLoading = false)
