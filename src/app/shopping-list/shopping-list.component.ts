@@ -130,7 +130,7 @@ export class ShoppingListComponent implements OnInit {
   }
   openDialog(item?: IShoppingItem): void {
     const dialogRef = this.dialog.open(DialogOverviewExampleDialog, {
-      data: item,
+      data: item || {name: '', quantity: ''},
     });
 
     dialogRef.afterClosed().subscribe((result) => {

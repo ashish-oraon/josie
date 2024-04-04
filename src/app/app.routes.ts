@@ -5,6 +5,7 @@ import { ExpenseTrackerComponent } from './expense-tracker/expense-tracker.compo
 import { ShoppingListComponent } from './shopping-list/shopping-list.component';
 import { MonthlyTransactionListComponent } from './expense-tracker/monthly-transaction-list/monthly-transaction-list.component';
 import { TransactionFormComponent } from './expense-tracker/transaction-form/transaction-form.component';
+import { AuthGuard } from './shared/services/auth.guard';
 
 export const routes: Routes = [
   {
@@ -17,6 +18,7 @@ export const routes: Routes = [
   },
   {
     path: 'expense-tracker',
+    canActivate: [AuthGuard],
     component: ExpenseTrackerComponent,
     children: [
       {

@@ -11,7 +11,8 @@ export class AuthService {
     const registeredUsers = environment.users;
     const receivedToken = atob(this.localStorage.getItem('token'));
     const [user, dateString] = receivedToken.split(':');
-    const [tokenDate, today] = [new Date(dateString), new Date()];
+    const [day, month, date, year, ...rest] = dateString.split(' ')
+    const [tokenDate, today] = [new Date(`${date}-${month}-${year}`), new Date()];
     if (
       registeredUsers.includes(user) &&
       today.getDate() === tokenDate.getDate() &&
