@@ -32,3 +32,11 @@ mat-spinner {
   transform: scale(2);
   filter: invert(1);
 }
+
+.float-button-container {
+  width: 4rem;
+  height: 4rem;
+  position: fixed;
+  bottom: 5rem;
+  right: 3rem;
+}

@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, Inject, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import {
   FormBuilder,
   FormGroup,
@@ -22,10 +22,10 @@ import { MAT_DATE_LOCALE } from '@angular/material/core';
 import { TrackerService } from '../services/tracker.service';
 import { ICategory } from '../interfaces/category';
 import { ITransaction } from '../interfaces/transaction';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { LoaderService } from '../../shared/loader.service';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { provideNativeDateAdapter } from '@angular/material/core';
+import { CommonService } from '../../shared/common.service';
 export interface DialogData {
   type: string;
   transaction: ITransaction;
@@ -45,7 +45,6 @@ export interface DialogData {
     MatInputModule,
     CommonModule,
     MatRadioModule,
-    MatSnackBarModule,
     MatProgressSpinnerModule,
   ],
   providers: [
@@ -86,7 +85,7 @@ export class TransactionFormComponent implements OnInit {
     private fb: FormBuilder,
     private trackerService: TrackerService,
     private loaderService: LoaderService,
-    private _snackBar: MatSnackBar
+    private commonService: CommonService
   ) {
     this.isLoading$ = this.loaderService.isLoading$;
     this.navigationExtras = this.router.getCurrentNavigation()?.extras;
@@ -145,12 +144,12 @@ export class TransactionFormComponent implements OnInit {
       this.trackerService.addNewTransaction(payload).subscribe(
         (data) => {
           if (data.message === 'Transaction updated successfully') {
-            this.openSnackBar(data.message, '', 3);
+            this.commonService.openSnackBar(data.message, '', 3);
             this.goBack();
           }
         },
         (error) => {
-          this.openSnackBar('Something went wrong, Try Again!', '', 3);
+          this.commonService.openSnackBar('Something went wrong, Try Again!', '', 3);
         },
         () => {
           this.loaderService.hide();
@@ -164,12 +163,12 @@ export class TransactionFormComponent implements OnInit {
           .subscribe(
             (data) => {
               if (data.message === 'Transaction updated successfully') {
-                this.openSnackBar('Success', data.message, 3);
+                this.commonService.openSnackBar('Success', data.message, 3);
                 this.goBack();
               }
             },
             (error) => {
-              this.openSnackBar(
+              this.commonService.openSnackBar(
                 'Success',
                 'Something went wrong, Try Again!',
                 3
@@ -181,12 +180,6 @@ export class TransactionFormComponent implements OnInit {
           );
       }
     }
-  }
-
-  openSnackBar(message: string, action: string, durationInS: number) {
-    this._snackBar.open(message, action, {
-      duration: durationInS * 1000,
-    });
   }
   goBack() {
     this.router.navigate(['/expense-tracker/transaction-list']);

@@ -164,9 +164,9 @@ export class CommonService {
     return `${dt.getDate()}-${dt.getMonth() + 1}-${dt.getFullYear()}`;
   }
 
-  openSnackBar(message: string, action: string) {
+  openSnackBar(message: string, action: string, duration: number = 3) {
     this._snackBar.open(message, action, {
-      duration: 2000,
+      duration: duration * 1000,
       horizontalPosition: 'center',
       verticalPosition: 'bottom',
     });

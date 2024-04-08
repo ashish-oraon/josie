@@ -1,29 +1,39 @@
 <div class="container mat-drawer-container">
-    <div style="height: 80vh">
-      <router-outlet></router-outlet>
-    </div>
-    <mat-toolbar class="navigation-panel" color="primary" style="height: 5vh">
-      <mat-toolbar-row>
-        <button
-          mat-icon-button
-          routerLink="/expense-tracker/transaction-list"
-          routerLinkActive="active"
-        >
-          <mat-icon>account_balance_wallet</mat-icon></button
-        ><button
-          mat-icon-button
-          routerLink="/expense-tracker/add-transaction"
-          routerLinkActive="active"
-        >
-          <mat-icon>add_circle_outline</mat-icon>
-        </button>
-        <button
-          mat-icon-button
-          routerLink="/expense-tracker/transaction-report"
-          routerLinkActive="active"
-        >
-          <mat-icon>pie_chart</mat-icon>
-        </button>
-      </mat-toolbar-row>
-    </mat-toolbar>
+  <div style="height: 80vh">
+    <router-outlet></router-outlet>
+  </div>
+  <mat-toolbar class="navigation-panel" color="primary" style="height: 5vh">
+    <mat-toolbar-row>
+      <button
+        mat-icon-button
+        routerLink="/expense-tracker/transaction-list"
+        routerLinkActive="active"
+      >
+        <mat-icon>account_balance_wallet</mat-icon></button
+      ><button
+        mat-icon-button
+        routerLink="/expense-tracker/add-transaction"
+        routerLinkActive="active"
+      >
+        <mat-icon>add_circle_outline</mat-icon>
+      </button>
+      <button
+        mat-icon-button
+        routerLink="/expense-tracker/transaction-report"
+        routerLinkActive="active"
+      >
+        <mat-icon>pie_chart</mat-icon>
+      </button>
+    </mat-toolbar-row>
+  </mat-toolbar>
+</div>
+
+<div class="float-button-container">
+  <button
+    mat-fab
+    aria-label="icon button with a home icon"
+    routerLink="../home"
+  >
+    <mat-icon>home</mat-icon>
+  </button>
 </div>

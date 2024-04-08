@@ -10,7 +10,7 @@ import { LoginComponent } from './login/login.component';
   styleUrl: './app.component.scss'
 })
 export class AppComponent {
-  title = 'josie';
+  title = 'Josie World';
 
   //path = /home/oraon-as/.nvm/versions/node/v20.11.1/bin/ng
 }

@@ -26,6 +26,7 @@ import {
   MatDialogActions,
   MatDialogClose,
 } from '@angular/material/dialog';
+import { CommonService } from '../shared/common.service';
 
 export interface IShoppingItem {
   id: number;
@@ -63,7 +64,8 @@ export class ShoppingListComponent implements OnInit {
 
   constructor(
     private shoppingListService: ShoppingListService,
-    public dialog: MatDialog
+    public dialog: MatDialog,
+    private _commonService: CommonService
   ) {}
   shoppingItems: IShoppingItem[] = [];
   inCart: IShoppingItem[] = [];
@@ -114,9 +116,14 @@ export class ShoppingListComponent implements OnInit {
     this.shoppingListService.update(this.shoppingItems).subscribe(
       (data: any) => {
         console.log(data);
-        alert('Saved!');
+        this._commonService.openSnackBar(
+          'Shopping list updated successfully',
+          ''
+        );
       },
-      () => console.log('error occured'),
+      () => {
+        this._commonService.openSnackBar('Error Occured, Try Again!', '');
+      },
       () => {
         this.isLoading = false;
         this.unsavedChangesExist = false;
