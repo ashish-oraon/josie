@@ -14,10 +14,20 @@
         [formControl]="searchControl"
         [matAutocomplete]="auto"
       />
-      <button matSuffix mat-icon-button aria-label="Clear" (click)="resetMonthData($event)">
+      <button
+        matSuffix
+        mat-icon-button
+        aria-label="Clear"
+        (click)="resetMonthData($event)"
+      >
         <mat-icon>close</mat-icon>
       </button>
-      <mat-autocomplete #auto="matAutocomplete" [displayWith]="displayFn" [requireSelection]="true" (optionSelected)="triggerFilter($event)">
+      <mat-autocomplete
+        #auto="matAutocomplete"
+        [displayWith]="displayFn"
+        [requireSelection]="true"
+        (optionSelected)="triggerFilter($event)"
+      >
         @for (option of filteredOptions | async; track option) {
         <mat-option [value]="option">{{ option.note }}</mat-option>
         }
