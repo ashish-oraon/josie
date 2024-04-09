@@ -51,4 +51,8 @@ export class LineChartComponent {
   onResize(event: any) {
     // this.view = [event.target.innerWidth / 3, event.target.innerHeight];
   }
+
+  formatDataLabel(value: any) {
+    return '€' + Math.round((value + Number.EPSILON) * 100) / 100;
+  }
 }
