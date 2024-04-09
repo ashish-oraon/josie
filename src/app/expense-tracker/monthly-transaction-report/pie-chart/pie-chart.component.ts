@@ -1,26 +1,8 @@
 import { CommonModule } from '@angular/common';
 import { Component, Input } from '@angular/core';
-import { NgxChartsModule, Color, LegendPosition } from '@swimlane/ngx-charts';
+import { NgxChartsModule, LegendPosition } from '@swimlane/ngx-charts';
 import { IPieChartData } from '../monthly-transaction-report.component';
 
-const single = [
-  {
-    name: 'Germany',
-    value: 8940000,
-  },
-  {
-    name: 'USA',
-    value: 5000000,
-  },
-  {
-    name: 'France',
-    value: 7200000,
-  },
-  {
-    name: 'UK',
-    value: 6200000,
-  },
-];
 @Component({
   selector: 'tracker-pie-chart',
   standalone: true,
@@ -39,6 +21,7 @@ export class PieChartComponent {
   showLabels: boolean = true;
   showAnimations: boolean = true;
   isDoughnut: boolean = false;
+  explodeSlices: boolean = false;
   legendPosition: LegendPosition = LegendPosition.Below;
 
   colorScheme = {

@@ -96,7 +96,7 @@ export class MonthlyTransactionReportComponent implements OnChanges {
     for (let tr of expensesOfTheMonth) {
       categoryMap.set(
         tr.category,
-        categoryMap.get(tr.category) ?? 0 + tr.amount
+        (categoryMap.get(tr.category) ?? 0 )+ tr.amount
       );
     }
     this.categoryData = [...categoryMap.keys()].map((k) => ({

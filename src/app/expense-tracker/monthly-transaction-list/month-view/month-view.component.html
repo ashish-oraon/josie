@@ -4,6 +4,27 @@
   <tracker-income-expense
     [transactions]="transactionsOftheMonth"
   ></tracker-income-expense>
+
+  <form class="search-form">
+    <mat-form-field class="search-full-width">
+      <mat-label>Search...</mat-label>
+      <input
+        type="text"
+        matInput
+        [formControl]="searchControl"
+        [matAutocomplete]="auto"
+      />
+      <button matSuffix mat-icon-button aria-label="Clear" (click)="resetMonthData($event)">
+        <mat-icon>close</mat-icon>
+      </button>
+      <mat-autocomplete #auto="matAutocomplete" [displayWith]="displayFn" [requireSelection]="true" (optionSelected)="triggerFilter($event)">
+        @for (option of filteredOptions | async; track option) {
+        <mat-option [value]="option">{{ option.note }}</mat-option>
+        }
+      </mat-autocomplete>
+    </mat-form-field>
+  </form>
+
   @for( date of datesInTheMonth; track date){
   <tracker-day-card
     (dayEvent)="handleDayEvent($event)"

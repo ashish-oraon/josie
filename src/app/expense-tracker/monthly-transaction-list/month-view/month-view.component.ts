@@ -10,7 +10,7 @@ import { ITabInformation } from '../../interfaces/tab-info';
 import { CommonModule } from '@angular/common';
 import { TrackerService } from '../../services/tracker.service';
 import { ITransaction } from '../../interfaces/transaction';
-import { map, tap } from 'rxjs';
+import { Observable, map, startWith, tap } from 'rxjs';
 import { DayCardComponent } from './day-card/day-card.component';
 import { LoaderService } from '../../../shared/loader.service';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
@@ -18,6 +18,17 @@ import { MatDialog } from '@angular/material/dialog';
 import { DialogConfirmationComponent } from '../../../shared/component/dialog-confirmation/dialog-confirmation.component';
 import { CommonService } from '../../../shared/common.service';
 import { IncomeExpenseComponent } from './income-expense/income-expense.component';
+import { FormControl, ReactiveFormsModule } from '@angular/forms';
+
+import { MatIconModule } from '@angular/material/icon';
+import { MatButtonModule } from '@angular/material/button';
+
+import {
+  MatAutocompleteModule,
+  MatAutocompleteSelectedEvent,
+} from '@angular/material/autocomplete';
+import { MatInputModule } from '@angular/material/input';
+import { MatFormFieldModule } from '@angular/material/form-field';
 
 @Component({
   selector: 'month-view',
@@ -26,6 +37,12 @@ import { IncomeExpenseComponent } from './income-expense/income-expense.componen
     CommonModule,
     DayCardComponent,
     MatProgressSpinnerModule,
+    ReactiveFormsModule,
+    MatAutocompleteModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatButtonModule,
+    MatIconModule,
     IncomeExpenseComponent,
   ],
   templateUrl: './month-view.component.html',
@@ -49,7 +66,49 @@ export class MonthViewComponent implements OnChanges {
 
   canShowSpinner: boolean = true;
 
-  // transactionsOfTheMonth =
+  searchControl = new FormControl<string | ITransaction>('');
+  filteredOptions!: Observable<ITransaction[]>;
+
+  ngOnInit() {
+    this.filteredOptions = this.searchControl.valueChanges.pipe(
+      startWith(''),
+      map((value) => {
+        const name = typeof value === 'string' ? value : value?.note;
+        return name ? this._filter(name) : this.transactionsOftheMonth.slice();
+      })
+    );
+  }
+
+  displayFn(transaction: ITransaction): string {
+    return transaction?.note ? transaction.note : '';
+  }
+
+  triggerFilter($event: MatAutocompleteSelectedEvent) {
+    const transaction: ITransaction = $event.option.value;
+    this.filterTheMonthData(transaction);
+  }
+
+  filterTheMonthData(transaction: ITransaction) {
+    const filteredTransactions = this.transactionsOftheMonth.filter(
+      (tr) => tr.note === transaction.note
+    );
+    this.processData(filteredTransactions);
+  }
+
+  resetMonthData($event: MouseEvent) {
+    $event.stopPropagation();
+    $event.preventDefault();
+    this.searchControl.setValue("");
+    this.processData(this.transactionsOftheMonth);
+  }
+
+  private _filter(name: string): ITransaction[] {
+    const filterValue = name.toLowerCase();
+
+    return this.transactionsOftheMonth.filter((option) =>
+      option.note.toLowerCase().includes(filterValue)
+    );
+  }
 
   constructor(
     private trackerService: TrackerService,
