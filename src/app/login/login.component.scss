@@ -19,7 +19,7 @@ section {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 2px;
+  gap: (2 / 16) * 1rem;
   flex-wrap: wrap;
   overflow: hidden;
 }
@@ -55,15 +55,15 @@ section span:hover {
 
 section .signin {
   position: absolute;
-  width: 400px;
+  width: (400 / 16) * 1rem;
   background: #222;
   z-index: 1000;
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 40px;
-  border-radius: 4px;
-  box-shadow: 0 15px 35px rgba(0, 0, 0, 9);
+  padding: (40 / 16) * 1rem;
+  border-radius: (4 / 16) * 1rem;
+  box-shadow: 0 (15 / 16) * 1rem (35 / 16) * 1rem rgba(0, 0, 0, 9);
 }
 section .signin .content {
   position: relative;
@@ -72,10 +72,10 @@ section .signin .content {
   justify-content: center;
   align-items: center;
   flex-direction: column;
-  gap: 40px;
+  gap: (40 / 16) * 1rem;
 }
 section .signin .content h2 {
-  font-size: 2em;
+  font-size: 2rem;
   color: #0f0;
   text-transform: uppercase;
 }
@@ -83,7 +83,7 @@ section .signin .content .form {
   width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 25px;
+  gap: (25 / 16) * 1rem;
 }
 section .signin .content .form .inputBox {
   position: relative;
@@ -95,11 +95,11 @@ section .signin .content .form .inputBox input {
   background: #333;
   border: none;
   outline: none;
-  padding: 25px 10px 7.5px;
-  border-radius: 4px;
+  padding: (25 / 16) * 1rem (10 / 16) * 1rem (7.5 / 16) * 1rem;
+  border-radius: (4 / 16) * 1rem;
   color: #fff;
   font-weight: 500;
-  font-size: 1em;
+  font-size: 1rem;
 }
 .inputBox button {
   position: relative;
@@ -107,16 +107,16 @@ section .signin .content .form .inputBox input {
   background: #333;
   border: none;
   outline: none;
-  padding: 25px 10px;
-  border-radius: 4px;
+  padding: (25 / 16) * 1rem (10 / 16) * 1rem;
+  border-radius: (4 / 16) * 1rem;
   color: #fff;
   font-weight: 500;
-  font-size: 1em;
+  font-size: 1rem;
 }
 section .signin .content .form .inputBox i {
   position: absolute;
   left: 0;
-  padding: 15px 10px;
+  padding: (15 / 16) * 1rem (10 / 16) * 1rem;
   font-style: normal;
   color: #aaa;
   transition: 0.5s;
@@ -124,8 +124,8 @@ section .signin .content .form .inputBox i {
 }
 .signin .content .form .inputBox input:focus ~ i,
 .signin .content .form .inputBox input:valid ~ i {
-  transform: translateY(-7.5px);
-  font-size: 0.8em;
+  transform: translateY((7.5 / 16) * -1rem);
+  font-size: 0.8rem;
   color: #fff;
 }
 .signin .content .form .links {
@@ -143,12 +143,12 @@ section .signin .content .form .inputBox i {
   font-weight: 600;
 }
 .signin .content .form .inputBox input[type="submit"] {
-  padding: 10px;
+  padding: (10 / 16) * 1rem;
   background: #0f0;
   color: #000;
   font-weight: 600;
-  font-size: 1.35em;
-  letter-spacing: 0.05em;
+  font-size: 1.35rem;
+  letter-spacing: 0.05rem;
   cursor: pointer;
 }
 input[type="submit"]:active {
@@ -166,6 +166,6 @@ input[type="submit"]:active {
     height: calc(20vw - 2px);
   }
   section .signin {
-    width: 80vw;
+    width: 90vw;
   }
 }
