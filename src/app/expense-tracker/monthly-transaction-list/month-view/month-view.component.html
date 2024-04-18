@@ -9,9 +9,11 @@
     <mat-form-field class="search-full-width">
       <mat-label>Search...</mat-label>
       <input
+        #input
         type="text"
         matInput
         [formControl]="searchControl"
+        (input)="filter($event)"
         [matAutocomplete]="auto"
       />
       <button

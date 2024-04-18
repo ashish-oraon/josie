@@ -1,16 +1,18 @@
 import {
   Component,
+  ElementRef,
   EventEmitter,
   Input,
   OnChanges,
   Output,
   SimpleChanges,
+  ViewChild,
 } from '@angular/core';
 import { ITabInformation } from '../../interfaces/tab-info';
 import { CommonModule } from '@angular/common';
 import { TrackerService } from '../../services/tracker.service';
 import { ITransaction } from '../../interfaces/transaction';
-import { Observable, map, startWith, tap } from 'rxjs';
+import { Observable, map, of, startWith } from 'rxjs';
 import { DayCardComponent } from './day-card/day-card.component';
 import { LoaderService } from '../../../shared/loader.service';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
@@ -56,6 +58,8 @@ export class MonthViewComponent implements OnChanges {
 
   @Output() mEvent = new EventEmitter<any>();
 
+  @ViewChild('input') input!: ElementRef<HTMLInputElement>;
+
   transactionsOftheMonth: ITransaction[] = [];
   datesInTheMonth: string[] = [];
   transactionMap: Map<string, ITransaction[]> = new Map<
@@ -79,6 +83,11 @@ export class MonthViewComponent implements OnChanges {
     );
   }
 
+  filter($event: Event) {
+    const name = this.input.nativeElement.value;
+    this.filteredOptions = of(this._filter(name));
+  }
+
   displayFn(transaction: ITransaction): string {
     return transaction?.note ? transaction.note : '';
   }
@@ -98,7 +107,7 @@ export class MonthViewComponent implements OnChanges {
   resetMonthData($event: MouseEvent) {
     $event.stopPropagation();
     $event.preventDefault();
-    this.searchControl.setValue("");
+    this.searchControl.setValue('');
     this.processData(this.transactionsOftheMonth);
   }
 
