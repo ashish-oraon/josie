@@ -49,7 +49,7 @@
     (cdkDropListDropped)="drop($event)"
   >
     @for (item of inCart; track item) {
-    <div cdkDrag [cdkDragData]="item">
+    <div cdkDrag [cdkDragData]="item" [cdkDragStartDelay]="100">
       <mat-form-field>
         <mat-label> {{ item.name }}</mat-label>
         <input matInput placeholder="Ex. 1kg" [(ngModel)]="item.quantity" />
@@ -77,7 +77,7 @@
     (cdkDropListDropped)="drop($event)"
   >
     @for (item of rest; track item) {
-    <div class="item-box" cdkDrag [cdkDragData]="item">
+    <div class="item-box" cdkDrag [cdkDragData]="item"  [cdkDragStartDelay]="100">
       {{ item.name }}
     </div>
     }
