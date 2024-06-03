@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { Observable, map, of, shareReplay, tap } from 'rxjs';
+import { BehaviorSubject, Observable, of, shareReplay } from 'rxjs';
 import { GoogleSheetService } from '../gsheet.service';
 import { ICategory } from '../expense-tracker/interfaces/category';
 const staticData = [
@@ -122,6 +122,12 @@ const staticData = [
 })
 export class CommonService {
   allCategories$: Observable<ICategory[]>;
+
+  activeUserSubject$: BehaviorSubject<string> = new BehaviorSubject<string>(
+    'aishani'
+  );
+  activeUser = this.activeUserSubject$.asObservable();
+
   monthNameMap: string[] = [
     'January',
     'February',

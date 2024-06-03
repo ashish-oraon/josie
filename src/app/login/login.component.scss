@@ -75,7 +75,7 @@ section .signin .content {
   gap: 40px;
 }
 section .signin .content h2 {
-  font-size: 2em;
+  font-size: 2rem;
   color: #0f0;
   text-transform: uppercase;
 }
@@ -99,7 +99,7 @@ section .signin .content .form .inputBox input {
   border-radius: 4px;
   color: #fff;
   font-weight: 500;
-  font-size: 1em;
+  font-size: 1rem;
 }
 .inputBox button {
   position: relative;
@@ -111,7 +111,7 @@ section .signin .content .form .inputBox input {
   border-radius: 4px;
   color: #fff;
   font-weight: 500;
-  font-size: 1em;
+  font-size: 1rem;
 }
 section .signin .content .form .inputBox i {
   position: absolute;
@@ -125,7 +125,7 @@ section .signin .content .form .inputBox i {
 .signin .content .form .inputBox input:focus ~ i,
 .signin .content .form .inputBox input:valid ~ i {
   transform: translateY(-7.5px);
-  font-size: 0.8em;
+  font-size: 1rem;
   color: #fff;
 }
 .signin .content .form .links {
@@ -166,6 +166,6 @@ input[type="submit"]:active {
     height: calc(20vw - 2px);
   }
   section .signin {
-    width: 80vw;
+    width: 85vw;
   }
 }

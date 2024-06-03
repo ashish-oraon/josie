@@ -103,11 +103,23 @@ export class TransactionFormComponent implements OnInit {
       this.selectedTransaction = this.navigationExtras.state.transaction;
       this.formType = this.navigationExtras.state.action;
     }
+
     this.trackerService.allCategories.subscribe((data) => {
       this.availableCategories = data;
       this.availableCategoriesNames = data.map((el) => el.name);
       if (this.selectedTransaction && this.formType !== 'add') {
         this.setFormData();
+      }
+    });
+
+    this.initializePayeeSelection();
+  }
+  initializePayeeSelection() {
+    this.commonService.activeUser.subscribe((user) => {
+      if (this.formType === 'add') {
+        this.transactionForm.patchValue({
+          paidBy: user === 'ashish' ? 'As' : 'Ai',
+        });
       }
     });
   }
@@ -149,7 +161,11 @@ export class TransactionFormComponent implements OnInit {
           }
         },
         (error) => {
-          this.commonService.openSnackBar('Something went wrong, Try Again!', '', 3);
+          this.commonService.openSnackBar(
+            'Something went wrong, Try Again!',
+            '',
+            3
+          );
         },
         () => {
           this.loaderService.hide();
