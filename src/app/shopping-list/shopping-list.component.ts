@@ -27,6 +27,7 @@ import {
   MatDialogClose,
 } from '@angular/material/dialog';
 import { CommonService } from '../shared/common.service';
+import { ItemComponent } from './item/item.component';
 
 export interface IShoppingItem {
   id: number;
@@ -52,6 +53,7 @@ export interface IShoppingItem {
     MatBadgeModule,
     RouterModule,
     MatProgressSpinnerModule,
+    ItemComponent,
   ],
   templateUrl: './shopping-list.component.html',
   styleUrl: './shopping-list.component.scss',
@@ -133,11 +135,21 @@ export class ShoppingListComponent implements OnInit {
 
   dblClick(item?: IShoppingItem): void {
     console.log(item);
-    alert('ii');
   }
+
+  handleProductEdit($event: IShoppingItem) {
+    this.openDialog($event);
+  }
+
+  handleProductDelete(item: IShoppingItem) {
+    item.isAdded = false;
+    this.unsavedChangesExist = true;
+    this.initAreas();
+  }
+
   openDialog(item?: IShoppingItem): void {
-    const dialogRef = this.dialog.open(DialogOverviewExampleDialog, {
-      data: item || {name: '', quantity: ''},
+    const dialogRef = this.dialog.open(EditCartItemDialog, {
+      data: item || { name: '', quantity: '' },
     });
 
     dialogRef.afterClosed().subscribe((result) => {
@@ -180,9 +192,9 @@ export class ShoppingListComponent implements OnInit {
     MatDialogClose,
   ],
 })
-export class DialogOverviewExampleDialog {
+export class EditCartItemDialog {
   constructor(
-    public dialogRef: MatDialogRef<DialogOverviewExampleDialog>,
+    public dialogRef: MatDialogRef<EditCartItemDialog>,
     @Inject(MAT_DIALOG_DATA) public data: IShoppingItem
   ) {}
 
