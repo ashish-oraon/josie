@@ -94,7 +94,7 @@ export class TransactionFormComponent implements OnInit {
       category: ['', Validators.required],
       note: '',
       date: [new Date(), Validators.required],
-      paymentMethod: [this.paymentMethods[0], Validators.required],
+      paymentMethod: [this.paymentMethods[1], Validators.required],
       paidBy: [this.payees[0], Validators.required],
     });
   }
