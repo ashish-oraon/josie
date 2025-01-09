@@ -1,15 +1,21 @@
 <div class="container">
-  <mat-card (click)="redirectTo('expense-tracker')">
+  <mat-card
+    onKeyDown="redirectTo('expense-tracker')"
+    (click)="redirectTo('expense-tracker')"
+  >
     <mat-card-content>
       <mat-icon
         color="primary"
         aria-hidden="false"
         aria-label="Example home icon"
-        fontIcon="view_list"
+        fontIcon="receipt"
       ></mat-icon>
     </mat-card-content>
   </mat-card>
-  <mat-card (click)="redirectTo('shopping-list')">
+  <mat-card
+    onKeyDown="redirectTo('shopping-list')"
+    (click)="redirectTo('shopping-list')"
+  >
     <mat-card-content
       ><mat-icon
         color="accent"
