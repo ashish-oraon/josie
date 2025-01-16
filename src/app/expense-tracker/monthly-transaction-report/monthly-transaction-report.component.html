@@ -9,12 +9,24 @@
       <mat-expansion-panel-header>
         <mat-panel-title> Category Wise Expenses </mat-panel-title>
       </mat-expansion-panel-header>
-      <tracker-pie-chart [chartData]="categoryData"></tracker-pie-chart>
+      <mat-slide-toggle
+        [(ngModel)]="showRent"
+        (ngModelChange)="onShowRentChange($event)"
+        >Show Rent</mat-slide-toggle
+      >
+      <tracker-pie-chart
+        [chartData]="categoryData"
+      ></tracker-pie-chart>
     </mat-expansion-panel>
     <mat-expansion-panel>
       <mat-expansion-panel-header>
         <mat-panel-title> Category Wise Expenses:Line Chart </mat-panel-title>
       </mat-expansion-panel-header>
+      <mat-slide-toggle
+        [(ngModel)]="showRent"
+        (ngModelChange)="onShowRentChange($event)"
+        >Show Rent</mat-slide-toggle
+      >
       <tracker-line-chart [chartData]="categoryData"></tracker-line-chart>
     </mat-expansion-panel> </mat-accordion
   >} @else{

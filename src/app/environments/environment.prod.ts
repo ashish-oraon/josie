@@ -7,5 +7,6 @@ export const environment = {
   previousMonthsToShow:4,
   apiVersion: 'v1',
   currency:'EUR',
+  currencySymbol:'€',
   users:['ashish','aishani']
 };

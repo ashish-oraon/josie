@@ -1,7 +1,9 @@
 import { Component, Input } from '@angular/core';
 import { NgxChartsModule, Color, LegendPosition } from '@swimlane/ngx-charts';
 import { IPieChartData } from '../monthly-transaction-report.component';
+import { environment } from '../../../environments/environment';
 
+const CURRENCY_SYMBOL = environment.currencySymbol;
 @Component({
   selector: 'tracker-line-chart',
   standalone: true,
@@ -37,15 +39,15 @@ export class LineChartComponent {
   }
 
   onSelect(data: any): void {
-    console.log('Item clicked', JSON.parse(JSON.stringify(data)));
+    // console.log('Item clicked', JSON.parse(JSON.stringify(data)));
   }
 
   onActivate(data: any): void {
-    console.log('Activate', JSON.parse(JSON.stringify(data)));
+    // console.log('Activate', JSON.parse(JSON.stringify(data)));
   }
 
   onDeactivate(data: any): void {
-    console.log('Deactivate', JSON.parse(JSON.stringify(data)));
+    // console.log('Deactivate', JSON.parse(JSON.stringify(data)));
   }
 
   onResize(event: any) {
@@ -53,6 +55,7 @@ export class LineChartComponent {
   }
 
   formatDataLabel(value: any) {
-    return '€' + Math.round((value + Number.EPSILON) * 100) / 100;
+    return `
+      ${CURRENCY_SYMBOL}${Math.round((value + Number.EPSILON) * 100) / 100}`;
   }
 }

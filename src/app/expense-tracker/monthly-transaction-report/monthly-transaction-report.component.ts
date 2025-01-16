@@ -1,6 +1,5 @@
 import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { RouterModule } from '@angular/router';
-import { HighlightDirective } from '../../shared/highlight.directive';
 import { FormsModule } from '@angular/forms';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
@@ -8,7 +7,7 @@ import { MatTabsModule } from '@angular/material/tabs';
 import { CommonModule } from '@angular/common';
 import { ITabInformation } from '../interfaces/tab-info';
 import { TrackerService } from '../services/tracker.service';
-import { map, tap } from 'rxjs';
+import { BehaviorSubject, combineLatest, map, Observable, tap } from 'rxjs';
 import { ITransaction } from '../interfaces/transaction';
 import { PieChartComponent } from './pie-chart/pie-chart.component';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
@@ -16,6 +15,10 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { LineChartComponent } from './line-chart/line-chart.component';
 
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { environment } from '../../environments/environment';
+
+const CURRENCY_SYMBOL = environment.currencySymbol;
 export interface IPieChartData {
   name: string;
   value: number | undefined;
@@ -25,7 +28,6 @@ export interface IPieChartData {
   standalone: true,
   imports: [
     RouterModule,
-    HighlightDirective,
     FormsModule,
     MatButtonModule,
     MatInputModule,
@@ -35,6 +37,7 @@ export interface IPieChartData {
     LineChartComponent,
     MatExpansionModule,
     MatProgressSpinnerModule,
+    MatSlideToggleModule,
   ],
   templateUrl: './monthly-transaction-report.component.html',
   styleUrl: './monthly-transaction-report.component.scss',
@@ -48,6 +51,11 @@ export class MonthlyTransactionReportComponent implements OnChanges {
   categoryData: IPieChartData[] = [];
   panelOpenState: boolean = true;
   canShowSpinner: boolean = false;
+  showRent: boolean = false;
+
+  private toggleShowRent = new BehaviorSubject<boolean>(false);
+  toggleShowRent$ = this.toggleShowRent.asObservable().pipe();
+  transactions$!: Observable<ITransaction[]>;
 
   constructor(private trackerService: TrackerService) {}
 
@@ -55,34 +63,32 @@ export class MonthlyTransactionReportComponent implements OnChanges {
     const { month, year } = this.monthDetail;
     this.canShowSpinner = true;
     this.transactionsOftheMonth = [];
-
-    this.cancellableSubscriptions['allTransactionWithCatSubs'] =
-      this.trackerService.allTransactionsWithCategories$
-        .pipe(
-          map((data) =>
-            data
-              .filter((el) => {
-                let dataOfTr = new Date(el.date);
-                return (
-                  month === dataOfTr.getMonth() &&
-                  year == dataOfTr.getFullYear()
-                );
-              })
-              .sort((a, b) => {
-                let aDate = new Date(a.date);
-                let bDate = new Date(b.date);
-                return bDate.getTime() - aDate.getTime();
-              })
-          )
+    this.transactions$ =
+      this.trackerService.allTransactionsWithCategories$.pipe(
+        map((data) =>
+          data
+            .filter((el) => {
+              let dataOfTr = new Date(el.date);
+              return (
+                month === dataOfTr.getMonth() && year == dataOfTr.getFullYear()
+              );
+            })
+            .sort((a, b) => {
+              let aDate = new Date(a.date);
+              let bDate = new Date(b.date);
+              return bDate.getTime() - aDate.getTime();
+            })
         )
-        .subscribe(
-          (data) => {
-            this.transactionsOftheMonth = data;
-            this.processData(this.transactionsOftheMonth);
-          },
-          () => {},
-          () => {}
-        );
+      );
+    this.cancellableSubscriptions['allTransactionWithCatSubs'] = combineLatest(
+      this.transactions$,
+      this.toggleShowRent$
+    ).subscribe(([data, showRent]) => {
+      this.transactionsOftheMonth = showRent
+        ? data
+        : data.filter((tran) => tran.category !== 'rent');
+      this.processData(this.transactionsOftheMonth);
+    });
   }
 
   processData(transactionsOftheMonth: ITransaction[]) {
@@ -96,7 +102,7 @@ export class MonthlyTransactionReportComponent implements OnChanges {
     for (let tr of expensesOfTheMonth) {
       categoryMap.set(
         tr.category,
-        (categoryMap.get(tr.category) ?? 0 )+ tr.amount
+        (categoryMap.get(tr.category) ?? 0) + tr.amount
       );
     }
     this.categoryData = [...categoryMap.keys()].map((k) => ({
@@ -105,6 +111,10 @@ export class MonthlyTransactionReportComponent implements OnChanges {
     }));
 
     this.canShowSpinner = false;
+  }
+
+  onShowRentChange($event: any) {
+    $event ? this.toggleShowRent.next(true) : this.toggleShowRent.next(false);
   }
 
   deleteTransaction(transaction: ITransaction) {}

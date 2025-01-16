@@ -61,6 +61,7 @@ export interface DialogData {
   templateUrl: './transaction-form.component.html',
   styleUrl: './transaction-form.component.scss',
 })
+
 export class TransactionFormComponent implements OnInit {
   paidBy: string | undefined;
 
@@ -98,6 +99,7 @@ export class TransactionFormComponent implements OnInit {
       paidBy: [this.payees[0], Validators.required],
     });
   }
+
   ngOnInit(): void {
     if (this.navigationExtras?.state) {
       this.selectedTransaction = this.navigationExtras.state.transaction;
@@ -107,13 +109,20 @@ export class TransactionFormComponent implements OnInit {
     this.trackerService.allCategories.subscribe((data) => {
       this.availableCategories = data;
       this.availableCategoriesNames = data.map((el) => el.name);
+
       if (this.selectedTransaction && this.formType !== 'add') {
         this.setFormData();
+      } else {
+        const defaultCategory = this.availableCategories.find(
+          (cat) => cat.name === 'grocery'
+        );
+        this.transactionForm.patchValue({ category: defaultCategory });
       }
     });
 
     this.initializePayeeSelection();
   }
+
   initializePayeeSelection() {
     this.commonService.activeUser.subscribe((user) => {
       if (this.formType === 'add') {
@@ -123,6 +132,7 @@ export class TransactionFormComponent implements OnInit {
       }
     });
   }
+
   setFormData() {
     const transaction = this.selectedTransaction;
     const selectedCategory = this.availableCategories.find(
@@ -137,9 +147,11 @@ export class TransactionFormComponent implements OnInit {
       paidBy: transaction.paidBy,
     });
   }
+
   categorySelected($event: any) {
     throw new Error('Method not implemented.');
   }
+
   onSubmit() {
     throw new Error('Method not implemented.');
   }
@@ -197,6 +209,7 @@ export class TransactionFormComponent implements OnInit {
       }
     }
   }
+
   goBack() {
     this.router.navigate(['/expense-tracker/transaction-list']);
   }
