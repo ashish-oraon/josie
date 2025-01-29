@@ -216,7 +216,7 @@ export class TrackerService {
   subtractMonths(date: Date, months: number) {
     // 👇 Make copy with "Date" constructor
     const dateCopy = new Date(date);
-
+    dateCopy.setDate(2);
     dateCopy.setMonth(dateCopy.getMonth() - months);
 
     return dateCopy;
