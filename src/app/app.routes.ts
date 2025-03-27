@@ -6,6 +6,7 @@ import { ShoppingListComponent } from './shopping-list/shopping-list.component';
 import { MonthlyTransactionListComponent } from './expense-tracker/monthly-transaction-list/monthly-transaction-list.component';
 import { TransactionFormComponent } from './expense-tracker/transaction-form/transaction-form.component';
 import { AuthGuard } from './shared/services/auth.guard';
+import { TicTacToeComponent } from './tic-tac-toe/tic-tac-toe.component';
 
 export const routes: Routes = [
   {
@@ -45,6 +46,10 @@ export const routes: Routes = [
   {
     path: 'shopping-list',
     component: ShoppingListComponent,
+  },
+  {
+    path: 'tic-tac-toe',
+    component: TicTacToeComponent,
   },
   {
     path: '',

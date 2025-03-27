@@ -1,0 +1,101 @@
+@if(isLoading){
+<div class="spinner-container">
+  <mat-spinner></mat-spinner>
+</div>
+}@else{
+
+<mat-toolbar>
+  <button
+    mat-icon-button
+    class="icon"
+    aria-label="icon-button with menu icon"
+    routerLink="/home"
+  >
+    <mat-icon>home</mat-icon>
+  </button>
+  <span>Tic Tac Toe <mat-icon></mat-icon></span>
+  <span class="spacer"></span>
+  <mat-icon>games</mat-icon>
+</mat-toolbar>
+<div class="main">
+  <div class="item-container">
+    <h2>{{ statement }}</h2>
+
+    <div class="Board">
+      <mat-card>
+      <div class="squares-row">
+        <div
+          class="square"
+          (keydown)="squareClicked(0)"
+          (click)="squareClicked(0)"
+        >
+          {{ squares[0] }}
+        </div>
+        <div
+          class="square"
+          (keydown)="squareClicked(1)"
+          (click)="squareClicked(1)"
+        >
+          {{ squares[1] }}
+        </div>
+        <div
+          class="square"
+          (keydown)="squareClicked(2)"
+          (click)="squareClicked(2)"
+        >
+          {{ squares[2] }}
+        </div>
+      </div>
+      <div class="squares-row">
+        <div
+          class="square"
+          (keydown)="squareClicked(3)"
+          (click)="squareClicked(3)"
+        >
+          {{ squares[3] }}
+        </div>
+        <div
+          class="square"
+          (keydown)="squareClicked(4)"
+          (click)="squareClicked(4)"
+        >
+          {{ squares[4] }}
+        </div>
+        <div
+          class="square"
+          (keydown)="squareClicked(5)"
+          (click)="squareClicked(5)"
+        >
+          {{ squares[5] }}
+        </div>
+      </div>
+      <div class="squares-row">
+        <div
+          class="square"
+          (keydown)="squareClicked(6)"
+          (click)="squareClicked(6)"
+        >
+          {{ squares[6] }}
+        </div>
+        <div
+          class="square"
+          (keydown)="squareClicked(7)"
+          (click)="squareClicked(7)"
+        >
+          {{ squares[7] }}
+        </div>
+        <div
+          class="square"
+          (keydown)="squareClicked(8)"
+          (click)="squareClicked(8)"
+        >
+          {{ squares[8] }}
+        </div>
+      </div>
+    </mat-card></div>
+
+    <button mat-raised-button (click)="confirmReset()"> Reset </button>
+  </div>
+</div>
+
+}

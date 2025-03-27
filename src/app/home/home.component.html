@@ -25,10 +25,23 @@
       ></mat-icon
     ></mat-card-content>
   </mat-card>
-
-  <a
-    href="https://www.flaticon.com/free-stickers/improvement"
-    title="improvement stickers"
-    >Improvement stickers created by Stickers - Flaticon</a
+  <mat-card
+    onKeyDown="redirectTo('tic-tac-toe')"
+    (click)="redirectTo('tic-tac-toe')"
+  >
+    <mat-card-content
+      ><mat-icon
+        color="secondary"
+        aria-hidden="false"
+        aria-label="Tic Tac Toe"
+        fontIcon="games"
+      ></mat-icon
+    ></mat-card-content> </mat-card
   >
 </div>
+<a
+    href="https://www.flaticon.com/free-stickers/improvement"
+    title="improvement stickers"
+    class="pin-bottom"
+    >Improvement stickers created by Stickers - Flaticon</a
+  >

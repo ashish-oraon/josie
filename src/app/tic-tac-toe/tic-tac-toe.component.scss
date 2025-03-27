@@ -1,0 +1,91 @@
+.item-container {
+  width: 400px;
+  max-width: 100%;
+  margin-bottom: 25px;
+  vertical-align: top;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 2rem;
+}
+
+.item-list {
+  padding: 1rem;
+  min-height: 60px;
+  background: white;
+  overflow: hidden;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.item-box {
+  padding: 0.4rem;
+  border: solid 1px #ccc;
+  color: rgba(0, 0, 0, 0.87);
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  box-sizing: border-box;
+  cursor: move;
+  background: var(--mdc-filled-text-field-container-color);
+  font-size: 1rem;
+  border-radius: 1rem;
+}
+
+.cdk-drag-preview {
+  box-sizing: border-box;
+  border-radius: 4px;
+  box-shadow: 0 5px 5px -3px rgba(0, 0, 0, 0.2),
+    0 8px 10px 1px rgba(0, 0, 0, 0.14), 0 3px 14px 2px rgba(0, 0, 0, 0.12);
+}
+
+.cdk-drag-placeholder {
+  opacity: 0;
+}
+
+.cdk-drag-animating {
+  transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+.item-box:last-child {
+  border: none;
+}
+
+.item-list.cdk-drop-list-dragging .item-box:not(.cdk-drag-placeholder) {
+  transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+.spinner-container {
+  height: 80vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+div.main {
+  padding: 1rem;
+  height: 80vh;
+  justify-content: center;
+  display: flex;
+}
+
+div.board {
+  box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
+}
+
+div.squares-row {
+  display: flex;
+}
+
+div.square {
+  width: 5rem;
+  height: 5rem;
+  line-height: 5rem;
+  border: 1px solid black;
+  text-align: center;
+  font-size: 3rem;
+  align-items: center;
+}

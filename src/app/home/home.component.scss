@@ -9,14 +9,19 @@
   width: 8rem;
 }
 .mdc-card {
-  height: 48vh;
+  height: 30vh;
   justify-content: center;
   align-items: center;
-  padding: 2rem;
 }
 .container {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: auto auto;
   gap: 1rem;
   padding: 1rem;
+  max-width: 100vw;
+}
+
+a.pin-bottom{
+  bottom:0;
+  position: fixed;
 }
