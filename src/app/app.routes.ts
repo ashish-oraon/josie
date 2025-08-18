@@ -5,6 +5,7 @@ import { ExpenseTrackerComponent } from './expense-tracker/expense-tracker.compo
 import { ShoppingListComponent } from './shopping-list/shopping-list.component';
 import { MonthlyTransactionListComponent } from './expense-tracker/monthly-transaction-list/monthly-transaction-list.component';
 import { TransactionFormComponent } from './expense-tracker/transaction-form/transaction-form.component';
+import { BudgetManagementComponent } from './expense-tracker/budget-management/budget-management.component';
 import { AuthGuard } from './shared/services/auth.guard';
 import { TicTacToeComponent } from './tic-tac-toe/tic-tac-toe.component';
 
@@ -35,6 +36,10 @@ export const routes: Routes = [
         path: 'transaction-report',
         component: MonthlyTransactionListComponent,
         data: { type: 'report' },
+      },
+      {
+        path: 'budget',
+        component: BudgetManagementComponent,
       },
       {
         path: '',

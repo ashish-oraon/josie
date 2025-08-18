@@ -74,8 +74,17 @@
       <div class="hidden-action">
         <button
           mat-icon-button
+          class="action-btn view"
+          (click)="viewTransactionDetails(transaction)"
+          matTooltip="View Details"
+        >
+          <mat-icon>visibility</mat-icon>
+        </button>
+        <button
+          mat-icon-button
           class="action-btn edit"
           (click)="editTransaction(transaction)"
+          matTooltip="Edit Transaction"
         >
           <mat-icon>edit</mat-icon>
         </button>
@@ -83,6 +92,7 @@
           mat-icon-button
           class="action-btn delete"
           (click)="deleteTransaction(transaction)"
+          matTooltip="Delete Transaction"
         >
           <mat-icon>delete</mat-icon>
         </button>

@@ -5,4 +5,5 @@ export interface ICategory {
   subType: string;
   type: string;
   icon?: string;
+  color?: string;
 }

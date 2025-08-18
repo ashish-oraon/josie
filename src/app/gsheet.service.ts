@@ -1,7 +1,8 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, map, of, share, shareReplay } from 'rxjs';
+import { Observable, map, of, share, shareReplay, tap } from 'rxjs';
 import { environment } from './environments/environment';
+
 
 const staticData = {
   data: [
@@ -9258,28 +9259,29 @@ const categoryData = [
 })
 export class GoogleSheetService {
   private readonly apiUrl = environment.apiUrl;
+  private cache = new Map<string, { data: any; timestamp: number }>();
+  private readonly CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
   constructor(private http: HttpClient) {}
 
-  readData(
-    type: string = 'readTransactions',
-    sheet: string = 'June-2023',
-    id?: number
-  ): Observable<any> {
-    switch (type) {
-      case 'readTransactions':
-        // return of(staticData);
-        return this.http.get<any>(
-          `${this.apiUrl}?action=${type}&sheet=${sheet}`
-        );
-      case 'readSingleTransaction':
-        return this.http.get<any>(
-          `${this.apiUrl}?action=${type}&sheet=${sheet}&id=${id}`
-        );
-      default:
-        // return of(categoryData);
-        return this.http.get<any>(`${this.apiUrl}?action=${type}`);
+  readData(operation: string, params?: string): Observable<any> {
+    const cacheKey = `${operation}_${params || 'default'}`;
+
+    // Check cache first
+    const cachedData = this.getCachedData(cacheKey);
+    if (cachedData) {
+      return of(cachedData);
     }
+
+    // If not in cache, fetch from API
+    const url = `${environment.apiUrl}?action=${operation}${params ? `&${params}` : ''}`;
+
+    return this.http.get(url).pipe(
+      tap(data => {
+        // Cache the response
+        this.setCachedData(cacheKey, data);
+      })
+    );
   }
 
   createData(data: any): Observable<any> {
@@ -9315,6 +9317,20 @@ export class GoogleSheetService {
       JSON.stringify(creds)
     );
   }
+
+  private getCachedData(key: string): any | null {
+    const cached = this.cache.get(key);
+    if (cached && Date.now() - cached.timestamp < this.CACHE_DURATION) {
+      return cached.data;
+    }
+    return null;
+  }
+
+  private setCachedData(key: string, data: any): void {
+    this.cache.set(key, { data, timestamp: Date.now() });
+  }
+
+
 }
 
 //https://script.google.com/macros/s/AKfycbwLM3S5PsUBR5Jf1lUrGPtAdanLxDUWqgbfaTQ-FdZn4E2f1J5p-5IxzIS9LFaNVEem/exec

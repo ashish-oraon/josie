@@ -30,6 +30,7 @@ import { OverlayModule } from '@angular/cdk/overlay';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TrackerService } from '../../../services/tracker.service';
 import { HighlightDirective } from '../../../../shared/highlight.directive';
+import { TransactionDetailsModalComponent } from '../../transaction-details-modal/transaction-details-modal.component';
 
 interface ITransactionNode {
   transaction: any;
@@ -149,10 +150,12 @@ export class DayCardComponent implements OnChanges {
     private route: ActivatedRoute,
     private trackerService: TrackerService
   ) {}
+
   ngOnChanges(changes: SimpleChanges): void {
     this.prepareHeader();
     const mapp: Map<string, any> = new Map<string, any>();
     if (this.transactions) {
+      this.totalOfTheDay = 0; // Reset total
       for (let t of [...this.transactions]) {
         this.totalOfTheDay += t.amount;
         if (mapp.has(t.category)) {
@@ -171,6 +174,7 @@ export class DayCardComponent implements OnChanges {
       this.dataSource.data = [...mapp.values()];
     }
   }
+
   prepareHeader() {
     const cardDate: Date = this.date ? new Date(this.date) : new Date();
     const [month, date, year] = [
@@ -184,6 +188,30 @@ export class DayCardComponent implements OnChanges {
   /* dasjdljas */
   doAction(arg0: { type: string; transaction: any }) {
     throw new Error('Method not implemented.');
+  }
+
+  viewTransactionDetails(transaction: ITransaction) {
+    const dialogRef = this.dialog.open(TransactionDetailsModalComponent, {
+      width: '800px',
+      maxWidth: '95vw',
+      data: { transaction },
+      disableClose: false
+    });
+
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result) {
+        switch (result.action) {
+          case 'updated':
+            // Refresh the transaction list
+            this.dayEvent.emit({ action: 'refresh' });
+            break;
+          case 'deleted':
+            // Refresh the transaction list
+            this.dayEvent.emit({ action: 'refresh' });
+            break;
+        }
+      }
+    });
   }
 
   editTransaction(transaction: ITransaction | undefined) {

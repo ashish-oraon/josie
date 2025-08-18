@@ -9,6 +9,7 @@ import {
   provideHttpClient,
   withInterceptors,
   withInterceptorsFromDi,
+  withFetch,
 } from '@angular/common/http';
 import { provideNativeDateAdapter } from '@angular/material/core';
 import { LoaderInterceptor } from './shared/loader-interceptor.service';
@@ -19,7 +20,7 @@ export const appConfig: ApplicationConfig = {
     provideRouter(routes, withHashLocation()),
     provideClientHydration(),
     provideAnimationsAsync(),
-    provideHttpClient(),
+    provideHttpClient(withFetch()),
     provideNativeDateAdapter(),
     provideServiceWorker('ngsw-worker.js', {
         enabled: !isDevMode(),

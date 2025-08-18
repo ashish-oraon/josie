@@ -1,0 +1,188 @@
+<div class="budget-container">
+  <!-- Header -->
+  <div class="budget-header">
+    <h2>Budget Management - {{ currentMonth }}</h2>
+    <p>Track your monthly spending against planned budgets</p>
+  </div>
+
+  <!-- Budget Summary Cards -->
+  <div class="budget-summary">
+    <mat-card class="summary-card planned">
+      <mat-card-content>
+        <div class="card-icon">
+          <mat-icon>account_balance_wallet</mat-icon>
+        </div>
+        <div class="card-content">
+          <h3>Total Planned</h3>
+          <p class="amount">{{ formatCurrency(getTotalPlanned()) }}</p>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="summary-card actual">
+      <mat-card-content>
+        <div class="card-icon">
+          <mat-icon>payments</mat-icon>
+        </div>
+        <div class="card-content">
+          <h3>Total Spent</h3>
+          <p class="amount">{{ formatCurrency(getTotalActual()) }}</p>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="summary-card variance" [class.over-budget]="getTotalVariance() < 0">
+      <mat-card-content>
+        <div class="card-icon">
+          <mat-icon>{{ getOverallStatus() === 'over' ? 'warning' : 'check_circle' }}</mat-icon>
+        </div>
+        <div class="card-content">
+          <h3>Remaining</h3>
+          <p class="amount" [class.negative]="getTotalVariance() < 0">
+            {{ formatCurrency(getTotalVariance()) }}
+          </p>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Add New Budget Form -->
+  <mat-card class="add-budget-card">
+    <mat-card-header>
+      <mat-card-title>Add New Budget</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="add-budget-form">
+        <mat-form-field appearance="outline">
+          <mat-label>Category</mat-label>
+          <mat-select [(ngModel)]="newBudget.category" required>
+            <mat-option *ngFor="let category of categories" [value]="category.name">
+              <span class="category-option">
+                <span class="category-icon" [style.color]="category.color">{{ category.icon }}</span>
+                {{ category.name }}
+              </span>
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Planned Amount (€)</mat-label>
+          <input matInput type="number" [(ngModel)]="newBudget.planned" min="0" step="0.01" required>
+        </mat-form-field>
+
+        <button mat-raised-button
+                color="primary"
+                (click)="addBudget()"
+                [disabled]="!newBudget.category || newBudget.planned <= 0 || isAddingBudget">
+          <mat-icon *ngIf="!isAddingBudget">add</mat-icon>
+          <mat-spinner *ngIf="isAddingBudget" diameter="20"></mat-spinner>
+          {{ isAddingBudget ? 'Adding...' : 'Add Budget' }}
+        </button>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Budget Table -->
+  <mat-card class="budget-table-card">
+    <mat-card-header>
+      <mat-card-title>Monthly Budget Details</mat-card-title>
+      <mat-card-subtitle>Track spending against your planned budgets</mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="table-container">
+        <table mat-table [dataSource]="budgets" class="budget-table">
+          <!-- Category Column -->
+          <ng-container matColumnDef="category">
+            <th mat-header-cell *matHeaderCellDef>Category</th>
+            <td mat-cell *matCellDef="let budget">
+              <div class="category-cell">
+                <span class="category-icon" [style.color]="getCategoryColor(budget.Category)">
+                  {{ getCategoryIcon(budget.Category) }}
+                </span>
+                <span class="category-name">{{ budget.Category }}</span>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Planned Column -->
+          <ng-container matColumnDef="planned">
+            <th mat-header-cell *matHeaderCellDef>Planned</th>
+            <td mat-cell *matCellDef="let budget">
+              <span class="planned-amount">{{ formatCurrency(budget.Planned) }}</span>
+            </td>
+          </ng-container>
+
+          <!-- Actual Column -->
+          <ng-container matColumnDef="actual">
+            <th mat-header-cell *matHeaderCellDef>Actual</th>
+            <td mat-cell *matCellDef="let budget">
+              <span class="actual-amount">{{ formatCurrency(budget.Actual) }}</span>
+            </td>
+          </ng-container>
+
+          <!-- Variance Column -->
+          <ng-container matColumnDef="variance">
+            <th mat-header-cell *matHeaderCellDef>Variance</th>
+            <td mat-cell *matCellDef="let budget" [class.negative]="budget.Variance < 0">
+              <span class="variance-amount">{{ formatCurrency(budget.Variance) }}</span>
+            </td>
+          </ng-container>
+
+          <!-- Status Column -->
+          <ng-container matColumnDef="status">
+            <th mat-header-cell *matHeaderCellDef>Status</th>
+            <td mat-cell *matCellDef="let budget">
+              <mat-chip [color]="getStatusColor(budget.Status)" selected>
+                <mat-icon>{{ getStatusIcon(budget.Status) }}</mat-icon>
+                {{ budget.Status }}
+              </mat-chip>
+            </td>
+          </ng-container>
+
+          <!-- Progress Column -->
+          <ng-container matColumnDef="progress">
+            <th mat-header-cell *matHeaderCellDef>Progress</th>
+            <td mat-cell *matCellDef="let budget">
+              <div class="progress-container">
+                <mat-progress-bar
+                  [value]="getProgressValue(budget.Planned, budget.Actual)"
+                  [color]="getProgressColor(budget.Planned, budget.Actual)"
+                  mode="determinate">
+                </mat-progress-bar>
+                <span class="progress-text">
+                  {{ getProgressValue(budget.Planned, budget.Actual).toFixed(1) }}%
+                </span>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Actions Column -->
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef>Actions</th>
+            <td mat-cell *matCellDef="let budget">
+              <button mat-icon-button color="primary" (click)="updateBudget(budget)" matTooltip="Edit Budget">
+                <mat-icon>edit</mat-icon>
+              </button>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+        </table>
+
+        <!-- Empty State -->
+        <div *ngIf="budgets.length === 0 && !isLoading" class="empty-state">
+          <mat-icon>account_balance_wallet</mat-icon>
+          <h3>No Budgets Set</h3>
+          <p>Start by adding budgets for your spending categories above.</p>
+        </div>
+
+        <!-- Loading State -->
+        <div *ngIf="isLoading" class="loading-state">
+          <mat-spinner diameter="40"></mat-spinner>
+          <p>Loading budgets...</p>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>

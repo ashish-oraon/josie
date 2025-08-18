@@ -7,12 +7,14 @@ import {
   Output,
   SimpleChanges,
   ViewChild,
+  OnDestroy,
+  ChangeDetectionStrategy,
 } from '@angular/core';
 import { ITabInformation } from '../../interfaces/tab-info';
 import { CommonModule } from '@angular/common';
 import { TrackerService } from '../../services/tracker.service';
 import { ITransaction } from '../../interfaces/transaction';
-import { Observable, map, of, startWith } from 'rxjs';
+import { Observable, map, of, startWith, Subject, takeUntil, shareReplay, distinctUntilChanged, debounceTime } from 'rxjs';
 import { DayCardComponent } from './day-card/day-card.component';
 import { LoaderService } from '../../../shared/loader.service';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
@@ -49,8 +51,9 @@ import { MatFormFieldModule } from '@angular/material/form-field';
   ],
   templateUrl: './month-view.component.html',
   styleUrl: './month-view.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class MonthViewComponent implements OnChanges {
+export class MonthViewComponent implements OnChanges, OnDestroy {
   @Input()
   monthDetail!: ITabInformation;
   @Input()
@@ -66,21 +69,51 @@ export class MonthViewComponent implements OnChanges {
     string,
     ITransaction[]
   >();
-  public cancellableSubscriptions: any = {};
+  public cancellableSubscriptions: { [key: string]: any } = {};
 
   canShowSpinner: boolean = true;
 
   searchControl = new FormControl<string | ITransaction>('');
   filteredOptions!: Observable<ITransaction[]>;
 
+  // Performance optimization properties
+  private destroy$ = new Subject<void>();
+  private monthCache = new Map<string, {
+    transactions: ITransaction[];
+    transactionMap: Map<string, ITransaction[]>;
+    datesInTheMonth: string[];
+    timestamp: number;
+  }>();
+  private readonly CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+  private lastMonthKey: string = '';
+  private performanceMetrics = {
+    cacheHits: 0,
+    cacheMisses: 0,
+    totalLoadTime: 0,
+    loadCount: 0
+  };
+
   ngOnInit() {
     this.filteredOptions = this.searchControl.valueChanges.pipe(
       startWith(''),
+      debounceTime(300), // Add debounce for better performance
+      distinctUntilChanged(),
       map((value) => {
         const name = typeof value === 'string' ? value : value?.note;
         return name ? this._filter(name) : this.transactionsOftheMonth.slice();
       })
     );
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
+    // Clean up subscriptions
+    Object.values(this.cancellableSubscriptions).forEach(sub => {
+      if (sub && typeof sub.unsubscribe === 'function') {
+        sub.unsubscribe();
+      }
+    });
   }
 
   filter($event: Event) {
@@ -113,7 +146,6 @@ export class MonthViewComponent implements OnChanges {
 
   private _filter(name: string): ITransaction[] {
     const filterValue = name.toLowerCase();
-
     return this.transactionsOftheMonth.filter((option) =>
       option.note.toLowerCase().includes(filterValue)
     );
@@ -125,57 +157,138 @@ export class MonthViewComponent implements OnChanges {
     public dialog: MatDialog,
     private commonService: CommonService
   ) {}
+
   ngOnChanges(changes: SimpleChanges): void {
+    if (!this.monthDetail) return;
+
+    const { month, year } = this.monthDetail;
+    const monthKey = `${month}-${year}`;
+
+    // Check if we have cached data for this month
+    if (this.isCachedDataValid(monthKey)) {
+      this.loadFromCache(monthKey);
+      return;
+    }
+
+    // Load fresh data
+    this.loadMonthData(monthKey);
+  }
+
+  private isCachedDataValid(monthKey: string): boolean {
+    const cached = this.monthCache.get(monthKey);
+    if (!cached) return false;
+
+    return (Date.now() - cached.timestamp) < this.CACHE_DURATION;
+  }
+
+  private loadFromCache(monthKey: string): void {
+    const cached = this.monthCache.get(monthKey);
+    if (cached) {
+      this.transactionsOftheMonth = [...cached.transactions];
+      this.transactionMap = new Map(cached.transactionMap);
+      this.datesInTheMonth = [...cached.datesInTheMonth];
+      this.canShowSpinner = false;
+      this.lastMonthKey = monthKey;
+      this.performanceMetrics.cacheHits++;
+      console.log(`🚀 Loaded month ${monthKey} from cache (Cache hits: ${this.performanceMetrics.cacheHits}, Misses: ${this.performanceMetrics.cacheMisses})`);
+    }
+  }
+
+  private loadMonthData(monthKey: string): void {
+    const startTime = performance.now();
     this.transactionsOftheMonth = [];
     this.transactionMap.clear();
     this.datesInTheMonth = [];
     this.canShowSpinner = true;
-    const { month, year } = this.monthDetail;
+    this.lastMonthKey = monthKey;
+
+    // Unsubscribe from previous subscription
+    if (this.cancellableSubscriptions['allTransactionWithCatSubs']) {
+      this.cancellableSubscriptions['allTransactionWithCatSubs'].unsubscribe();
+    }
 
     this.cancellableSubscriptions['allTransactionWithCatSubs'] =
       this.trackerService.allTransactionsWithCategories$
         .pipe(
-          map((data) =>
-            data
-              .filter((el) => {
-                let dataOfTr = new Date(el.date);
-                return (
-                  month === dataOfTr.getMonth() &&
-                  year == dataOfTr.getFullYear()
-                );
-              })
-              .sort((a, b) => {
-                let aDate = new Date(a.date);
-                let bDate = new Date(b.date);
-                return bDate.getTime() - aDate.getTime();
-              })
-          )
+          takeUntil(this.destroy$),
+          map((data) => this.filterAndSortTransactions(data, monthKey)),
+          shareReplay(1) // Cache the result for multiple subscribers
         )
-        .subscribe(
-          (data) => {
+        .subscribe({
+          next: (data) => {
             this.transactionsOftheMonth = data;
             this.processData(this.transactionsOftheMonth);
-          },
-          () => {},
-          () => this.Loader.hide()
-        );
-  }
-  processData(transactionsOftheMonth: ITransaction[]) {
-    let sum: number = 0;
-    let dateSet: Set<string> = new Set<string>();
-    this.transactionMap.clear();
-    this.datesInTheMonth = [];
+            this.cacheMonthData(monthKey);
 
-    for (let tr of transactionsOftheMonth) {
-      sum += +tr.amount;
-      if (!dateSet.has(tr.date)) {
-        dateSet.add(tr.date);
-      }
-      const existingTransactions = this.transactionMap.get(tr.date) || [];
-      existingTransactions.push(tr);
-      this.transactionMap.set(tr.date, existingTransactions);
-      this.datesInTheMonth = Array.from(dateSet);
+            // Track performance metrics
+            const loadTime = performance.now() - startTime;
+            this.performanceMetrics.totalLoadTime += loadTime;
+            this.performanceMetrics.loadCount++;
+            this.performanceMetrics.cacheMisses++;
+
+            console.log(`⏱️ Month ${monthKey} loaded in ${loadTime.toFixed(2)}ms (Avg: ${(this.performanceMetrics.totalLoadTime / this.performanceMetrics.loadCount).toFixed(2)}ms)`);
+          },
+          error: (error) => {
+            console.error('Error loading month data:', error);
+            this.canShowSpinner = false;
+          },
+          complete: () => {
+            this.Loader.hide();
+          }
+        });
+  }
+
+  private filterAndSortTransactions(data: ITransaction[], monthKey: string): ITransaction[] {
+    const [month, year] = monthKey.split('-').map(Number);
+
+    return data
+      .filter((el) => {
+        const dataOfTr = new Date(el.date);
+        return month === dataOfTr.getMonth() && year === dataOfTr.getFullYear();
+      })
+      .sort((a, b) => {
+        const aDate = new Date(a.date);
+        const bDate = new Date(b.date);
+        return bDate.getTime() - aDate.getTime();
+      });
+  }
+
+  private cacheMonthData(monthKey: string): void {
+    this.monthCache.set(monthKey, {
+      transactions: [...this.transactionsOftheMonth],
+      transactionMap: new Map(this.transactionMap),
+      datesInTheMonth: [...this.datesInTheMonth],
+      timestamp: Date.now()
+    });
+    console.log(`Cached month ${monthKey} data`);
+  }
+
+  processData(transactionsOftheMonth: ITransaction[]) {
+    if (!transactionsOftheMonth || transactionsOftheMonth.length === 0) {
+      this.canShowSpinner = false;
+      return;
     }
+
+    // Use more efficient data processing
+    const dateMap = new Map<string, ITransaction[]>();
+    const dateSet = new Set<string>();
+    let sum = 0;
+
+    // Single loop for better performance
+    for (const tr of transactionsOftheMonth) {
+      sum += +tr.amount;
+      dateSet.add(tr.date);
+
+      if (!dateMap.has(tr.date)) {
+        dateMap.set(tr.date, []);
+      }
+      dateMap.get(tr.date)!.push(tr);
+    }
+
+    this.transactionMap = dateMap;
+    this.datesInTheMonth = Array.from(dateSet).sort((a, b) =>
+      new Date(b).getTime() - new Date(a).getTime()
+    );
     this.canShowSpinner = false;
   }
 
@@ -187,7 +300,35 @@ export class MonthViewComponent implements OnChanges {
     const { action, data } = $event;
     if (action === 'delete') {
       this.showDialog(data.transaction);
+    } else if (action === 'refresh') {
+      // Clear cache and reload data
+      this.clearMonthCache();
+      this.loadMonthData(this.lastMonthKey);
     }
+  }
+
+  private clearMonthCache(): void {
+    this.monthCache.clear();
+    console.log('🗑️ Month cache cleared');
+  }
+
+  // Performance monitoring method
+  getPerformanceStats(): void {
+    const avgLoadTime = this.performanceMetrics.loadCount > 0
+      ? this.performanceMetrics.totalLoadTime / this.performanceMetrics.loadCount
+      : 0;
+
+    const cacheHitRate = (this.performanceMetrics.cacheHits + this.performanceMetrics.cacheMisses) > 0
+      ? (this.performanceMetrics.cacheHits / (this.performanceMetrics.cacheHits + this.performanceMetrics.cacheMisses) * 100).toFixed(2)
+      : '0.00';
+
+    console.log('📊 Performance Statistics:');
+    console.log(`   Cache Hits: ${this.performanceMetrics.cacheHits}`);
+    console.log(`   Cache Misses: ${this.performanceMetrics.cacheMisses}`);
+    console.log(`   Cache Hit Rate: ${cacheHitRate}%`);
+    console.log(`   Total Loads: ${this.performanceMetrics.loadCount}`);
+    console.log(`   Average Load Time: ${avgLoadTime.toFixed(2)}ms`);
+    console.log(`   Cache Size: ${this.monthCache.size} months`);
   }
 
   showDialog(transaction: ITransaction): void {
@@ -196,23 +337,28 @@ export class MonthViewComponent implements OnChanges {
         data: `Are you sure?`,
       })
       .afterClosed()
+      .pipe(takeUntil(this.destroy$))
       .subscribe((confirmation: boolean) => {
         if (confirmation) {
           this.transactionsOftheMonth = [];
           this.transactionMap.clear();
           this.datesInTheMonth = [];
           this.canShowSpinner = true;
+
           this.trackerService
             .deleteTransaction(transaction, transaction.id)
-            .subscribe(
-              (data) => {
+            .pipe(takeUntil(this.destroy$))
+            .subscribe({
+              next: (data) => {
                 this.commonService.openSnackBar(data.message, '');
               },
-              (error) => console.error(error.message),
-              () => {
+              error: (error) => console.error(error.message),
+              complete: () => {
+                // Clear cache and reload
+                this.clearMonthCache();
                 this.mEvent.emit();
               }
-            );
+            });
         }
       });
   }

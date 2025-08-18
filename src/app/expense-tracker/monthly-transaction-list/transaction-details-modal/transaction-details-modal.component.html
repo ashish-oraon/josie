@@ -1,0 +1,188 @@
+<div class="transaction-modal-container">
+  <!-- Header -->
+  <div class="modal-header">
+    <h2 mat-dialog-title>
+      <mat-icon [style.color]="getCategoryColor(transaction.category)">
+        {{ getCategoryIcon(transaction.category) }}
+      </mat-icon>
+      Transaction Details
+    </h2>
+    <button mat-icon-button (click)="close()" class="close-button">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <!-- Content -->
+  <mat-dialog-content class="modal-content">
+
+    <!-- Transaction Status Card -->
+    <mat-card class="status-card">
+      <mat-card-content>
+        <div class="status-header">
+          <div class="status-info">
+            <mat-chip [color]="getTransactionStatus().color" selected>
+              <mat-icon>{{ getTransactionStatus().icon }}</mat-icon>
+              {{ getTransactionStatus().status }}
+            </mat-chip>
+            <span class="transaction-date">{{ formatDate(transaction.date) }}</span>
+          </div>
+          <div class="amount-display">
+            <span class="amount" [class.income]="transaction.type === 'income'">
+              {{ formatCurrency(transaction.amount) }}
+            </span>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Transaction Details -->
+    <div class="details-section">
+      <h3>Transaction Information</h3>
+
+      <!-- View Mode -->
+      <div *ngIf="!isEditing" class="details-grid">
+        <div class="detail-item">
+          <span class="label">Category:</span>
+          <span class="value">
+            <mat-chip [style.background-color]="getCategoryColor(transaction.category)" selected>
+              <mat-icon>{{ getCategoryIcon(transaction.category) }}</mat-icon>
+              {{ transaction.category }}
+            </mat-chip>
+          </span>
+        </div>
+
+        <div class="detail-item">
+          <span class="label">Note:</span>
+          <span class="value">{{ transaction.note || 'No note provided' }}</span>
+        </div>
+
+        <div class="detail-item">
+          <span class="label">Payment Method:</span>
+          <span class="value">
+            <mat-icon>{{ getPaymentMethodIcon(transaction.paymentMethod) }}</mat-icon>
+            {{ transaction.paymentMethod }}
+          </span>
+        </div>
+
+        <div class="detail-item">
+          <span class="label">Paid By:</span>
+          <span class="value">{{ transaction.paidBy }}</span>
+        </div>
+
+        <div class="detail-item">
+          <span class="label">Transaction Type:</span>
+          <span class="value">
+            <mat-icon>{{ getTransactionTypeIcon(transaction.type) }}</mat-icon>
+            {{ transaction.type }}
+          </span>
+        </div>
+
+        <div class="detail-item">
+          <span class="label">Date:</span>
+          <span class="value">{{ formatDate(transaction.date) }}</span>
+        </div>
+
+        <div class="detail-item">
+          <span class="label">Transaction ID:</span>
+          <span class="value">{{ transaction.id }}</span>
+        </div>
+      </div>
+
+      <!-- Edit Mode -->
+      <div *ngIf="isEditing" class="edit-form">
+        <div class="form-row">
+          <mat-form-field appearance="outline">
+            <mat-label>Amount</mat-label>
+            <input matInput type="number" [(ngModel)]="editForm.amount" min="0" step="0.01" required>
+            <mat-icon matSuffix>euro</mat-icon>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Category</mat-label>
+            <mat-select [(ngModel)]="editForm.category" required>
+              <mat-option *ngFor="let category of categories" [value]="category.name">
+                <span class="category-option">
+                  <span class="category-icon" [style.color]="category.color">{{ category.icon }}</span>
+                  {{ category.name }}
+                </span>
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <div class="form-row">
+          <mat-form-field appearance="outline">
+            <mat-label>Note</mat-label>
+            <textarea matInput [(ngModel)]="editForm.note" rows="3"></textarea>
+          </mat-form-field>
+        </div>
+
+        <div class="form-row">
+          <mat-form-field appearance="outline">
+            <mat-label>Payment Method</mat-label>
+            <mat-select [(ngModel)]="editForm.paymentMethod" required>
+              <mat-option value="cash">Cash</mat-option>
+              <mat-option value="card">Card</mat-option>
+              <mat-option value="bank_transfer">Bank Transfer</mat-option>
+              <mat-option value="paypal">PayPal</mat-option>
+              <mat-option value="mobile_payment">Mobile Payment</mat-option>
+              <mat-option value="check">Check</mat-option>
+              <mat-option value="other">Other</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Paid By</mat-label>
+            <input matInput [(ngModel)]="editForm.paidBy" required>
+          </mat-form-field>
+        </div>
+
+        <div class="form-row">
+          <mat-form-field appearance="outline">
+            <mat-label>Transaction Type</mat-label>
+            <mat-select [(ngModel)]="editForm.type" required>
+              <mat-option value="expense">Expense</mat-option>
+              <mat-option value="income">Income</mat-option>
+              <mat-option value="transfer">Transfer</mat-option>
+              <mat-option value="refund">Refund</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Date</mat-label>
+            <input matInput type="datetime-local" [(ngModel)]="editForm.date" required>
+          </mat-form-field>
+        </div>
+      </div>
+    </div>
+  </mat-dialog-content>
+
+  <!-- Actions -->
+  <mat-dialog-actions class="modal-actions">
+    <div class="action-buttons">
+      <!-- Edit/View Toggle -->
+      <button mat-button (click)="toggleEdit()" color="primary">
+        <mat-icon>{{ isEditing ? 'visibility' : 'edit' }}</mat-icon>
+        {{ isEditing ? 'View' : 'Edit' }}
+      </button>
+
+      <!-- Save Changes (only in edit mode) -->
+      <button *ngIf="isEditing" mat-raised-button (click)="saveChanges()" color="primary">
+        <mat-icon>save</mat-icon>
+        Save Changes
+      </button>
+
+      <!-- Delete Transaction -->
+      <button mat-button (click)="deleteTransaction()" color="warn">
+        <mat-icon>delete</mat-icon>
+        Delete
+      </button>
+
+      <!-- Close Modal -->
+      <button mat-button (click)="close()">
+        <mat-icon>close</mat-icon>
+        Close
+      </button>
+    </div>
+  </mat-dialog-actions>
+</div>

@@ -5,6 +5,7 @@ import {
   combineLatest,
   distinct,
   map,
+  of,
   share,
   shareReplay,
   switchMap,
@@ -17,6 +18,12 @@ import { environment } from '../../environments/environment';
 import { GoogleSheetService } from '../../gsheet.service';
 import { CommonService } from '../../shared/common.service';
 import { ICategory } from '../interfaces/category';
+import {
+  IBudget,
+  IUser,
+  ISettings,
+  IMonthlyStats,
+} from '../interfaces/budget';
 
 const monthNameMap: string[] = [
   'January',
@@ -34,14 +41,26 @@ const monthNameMap: string[] = [
 ];
 
 const PREVIOUSMONTHSTOSHOW = environment.previousMonthsToShow;
+
 @Injectable({
   providedIn: 'root',
 })
 export class TrackerService {
-  transactions: Observable<ITransaction[]>;
-  allCategories: Observable<ICategory[]>;
-  transactionsDates: Observable<{ date: string; total: number }[]>;
-  allTransactionsWithCategories$: Observable<ITransaction[]>;
+  // Properties - declare without initialization
+  budgets!: Observable<IBudget[]>;
+  users!: Observable<IUser[]>;
+  settings!: Observable<ISettings>;
+  monthlyStats!: Observable<IMonthlyStats>;
+
+  // Budget-related observables
+  budgetSummary$!: Observable<IBudget[]>;
+  currentMonthBudget$!: Observable<IBudget[]>;
+
+  // Existing properties
+  transactions!: Observable<ITransaction[]>;
+  allCategories!: Observable<ICategory[]>;
+  transactionsDates!: Observable<{ date: string; total: number }[]>;
+  allTransactionsWithCategories$!: Observable<ITransaction[]>;
 
   selectTransactionAction: BehaviorSubject<any> = new BehaviorSubject(
     'May-2023'
@@ -75,14 +94,21 @@ export class TrackerService {
     private googleSheetsService: GoogleSheetService,
     private commonService: CommonService
   ) {
+    this.initializeObservables();
+  }
+
+  private initializeObservables() {
+    // Initialize transactions with better caching
     this.transactions = this.googleSheetsService
       .readData('readTransactions', this.sheet)
       .pipe(
         map((arr: { data: any[]; length: number }) => {
           return arr.data.filter((el) => !el.isDeleted);
-        })
+        }),
+        shareReplay(1) // Cache transactions for multiple subscribers
       );
 
+    // Initialize transaction dates with caching
     this.transactionsDates = this.transactions.pipe(
       map((objArr: ITransaction[]) =>
         objArr
@@ -93,33 +119,94 @@ export class TrackerService {
           .sort(
             (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
           )
-      )
+      ),
+      shareReplay(1) // Cache transaction dates
     );
 
-    this.allCategories = this.commonService.allCategories$;
+    // Initialize categories - use the existing interface with better caching
+    this.allCategories = this.googleSheetsService
+      .readData('readCategories')
+      .pipe(
+        map((data: any[]) => data.filter((cat) => !cat.isDeleted)),
+        shareReplay(1) // Cache categories for multiple subscribers
+      );
 
+    // Initialize transactions with categories - optimized with better caching
     this.allTransactionsWithCategories$ = combineLatest([
       this.transactions,
       this.allCategories,
     ]).pipe(
       map(([transactions, allCat]) => {
-        return transactions?.map((transaction) => {
-          let categorySelected = allCat?.find(
-            (cat) => cat.name === transaction.category
-          );
+        if (!transactions || !allCat) return [];
+
+        // Create a category lookup map for better performance
+        const categoryMap = new Map(allCat.map(cat => [cat.name, cat]));
+
+        return transactions.map((transaction) => {
+          const categorySelected = categoryMap.get(transaction.category);
           return { ...transaction, icon: categorySelected?.icon };
         });
-      })
+      }),
+      shareReplay(1) // Cache the combined result for multiple subscribers
     );
+
+    // Initialize new observables - temporarily return empty arrays until backend is ready
+    this.budgets = of([]).pipe(shareReplay(1));
+
+    this.users = of([]).pipe(shareReplay(1));
+
+    this.settings = of({
+      Currency: 'EUR',
+      CurrencySymbol: '€',
+      PreviousMonthsToShow: 3,
+      DefaultBudget: 1000,
+      NotificationsEnabled: false,
+      AutoCategorization: false
+    } as ISettings).pipe(shareReplay(1));
+
+    // Budget summary with actual spending - temporarily return empty array until backend is ready
+    this.budgetSummary$ = of([]).pipe(shareReplay(1));
+
+    // Monthly statistics - temporarily return empty object until backend is ready
+    this.monthlyStats = of({
+      month: '',
+      totalExpenses: 0,
+      totalIncome: 0,
+      netAmount: 0,
+      transactionCount: 0,
+      categoryBreakdown: {}
+    } as IMonthlyStats).pipe(shareReplay(1));
+
+    // TODO: Uncomment when Google Apps Script budget endpoints are implemented
+    // this.budgets = this.googleSheetsService
+    //   .readData('readBudgets', this.sheet)
+    //   .pipe(shareReplay(1));
+    //
+    // this.users = this.googleSheetsService
+    //   .readData('readUsers')
+    //   .pipe(shareReplay(1));
+    //
+    // this.settings = this.googleSheetsService
+    //   .readData('readSettings')
+    //   .pipe(shareReplay(1));
+    //
+    // this.budgetSummary$ = this.googleSheetsService
+    //   .readData('readBudgetSummary', this.sheet)
+    //   .pipe(shareReplay(1));
+    //
+    // this.monthlyStats = this.googleSheetsService
+    //   .readData('readMonthlyStats', this.sheet)
+    //   .pipe(shareReplay(1));
   }
 
   getTransactionWithID(sheet: string = 'TJune-2023', id?: number) {
+    const params = id ? `${sheet}&id=${id}` : sheet;
     return this.googleSheetsService.readData(
       'readSingleTransaction',
-      sheet,
-      id
+      params
     );
   }
+
   getTotal(date: string, objArr: ITransaction[]): number {
     return objArr.reduce((a, c) => (a += c.date === date ? c.amount : 0), 0);
   }
@@ -147,23 +234,13 @@ export class TrackerService {
       sheetName: this.commonService.getSheetName(dt),
     };
 
-    /*  {
-      "amount": 48,
-      "category": "travel",
-      "note": "545",
-      "date": "14-3-2024",
-      "paymentMethod": "Debit Card",
-      "paidBy": "Ai",
-      "type": "expense",
-      "sheetName": "March-2024"
-  } */
-
     return this.googleSheetsService.updateData(
       payload,
       transactionId,
       payload.sheetName
     );
   }
+
   deleteTransaction(transactionDetails: ITransaction, transactionId: number) {
     let dt: Date = new Date(transactionDetails.date);
     const sheetName = this.commonService.getSheetName(dt);
@@ -179,8 +256,9 @@ export class TrackerService {
     sheet: string = 'June-2023',
     id?: number
   ) {
+    const params = id ? `${sheet}&id=${id}` : sheet;
     return this.googleSheetsService
-      .readData('readSingleTransaction', sheet)
+      .readData('readSingleTransaction', params)
       .pipe(
         take(1),
         map((arr: any[]) => {
@@ -206,19 +284,60 @@ export class TrackerService {
                 paidBy,
                 type,
                 isDeleted,
-              })
-            )
+              }))
             .filter((el) => !el.isDeleted);
         })
       );
   }
 
+  getCategories(): Observable<ICategory[]> {
+    return this.googleSheetsService.readData('readCategories').pipe(
+      tap((data) => {
+        console.log('Categories data from service:', data);
+        if (Array.isArray(data) && data.length > 0) {
+          console.log('First category from service:', data[0]);
+          console.log('Category keys:', Object.keys(data[0]));
+        }
+      })
+    );
+  }
+
   subtractMonths(date: Date, months: number) {
-    // 👇 Make copy with "Date" constructor
     const dateCopy = new Date(date);
     dateCopy.setDate(2);
     dateCopy.setMonth(dateCopy.getMonth() - months);
-
     return dateCopy;
+  }
+
+  // Budget-related methods
+  getMonthlyBudget(month: string): Observable<IBudget[]> {
+    return this.googleSheetsService.readData('readBudgets', month);
+  }
+
+  getBudgetSummary(month: string): Observable<IBudget[]> {
+    return this.googleSheetsService.readData('readBudgetSummary', month);
+  }
+
+  getMonthlyStats(month: string, category?: string): Observable<IMonthlyStats> {
+    const params = category ? `${month}&category=${category}` : month;
+    return this.googleSheetsService.readData('readMonthlyStats', params);
+  }
+
+  createBudget(budget: IBudget): Observable<any> {
+    return this.googleSheetsService.createData({
+      ...budget,
+      sheetName: 'Budgets',
+      action: 'createBudget',
+    });
+  }
+
+  updateBudget(budget: IBudget): Observable<any> {
+    // For budget updates, we need to find the row index first
+    // For now, let's use a placeholder approach
+    return this.googleSheetsService.createData({
+      ...budget,
+      sheetName: 'Budgets',
+      action: 'updateBudget'
+    });
   }
 }
