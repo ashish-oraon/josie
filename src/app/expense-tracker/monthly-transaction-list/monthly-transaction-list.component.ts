@@ -29,6 +29,7 @@ export class MonthlyTransactionListComponent implements OnInit {
   triggerBoolean: any = { val: true };
 
   locationType: string = 'list';
+
   constructor(
     private trackerService: TrackerService,
     private activatedRoute: ActivatedRoute
@@ -41,10 +42,36 @@ export class MonthlyTransactionListComponent implements OnInit {
 
     this.links = ['month-view', 'qweqwe'];
 
-    this.tabs = this.trackerService.asyncTabs();
-    this.activeLink = this.tabs[1];
+    // Wait for service to be ready before generating tabs
+    this.initializeTabs();
   }
-  
+
+  private initializeTabs(): void {
+    // Check if service is ready
+    if (this.trackerService.isServiceReady()) {
+      this.setupTabs();
+    } else {
+      // Wait a bit and try again
+      setTimeout(() => this.initializeTabs(), 100);
+    }
+  }
+
+  private setupTabs(): void {
+    // Generate tabs and set the current month as active
+    this.tabs = this.trackerService.asyncTabs();
+
+    // Fix: Set activeLink to the current month tab using the helper method
+    if (this.tabs && this.tabs.length > 0) {
+      // Use the service method to get the current month tab
+      this.activeLink = this.trackerService.getCurrentMonthTabByIndex();
+      console.log('📅 Active tab set to current month:', this.activeLink?.header);
+
+      // Trigger change detection
+      this.triggerBoolean = { val: true };
+    } else {
+      console.warn('⚠️ No tabs generated');
+    }
+  }
 
   handleOutput(pa: any) {
     this.triggerBoolean = { val: false };
@@ -52,5 +79,6 @@ export class MonthlyTransactionListComponent implements OnInit {
 
   switchTab(link: any) {
     this.activeLink = link;
+    console.log('🔄 Switched to tab:', link?.header);
   }
 }

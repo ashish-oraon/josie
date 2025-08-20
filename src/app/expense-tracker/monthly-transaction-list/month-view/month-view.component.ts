@@ -9,6 +9,7 @@ import {
   ViewChild,
   OnDestroy,
   ChangeDetectionStrategy,
+  ChangeDetectorRef,
 } from '@angular/core';
 import { ITabInformation } from '../../interfaces/tab-info';
 import { CommonModule } from '@angular/common';
@@ -103,6 +104,35 @@ export class MonthViewComponent implements OnChanges, OnDestroy {
         return name ? this._filter(name) : this.transactionsOftheMonth.slice();
       })
     );
+
+    // Check if monthDetail is already available on init
+    if (this.monthDetail) {
+      console.log('🚀 MonthDetail available on init, triggering load');
+      this.triggerDataLoad();
+    }
+  }
+
+  // Method to manually trigger data loading
+  triggerDataLoad(): void {
+    if (!this.monthDetail) {
+      console.log('⏳ Cannot trigger load - monthDetail not available');
+      return;
+    }
+
+    const { month, year } = this.monthDetail;
+    if (month === undefined || year === undefined) {
+      console.warn('⚠️ Cannot trigger load - invalid monthDetail:', this.monthDetail);
+      return;
+    }
+
+    const monthKey = `${month}-${year}`;
+    console.log(`🎯 Manually triggering data load for: ${monthKey}`);
+
+    if (this.isCachedDataValid(monthKey)) {
+      this.loadFromCache(monthKey);
+    } else {
+      this.loadMonthData(monthKey);
+    }
   }
 
   ngOnDestroy() {
@@ -155,14 +185,26 @@ export class MonthViewComponent implements OnChanges, OnDestroy {
     private trackerService: TrackerService,
     private Loader: LoaderService,
     public dialog: MatDialog,
-    private commonService: CommonService
+    private commonService: CommonService,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (!this.monthDetail) return;
+    if (!this.monthDetail) {
+      console.log('⏳ Waiting for monthDetail input...');
+      return;
+    }
 
     const { month, year } = this.monthDetail;
+
+    // Safety check for valid month/year
+    if (month === undefined || year === undefined) {
+      console.warn('⚠️ Invalid monthDetail:', this.monthDetail);
+      return;
+    }
+
     const monthKey = `${month}-${year}`;
+    console.log(`🔄 MonthView ngOnChanges triggered for: ${monthKey}`);
 
     // Check if we have cached data for this month
     if (this.isCachedDataValid(monthKey)) {
@@ -190,6 +232,11 @@ export class MonthViewComponent implements OnChanges, OnDestroy {
       this.canShowSpinner = false;
       this.lastMonthKey = monthKey;
       this.performanceMetrics.cacheHits++;
+
+      // Ensure loaders are hidden and UI is updated
+      this.Loader.hide();
+      this.forceUIUpdate();
+
       console.log(`🚀 Loaded month ${monthKey} from cache (Cache hits: ${this.performanceMetrics.cacheHits}, Misses: ${this.performanceMetrics.cacheMisses})`);
     }
   }
@@ -201,6 +248,18 @@ export class MonthViewComponent implements OnChanges, OnDestroy {
     this.datesInTheMonth = [];
     this.canShowSpinner = true;
     this.lastMonthKey = monthKey;
+
+    // Show global loader
+    this.Loader.show();
+
+    // Add timeout to prevent loader from getting stuck
+    const loaderTimeout = setTimeout(() => {
+      console.warn('⏰ Loader timeout reached, hiding spinner');
+      this.canShowSpinner = false;
+      this.Loader.hide();
+      // Force change detection to update UI
+      this.forceUIUpdate();
+    }, 10000); // 10 second timeout
 
     // Unsubscribe from previous subscription
     if (this.cancellableSubscriptions['allTransactionWithCatSubs']) {
@@ -216,6 +275,7 @@ export class MonthViewComponent implements OnChanges, OnDestroy {
         )
         .subscribe({
           next: (data) => {
+            clearTimeout(loaderTimeout); // Clear timeout on success
             this.transactionsOftheMonth = data;
             this.processData(this.transactionsOftheMonth);
             this.cacheMonthData(monthKey);
@@ -229,11 +289,16 @@ export class MonthViewComponent implements OnChanges, OnDestroy {
             console.log(`⏱️ Month ${monthKey} loaded in ${loadTime.toFixed(2)}ms (Avg: ${(this.performanceMetrics.totalLoadTime / this.performanceMetrics.loadCount).toFixed(2)}ms)`);
           },
           error: (error) => {
-            console.error('Error loading month data:', error);
+            clearTimeout(loaderTimeout); // Clear timeout on error
+            console.error('❌ Error loading month data:', error);
             this.canShowSpinner = false;
+            this.Loader.hide();
+            this.forceUIUpdate();
           },
           complete: () => {
+            clearTimeout(loaderTimeout); // Clear timeout on complete
             this.Loader.hide();
+            this.forceUIUpdate();
           }
         });
   }
@@ -263,9 +328,12 @@ export class MonthViewComponent implements OnChanges, OnDestroy {
     console.log(`Cached month ${monthKey} data`);
   }
 
-  processData(transactionsOftheMonth: ITransaction[]) {
+    processData(transactionsOftheMonth: ITransaction[]) {
     if (!transactionsOftheMonth || transactionsOftheMonth.length === 0) {
       this.canShowSpinner = false;
+      this.Loader.hide();
+      this.forceUIUpdate();
+      console.log('📭 No transactions found for this month');
       return;
     }
 
@@ -290,6 +358,9 @@ export class MonthViewComponent implements OnChanges, OnDestroy {
       new Date(b).getTime() - new Date(a).getTime()
     );
     this.canShowSpinner = false;
+    this.Loader.hide();
+    this.forceUIUpdate();
+    console.log(`✅ Processed ${transactionsOftheMonth.length} transactions for ${this.datesInTheMonth.length} days`);
   }
 
   deleteTransaction(transaction: ITransaction) {
@@ -312,7 +383,7 @@ export class MonthViewComponent implements OnChanges, OnDestroy {
     console.log('🗑️ Month cache cleared');
   }
 
-  // Performance monitoring method
+    // Performance monitoring method
   getPerformanceStats(): void {
     const avgLoadTime = this.performanceMetrics.loadCount > 0
       ? this.performanceMetrics.totalLoadTime / this.performanceMetrics.loadCount
@@ -329,6 +400,27 @@ export class MonthViewComponent implements OnChanges, OnDestroy {
     console.log(`   Total Loads: ${this.performanceMetrics.loadCount}`);
     console.log(`   Average Load Time: ${avgLoadTime.toFixed(2)}ms`);
     console.log(`   Cache Size: ${this.monthCache.size} months`);
+  }
+
+  // Force UI update to ensure loader disappears
+  private forceUIUpdate(): void {
+    this.cdr.detectChanges();
+    console.log('🔄 Forced change detection to update UI');
+  }
+
+  // Debug method to check current state
+  debugCurrentState(): void {
+    console.log('🔍 Current Component State:');
+    console.log(`   canShowSpinner: ${this.canShowSpinner}`);
+    console.log(`   transactionsOftheMonth.length: ${this.transactionsOftheMonth.length}`);
+    console.log(`   datesInTheMonth.length: ${this.datesInTheMonth.length}`);
+    console.log(`   lastMonthKey: ${this.lastMonthKey}`);
+    console.log(`   monthDetail:`, this.monthDetail);
+
+    // Check loader service state
+    this.Loader.isLoading$.subscribe(loading => {
+      console.log(`   LoaderService.isLoading: ${loading}`);
+    }).unsubscribe();
   }
 
   showDialog(transaction: ITransaction): void {

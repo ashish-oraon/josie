@@ -340,4 +340,39 @@ export class TrackerService {
       action: 'updateBudget'
     });
   }
+
+  // Method to check if service is ready
+  isServiceReady(): boolean {
+    return !!this.transactions && !!this.allCategories;
+  }
+
+  // Method to get current month tab
+  getCurrentMonthTab(): any {
+    const tabs = this.asyncTabs();
+    return tabs && tabs.length > 0 ? tabs[0] : null;
+  }
+
+  // Method to get current month tab index
+  getCurrentMonthTabIndex(): number {
+    // The current month index changes based on sorting
+    // We need to find it dynamically in the sorted array
+    const tabs = this.asyncTabs();
+    const currentDate = new Date();
+    const currentMonth = currentDate.getMonth();
+    const currentYear = currentDate.getFullYear();
+
+    const currentIndex = tabs.findIndex(tab =>
+      tab.month === currentMonth && tab.year === currentYear
+    );
+
+    console.log(`🔍 Current month (${currentMonth}, ${currentYear}) found at index: ${currentIndex}`);
+    return currentIndex;
+  }
+
+  // Method to get current month tab by index
+  getCurrentMonthTabByIndex(): any {
+    const tabs = this.asyncTabs();
+    const currentIndex = this.getCurrentMonthTabIndex();
+    return currentIndex >= 0 && tabs.length > currentIndex ? tabs[currentIndex] : null;
+  }
 }
