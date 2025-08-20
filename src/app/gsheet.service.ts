@@ -9330,6 +9330,33 @@ export class GoogleSheetService {
     this.cache.set(key, { data, timestamp: Date.now() });
   }
 
+  // Cache invalidation methods
+  clearCache(): void {
+    console.log('🗑️ Clearing all cache');
+    this.cache.clear();
+  }
+
+  clearCacheByPattern(pattern: string): void {
+    console.log(`🗑️ Clearing cache for pattern: ${pattern}`);
+    const keysToDelete: string[] = [];
+
+    for (const key of this.cache.keys()) {
+      if (key.includes(pattern)) {
+        keysToDelete.push(key);
+      }
+    }
+
+    keysToDelete.forEach(key => {
+      this.cache.delete(key);
+      console.log(`🗑️ Cleared cache key: ${key}`);
+    });
+  }
+
+  clearTransactionCache(): void {
+    console.log('🗑️ Clearing transaction-related cache');
+    this.clearCacheByPattern('readTransactions');
+  }
+
 
 }
 

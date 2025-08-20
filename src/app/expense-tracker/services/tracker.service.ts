@@ -3,6 +3,7 @@ import {
   BehaviorSubject,
   Observable,
   combineLatest,
+  catchError,
   distinct,
   map,
   of,
@@ -60,7 +61,17 @@ export class TrackerService {
   transactions!: Observable<ITransaction[]>;
   allCategories!: Observable<ICategory[]>;
   transactionsDates!: Observable<{ date: string; total: number }[]>;
-  allTransactionsWithCategories$!: Observable<ITransaction[]>;
+    allTransactionsWithCategories$!: Observable<ITransaction[]>;
+
+    // Data refresh trigger
+  private dataRefreshTrigger = new BehaviorSubject<number>(0);
+
+  // Unified loading state for all operations
+  private unifiedLoadingSubject = new BehaviorSubject<{isLoading: boolean, message: string}>({
+    isLoading: false,
+    message: ''
+  });
+  public unifiedLoadingState$ = this.unifiedLoadingSubject.asObservable();
 
   selectTransactionAction: BehaviorSubject<any> = new BehaviorSubject(
     'May-2023'
@@ -95,18 +106,26 @@ export class TrackerService {
     private commonService: CommonService
   ) {
     this.initializeObservables();
+    // Trigger initial data load
+    this.refreshData();
   }
 
   private initializeObservables() {
-    // Initialize transactions with better caching
-    this.transactions = this.googleSheetsService
-      .readData('readTransactions', this.sheet)
-      .pipe(
-        map((arr: { data: any[]; length: number }) => {
-          return arr.data.filter((el) => !el.isDeleted);
-        }),
-        shareReplay(1) // Cache transactions for multiple subscribers
-      );
+    // Initialize transactions with refresh trigger
+    this.transactions = this.dataRefreshTrigger.pipe(
+      switchMap(() => this.googleSheetsService
+        .readData('readTransactions', this.sheet)
+        .pipe(
+          map((arr: { data: any[]; length: number }) => {
+            console.log(`📊 Refreshed transactions: ${arr.data?.length || 0} from ${this.sheet}`);
+            // Stop loading state when data arrives
+            this.setLoading(false);
+            return arr.data.filter((el) => !el.isDeleted);
+          })
+        )
+      ),
+      shareReplay(1) // Cache transactions for multiple subscribers
+    );
 
     // Initialize transaction dates with caching
     this.transactionsDates = this.transactions.pipe(
@@ -191,7 +210,8 @@ export class TrackerService {
     //   .pipe(shareReplay(1));
     //
     // this.budgetSummary$ = this.googleSheetsService
-    //   .readData('readBudgetSummary', this.sheet)
+    //   .readD
+    // ata('readBudgetSummary', this.sheet)
     //   .pipe(shareReplay(1));
     //
     // this.monthlyStats = this.googleSheetsService
@@ -211,7 +231,7 @@ export class TrackerService {
     return objArr.reduce((a, c) => (a += c.date === date ? c.amount : 0), 0);
   }
 
-  addNewTransaction(transactionDetails: ITransaction) {
+    addNewTransaction(transactionDetails: ITransaction) {
     let dt: Date = new Date(transactionDetails.date);
     transactionDetails.date = this.commonService.parseDate(dt);
     const payload = {
@@ -219,7 +239,25 @@ export class TrackerService {
       date: this.commonService.parseDate(dt),
       sheetName: this.commonService.getSheetName(dt),
     };
-    return this.googleSheetsService.createData(payload);
+
+    // Set loading state with specific message for adding
+    this.setLoading(true, 'Adding transaction...');
+
+    return this.googleSheetsService.createData(payload).pipe(
+      tap((response) => {
+        console.log('✅ Transaction created successfully:', response);
+        // Clear transaction cache to ensure fresh data
+        this.googleSheetsService.clearTransactionCache();
+        // Refresh data to show the new transaction
+        this.setLoading(true, 'Refreshing transaction data...');
+        this.dataRefreshTrigger.next(Date.now());
+      }),
+      catchError((error: any) => {
+        console.error('❌ Failed to create transaction:', error);
+        this.setLoading(false);
+        throw error;
+      })
+    );
   }
 
   updateTransaction(transactionDetails: ITransaction, transactionId: number) {
@@ -234,17 +272,52 @@ export class TrackerService {
       sheetName: this.commonService.getSheetName(dt),
     };
 
+    // Set loading state with specific message for updating
+    this.setLoading(true, 'Updating transaction...');
+
     return this.googleSheetsService.updateData(
       payload,
       transactionId,
       payload.sheetName
+    ).pipe(
+      tap(() => {
+        console.log('✅ Transaction updated successfully');
+        // Clear transaction cache to ensure fresh data
+        this.googleSheetsService.clearTransactionCache();
+        // Refresh data to show the updated transaction
+        this.setLoading(true, 'Refreshing transaction data...');
+        this.dataRefreshTrigger.next(Date.now());
+      }),
+      catchError((error: any) => {
+        console.error('❌ Failed to update transaction:', error);
+        this.setLoading(false);
+        throw error;
+      })
     );
   }
 
-  deleteTransaction(transactionDetails: ITransaction, transactionId: number) {
+    deleteTransaction(transactionDetails: ITransaction, transactionId: number) {
     let dt: Date = new Date(transactionDetails.date);
     const sheetName = this.commonService.getSheetName(dt);
-    return this.googleSheetsService.deleteData(transactionId, sheetName);
+
+    // Set loading state with specific message for deleting
+    this.setLoading(true, 'Deleting transaction...');
+
+    return this.googleSheetsService.deleteData(transactionId, sheetName).pipe(
+      tap(() => {
+        console.log('✅ Transaction deleted successfully');
+        // Clear transaction cache to ensure fresh data
+        this.googleSheetsService.clearTransactionCache();
+        // Refresh data to show updated list
+        this.setLoading(true, 'Refreshing transaction data...');
+        this.dataRefreshTrigger.next(Date.now());
+      }),
+      catchError((error: any) => {
+        console.error('❌ Failed to delete transaction:', error);
+        this.setLoading(false);
+        throw error;
+      })
+    );
   }
 
   parseDate(date: Date): string {
@@ -307,6 +380,32 @@ export class TrackerService {
     dateCopy.setDate(2);
     dateCopy.setMonth(dateCopy.getMonth() - months);
     return dateCopy;
+  }
+
+    // Method to refresh data after CRUD operations
+  refreshData(): void {
+    console.log('🔄 Refreshing transaction data...');
+    // Set loading state
+    this.setLoading(true, 'Refreshing transaction data...');
+    // Clear transaction cache to ensure fresh data fetch
+    this.googleSheetsService.clearTransactionCache();
+    // Trigger data refresh
+    this.dataRefreshTrigger.next(Date.now());
+  }
+
+  // Helper methods for unified loading state
+  setLoading(loading: boolean, message: string = ''): void {
+    this.unifiedLoadingSubject.next({
+      isLoading: loading,
+      message: loading ? message : ''
+    });
+    console.log(`🔄 Unified loading state: ${loading} - ${message}`);
+  }
+
+  // Method to change sheet and refresh data
+  setSheet(newSheet: string): void {
+    console.log(`📋 Changing sheet from ${this.sheet} to ${newSheet}`);
+    this.sheet = newSheet;
   }
 
   // Budget-related methods

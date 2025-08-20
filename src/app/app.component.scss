@@ -1,3 +1,117 @@
 div.container{
   max-width: 100vw;
 }
+
+// Unified global loader styles
+.global-loader-overlay {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  background-color: rgba(0, 0, 0, 0.4) !important;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  z-index: 99999 !important;
+  pointer-events: none !important;
+  /* Ensure loader is above all other elements */
+  transform: translateZ(0) !important;
+}
+
+.global-loader-content {
+  background-color: white !important;
+  padding: 24px !important;
+  border-radius: 12px !important;
+  text-align: center !important;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2) !important;
+  pointer-events: auto !important;
+  min-width: 200px !important;
+  /* Ensure content is properly positioned */
+  position: relative !important;
+  z-index: 100000 !important;
+}
+
+.loader-message {
+  margin-top: 16px;
+  color: #666;
+  font-size: 14px;
+  margin-bottom: 0;
+  font-weight: 500;
+}
+
+/* Additional positioning safeguards */
+.global-loader-overlay * {
+  box-sizing: border-box !important;
+}
+
+/* Ensure the spinner itself is properly centered */
+.global-loader-content mat-spinner {
+  display: block !important;
+  margin: 0 auto !important;
+}
+
+/* Force the loader to be above any other positioned elements */
+.global-loader-overlay {
+  isolation: isolate !important;
+}
+
+/* Override any potential Material Design positioning conflicts */
+.global-loader-overlay {
+  /* Reset any inherited positioning */
+  position: fixed !important;
+  /* Use viewport units for guaranteed full coverage */
+  width: 100vw !important;
+  height: 100vh !important;
+  /* Ensure it's above everything */
+  z-index: 99999 !important;
+}
+
+/* Ensure the loader content is always centered */
+.global-loader-content {
+  /* Force center positioning */
+  position: absolute !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  /* Ensure it's above the overlay */
+  z-index: 100000 !important;
+}
+
+/* Additional safeguards for loader positioning */
+.global-loader-overlay {
+  /* Reset any inherited CSS that might affect positioning */
+  margin: 0 !important;
+  padding: 0 !important;
+  border: none !important;
+  outline: none !important;
+  /* Ensure it covers the entire viewport */
+  min-width: 100vw !important;
+  min-height: 100vh !important;
+  /* Force it to be above all other elements */
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+}
+
+/* Override any potential Material Design or other CSS conflicts */
+.global-loader-overlay,
+.global-loader-overlay * {
+  box-sizing: border-box !important;
+  font-family: inherit !important;
+}
+
+/* Ensure the spinner is properly centered within the content */
+.global-loader-content mat-spinner {
+  display: block !important;
+  margin: 0 auto !important;
+  /* Override any Material Design positioning */
+  position: relative !important;
+  top: auto !important;
+  left: auto !important;
+  transform: none !important;
+}

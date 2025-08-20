@@ -36,6 +36,10 @@ export class MonthlyTransactionListComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    // Show loader immediately when component loads
+    console.log('🚀 Monthly transaction list component loading...');
+    this.trackerService.setLoading(true, 'Loading transaction list...');
+
     this.activatedRoute.data.subscribe(
       ({ type }) => (this.locationType = type)
     );
@@ -66,10 +70,15 @@ export class MonthlyTransactionListComponent implements OnInit {
       this.activeLink = this.trackerService.getCurrentMonthTabByIndex();
       console.log('📅 Active tab set to current month:', this.activeLink?.header);
 
-      // Trigger change detection
+      // Update loader message to indicate data loading is starting
+      this.trackerService.setLoading(true, 'Loading transaction data...');
+
+      // Trigger change detection - this will trigger the month-view component to load data
       this.triggerBoolean = { val: true };
     } else {
       console.warn('⚠️ No tabs generated');
+      // Clear loader if no tabs
+      this.trackerService.setLoading(false);
     }
   }
 
@@ -77,8 +86,11 @@ export class MonthlyTransactionListComponent implements OnInit {
     this.triggerBoolean = { val: false };
   }
 
-  switchTab(link: any) {
+    switchTab(link: any) {
     this.activeLink = link;
     console.log('🔄 Switched to tab:', link?.header);
+
+    // No loader needed for tab switching - it should be instant
+    // The month-view component will handle its own data loading if needed
   }
 }

@@ -2,3 +2,11 @@
 
   <router-outlet></router-outlet>
 </div>
+
+<!-- Unified global loader -->
+<div *ngIf="isLoading" class="global-loader-overlay">
+  <div class="global-loader-content">
+    <mat-spinner diameter="40"></mat-spinner>
+    <p class="loader-message">{{ loadingMessage || 'Loading...' }}</p>
+  </div>
+</div>

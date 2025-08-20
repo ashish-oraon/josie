@@ -1,5 +1,5 @@
 <div class="p-2">
-  @if (transactionsOftheMonth.length > 0){
+    @if (transactionsOftheMonth.length > 0){
 
   <tracker-income-expense
     [transactions]="transactionsOftheMonth"
@@ -44,13 +44,12 @@
     class="p-2"
     [transactions]="transactionMap.get(date)"
   ></tracker-day-card>
-  } } @else{
-  <div class="spinner-container">
-    @if(canShowSpinner){
-    <mat-spinner></mat-spinner>
-    }@else{
-    <p>No Item for the month</p>
-    }
-  </div>
+  }   } @else{
+  <!-- Only show no data message if data is not currently loading -->
+  @if (!isDataLoading) {
+    <div class="no-data-container">
+      <p>No Item for the month</p>
+    </div>
+  }
   }
 </div>

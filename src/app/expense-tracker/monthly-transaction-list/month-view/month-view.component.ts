@@ -73,6 +73,9 @@ export class MonthViewComponent implements OnChanges, OnDestroy {
   public cancellableSubscriptions: { [key: string]: any } = {};
 
   canShowSpinner: boolean = true;
+  isDataLoading: boolean = false;
+
+
 
   searchControl = new FormControl<string | ITransaction>('');
   filteredOptions!: Observable<ITransaction[]>;
@@ -94,7 +97,13 @@ export class MonthViewComponent implements OnChanges, OnDestroy {
     loadCount: 0
   };
 
-  ngOnInit() {
+      ngOnInit() {
+    // Subscribe to unified loading state to know when data is being loaded
+    this.trackerService.unifiedLoadingState$.subscribe(loadingState => {
+      this.isDataLoading = loadingState.isLoading;
+      console.log(`📊 Month-view received loading state: ${loadingState.isLoading} - ${loadingState.message}`);
+    });
+
     this.filteredOptions = this.searchControl.valueChanges.pipe(
       startWith(''),
       debounceTime(300), // Add debounce for better performance
@@ -205,6 +214,10 @@ export class MonthViewComponent implements OnChanges, OnDestroy {
 
     const monthKey = `${month}-${year}`;
     console.log(`🔄 MonthView ngOnChanges triggered for: ${monthKey}`);
+
+    // Update the service sheet to trigger data refresh for the new month
+    const sheetName = this.commonService.getSheetName(new Date(year, month));
+    this.trackerService.setSheet(sheetName);
 
     // Check if we have cached data for this month
     if (this.isCachedDataValid(monthKey)) {
@@ -432,10 +445,10 @@ export class MonthViewComponent implements OnChanges, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe((confirmation: boolean) => {
         if (confirmation) {
-          this.transactionsOftheMonth = [];
-          this.transactionMap.clear();
-          this.datesInTheMonth = [];
-          this.canShowSpinner = true;
+          console.log('🗑️ Delete confirmed, triggering delete operation...');
+
+          // Don't clear local data - let the universal loader handle the loading state
+          // The TrackerService will show the universal loader and handle data refresh
 
           this.trackerService
             .deleteTransaction(transaction, transaction.id)
