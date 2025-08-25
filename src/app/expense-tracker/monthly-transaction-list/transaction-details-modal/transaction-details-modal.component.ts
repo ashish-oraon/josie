@@ -16,6 +16,7 @@ import { ITransaction } from '../../interfaces/transaction';
 import { ICategory } from '../../interfaces/category';
 import { TrackerService } from '../../services/tracker.service';
 
+import { logger } from '../../../shared/utils/logger.util';
 @Component({
   selector: 'app-transaction-details-modal',
   standalone: true,
@@ -77,7 +78,7 @@ export class TransactionDetailsModalComponent {
         this.categories = categories.filter(cat => !cat.isDeleted);
       },
       error: (error) => {
-        console.error('Error loading categories:', error);
+        logger.error('Error loading categories:', error);
       }
     });
   }
@@ -130,11 +131,11 @@ export class TransactionDetailsModalComponent {
     if (confirm('Are you sure you want to delete this transaction?')) {
       this.trackerService.deleteTransaction(this.transaction, this.transaction.id).subscribe({
         next: (result) => {
-          console.log('Transaction deleted:', result);
+          logger.log('Transaction deleted:', result);
           this.dialogRef.close({ action: 'deleted', transaction: this.transaction });
         },
         error: (error) => {
-          console.error('Error deleting transaction:', error);
+          logger.error('Error deleting transaction:', error);
         }
       });
     }

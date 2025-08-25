@@ -6,6 +6,7 @@ import { AuthService } from './shared/services/auth.service';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { CommonModule } from '@angular/common';
 import { filter } from 'rxjs';
+import { logger } from './shared/utils/logger.util';
 
 @Component({
   selector: 'app-root',
@@ -48,7 +49,7 @@ export class AppComponent implements OnInit {
 
         // Debug loader positioning
         if (loadingState.isLoading) {
-          console.log('🔍 Loader activated:', {
+          logger.log('🔍 Loader activated:', {
             message: loadingState.message,
             isOnProtectedRoute: this.isOnProtectedRoute,
             currentUrl: this.router.url
@@ -72,7 +73,7 @@ export class AppComponent implements OnInit {
                               url.includes('/shopping-list') ||
                               url.includes('/home');
 
-    console.log('🛡️ Protected route status:', {
+    logger.log('🛡️ Protected route status:', {
       url,
       isOnProtectedRoute: this.isOnProtectedRoute
     });
@@ -90,7 +91,7 @@ export class AppComponent implements OnInit {
       loaderOverlay.style.height = '100vh';
       loaderOverlay.style.zIndex = '99999';
 
-      console.log('🔧 Forced loader positioning:', {
+      logger.log('🔧 Forced loader positioning:', {
         position: loaderOverlay.style.position,
         top: loaderOverlay.style.top,
         left: loaderOverlay.style.left,

@@ -34,6 +34,7 @@ import {
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { ReusableLoaderComponent, LoaderConfig } from '../../../shared/component/reusable-loader';
+import { logger } from '../../../shared/utils/logger.util';
 
 @Component({
   selector: 'app-month-view',
@@ -124,7 +125,7 @@ export class MonthViewComponent implements OnChanges, OnDestroy {
 
     // Check if monthDetail is already available on init
     if (this.monthDetail) {
-      console.log('🚀 MonthDetail available on init, triggering load');
+      logger.log('🚀 MonthDetail available on init, triggering load');
       this.triggerDataLoad();
     }
   }
@@ -132,18 +133,18 @@ export class MonthViewComponent implements OnChanges, OnDestroy {
   // Method to manually trigger data loading
   triggerDataLoad(): void {
     if (!this.monthDetail) {
-      console.log('⏳ Cannot trigger load - monthDetail not available');
+              logger.log('⏳ Cannot trigger load - monthDetail not available');
       return;
     }
 
     const { month, year } = this.monthDetail;
     if (month === undefined || year === undefined) {
-      console.warn('⚠️ Cannot trigger load - invalid monthDetail:', this.monthDetail);
+              logger.warn('⚠️ Cannot trigger load - invalid monthDetail:', this.monthDetail);
       return;
     }
 
     const monthKey = `${month}-${year}`;
-    console.log(`🎯 Manually triggering data load for: ${monthKey}`);
+            logger.log(`🎯 Manually triggering data load for: ${monthKey}`);
 
     if (this.isCachedDataValid(monthKey)) {
       this.loadFromCache(monthKey);

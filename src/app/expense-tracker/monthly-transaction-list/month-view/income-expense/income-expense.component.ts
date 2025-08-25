@@ -4,6 +4,7 @@ import { CommonModule, NgIf } from '@angular/common';
 import { MatListModule } from '@angular/material/list';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatCardModule } from '@angular/material/card';
+import { logger } from '../../../../shared/utils/logger.util';
 
 @Component({
   selector: 'tracker-income-expense',
@@ -63,7 +64,7 @@ export class IncomeExpenseComponent implements OnInit, OnChanges {
           break;
         default:
           // Log unknown transaction types for debugging
-          console.warn(`⚠️ Unknown transaction type: ${transaction.type} for transaction ID: ${transaction.id}`);
+          logger.warn(`⚠️ Unknown transaction type: ${transaction.type} for transaction ID: ${transaction.id}`);
           // Default to expense if type is unknown
           this.totalExpense += amount;
           break;
@@ -74,7 +75,7 @@ export class IncomeExpenseComponent implements OnInit, OnChanges {
     this.netAmount = this.totalIncome - this.totalExpense;
 
     // Log calculation results for debugging
-    console.log('💰 Income/Expense Calculation:', {
+    logger.log('💰 Income/Expense Calculation:', {
       totalIncome: this.totalIncome,
       totalExpense: this.totalExpense,
       totalTransfer: this.totalTransfer,

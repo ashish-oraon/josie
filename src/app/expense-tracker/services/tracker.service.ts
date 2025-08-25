@@ -19,6 +19,7 @@ import { environment } from '../../environments/environment';
 import { GoogleSheetService } from '../../gsheet.service';
 import { CommonService } from '../../shared/common.service';
 import { ICategory } from '../interfaces/category';
+import { logger } from '../../shared/utils/logger.util';
 import {
   IBudget,
   IUser,
@@ -131,7 +132,7 @@ export class TrackerService {
         .readData('readTransactions', this.sheet)
         .pipe(
           map((arr: { data: ITransaction[]; length: number }) => {
-            console.log(`📊 Refreshed transactions: ${arr.data?.length || 0} from ${this.sheet}`);
+            logger.log(`📊 Refreshed transactions: ${arr.data?.length || 0} from ${this.sheet}`);
             // Stop loading state when data arrives
             this.setLoading(false);
             return arr.data.filter((el) => !el.isDeleted);
@@ -259,7 +260,7 @@ export class TrackerService {
 
     return this.googleSheetsService.createData(payload).pipe(
       tap((response) => {
-        console.log('✅ Transaction created successfully:', response);
+        logger.log('✅ Transaction created successfully:', response);
         // Clear transaction cache to ensure fresh data
         this.googleSheetsService.clearTransactionCache();
         // Refresh data to show the new transaction

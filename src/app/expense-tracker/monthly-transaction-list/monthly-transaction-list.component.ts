@@ -7,6 +7,7 @@ import { CommonModule } from '@angular/common';
 import { MonthViewComponent } from './month-view/month-view.component';
 import { MonthlyTransactionReportComponent } from '../monthly-transaction-report/monthly-transaction-report.component';
 
+import { logger } from '../../shared/utils/logger.util';
 @Component({
   selector: 'app-monthly-transaction-list',
   standalone: true,
@@ -49,12 +50,12 @@ export class MonthlyTransactionListComponent implements OnInit {
 
     ngOnInit(): void {
     // ✅ SIMPLIFIED: Removed global loader integration, using only local loaders
-    console.log('🚀 Monthly transaction list component loading...');
+    logger.log('🚀 Monthly transaction list component loading...');
 
     this.activatedRoute.data.subscribe(
       ({ type }) => {
         this.locationType = type;
-        console.log(`📍 Location type set to: ${this.locationType}`);
+        logger.log(`📍 Location type set to: ${this.locationType}`);
 
         // Initialize tabs for both views
         this.initializeTabs();
@@ -82,13 +83,13 @@ export class MonthlyTransactionListComponent implements OnInit {
     if (this.tabs && this.tabs.length > 0) {
       // Use the service method to get the current month tab
       this.activeLink = this.trackerService.getCurrentMonthTabByIndex();
-      console.log('📅 Active tab set to current month:', this.activeLink?.header);
+      logger.log('📅 Active tab set to current month:', this.activeLink?.header);
 
       // ✅ SIMPLIFIED: No global loader integration, just set up tabs
-      console.log(`📋 Setting up tabs for ${this.locationType} view`);
+      logger.log(`📋 Setting up tabs for ${this.locationType} view`);
       this.triggerBoolean = { val: true };
     } else {
-      console.warn('⚠️ No tabs generated');
+      logger.warn('⚠️ No tabs generated');
     }
   }
 
@@ -106,7 +107,7 @@ export class MonthlyTransactionListComponent implements OnInit {
       sheet: string;
     }) {
     this.activeLink = link;
-    console.log('🔄 Switched to tab:', link?.header);
+    logger.log('🔄 Switched to tab:', link?.header);
 
     // ✅ IMPROVED: Tab switching should be instant and use cached data
     // The month-view component will check cache first and only call backend if needed

@@ -18,6 +18,7 @@ import { ICategory } from '../interfaces/category';
 import { Observable, combineLatest } from 'rxjs';
 import { map } from 'rxjs/operators';
 
+import { logger } from '../../shared/utils/logger.util';
 @Component({
   selector: 'app-budget-management',
   standalone: true,
@@ -156,14 +157,14 @@ export class BudgetManagementComponent implements OnInit {
     this.isLoading = true;
     this.trackerService.budgetSummary$.subscribe({
       next: (summary) => {
-        console.log('Budget summary received:', summary);
+        logger.log('Budget summary received:', summary);
         // Ensure budgets is always an array
         this.budgets = Array.isArray(summary) ? summary : [];
-        console.log('Processed budgets:', this.budgets);
+        logger.log('Processed budgets:', this.budgets);
         this.isLoading = false;
       },
       error: (error) => {
-        console.error('Error loading budgets:', error);
+        logger.error('Error loading budgets:', error);
         this.budgets = []; // Set empty array on error
         this.isLoading = false;
       }
@@ -173,13 +174,13 @@ export class BudgetManagementComponent implements OnInit {
   loadCategories() {
     this.trackerService.getCategories().subscribe({
       next: (categories) => {
-        console.log('Raw categories received:', categories);
+        logger.log('Raw categories received:', categories);
         this.categories = categories.filter(cat => !cat.isDeleted);
-        console.log('Filtered categories:', this.categories);
-        console.log('First category sample:', this.categories[0]);
+        logger.log('Filtered categories:', this.categories);
+        logger.log('First category sample:', this.categories[0]);
       },
       error: (error) => {
-        console.error('Error loading categories:', error);
+        logger.error('Error loading categories:', error);
       }
     });
   }
@@ -239,13 +240,13 @@ export class BudgetManagementComponent implements OnInit {
 
     this.trackerService.createBudget(budget).subscribe({
       next: (result) => {
-        console.log('Budget created:', result);
+        logger.log('Budget created:', result);
         this.newBudget = { category: '', planned: 0 };
         this.loadBudgets(); // Reload budgets
         this.isAddingBudget = false;
       },
       error: (error) => {
-        console.error('Error creating budget:', error);
+        logger.error('Error creating budget:', error);
         this.isAddingBudget = false;
       }
     });
@@ -254,11 +255,11 @@ export class BudgetManagementComponent implements OnInit {
   updateBudget(budget: IBudget) {
     this.trackerService.updateBudget(budget).subscribe({
       next: (result) => {
-        console.log('Budget updated:', result);
+        logger.log('Budget updated:', result);
         this.loadBudgets(); // Reload budgets
       },
       error: (error) => {
-        console.error('Error updating budget:', error);
+        logger.error('Error updating budget:', error);
       }
     });
   }
@@ -282,7 +283,7 @@ export class BudgetManagementComponent implements OnInit {
 
   getTotalPlanned(): number {
     if (!Array.isArray(this.budgets)) {
-      console.warn('budgets is not an array:', this.budgets);
+      logger.warn('budgets is not an array:', this.budgets);
       return 0;
     }
     return this.budgets.reduce((sum, budget) => sum + budget.Planned, 0);
@@ -290,7 +291,7 @@ export class BudgetManagementComponent implements OnInit {
 
   getTotalActual(): number {
     if (!Array.isArray(this.budgets)) {
-      console.warn('budgets is not an array:', this.budgets);
+      logger.warn('budgets is not an array:', this.budgets);
       return 0;
     }
     return this.budgets.reduce((sum, budget) => sum + budget.Actual, 0);
@@ -298,7 +299,7 @@ export class BudgetManagementComponent implements OnInit {
 
   getTotalVariance(): number {
     if (!Array.isArray(this.budgets)) {
-      console.warn('budgets is not an array:', this.budgets);
+      logger.warn('budgets is not an array:', this.budgets);
       return 0;
     }
     return this.getTotalPlanned() - this.getTotalActual();

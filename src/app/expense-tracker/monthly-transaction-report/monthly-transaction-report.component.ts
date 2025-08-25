@@ -18,6 +18,7 @@ import { MatCardModule } from '@angular/material/card';
 
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { environment } from '../../environments/environment';
+import { logger } from '../../shared/utils/logger.util';
 
 const CURRENCY_SYMBOL = environment.currencySymbol;
 export interface IPieChartData {
@@ -167,7 +168,7 @@ export class MonthlyTransactionReportComponent implements OnChanges {
 
         default:
           // Log unknown transaction types for debugging
-          console.warn(`⚠️ Unknown transaction type: ${transaction.type} for transaction ID: ${transaction.id}`);
+          logger.warn(`⚠️ Unknown transaction type: ${transaction.type} for transaction ID: ${transaction.id}`);
           // Default to expense if type is unknown
           this.financialSummary.totalExpense += amount;
           this.financialSummary.expenseCount++;
@@ -213,7 +214,7 @@ export class MonthlyTransactionReportComponent implements OnChanges {
     ];
 
     // Log calculation results for debugging
-    console.log('📊 Monthly Transaction Report Calculation:', {
+    logger.log('📊 Monthly Transaction Report Calculation:', {
       month: this.monthDetail,
       financialSummary: this.financialSummary,
       expenseCategories: this.categoryData.length,

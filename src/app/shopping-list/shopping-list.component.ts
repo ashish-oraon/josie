@@ -29,6 +29,7 @@ import {
 import { CommonService } from '../shared/common.service';
 import { ItemComponent } from './item/item.component';
 
+import { logger } from '../shared/utils/logger.util';
 export interface IShoppingItem {
   id: number;
   name: string;
@@ -117,7 +118,7 @@ export class ShoppingListComponent implements OnInit {
     this.isLoading = true;
     this.shoppingListService.update(this.shoppingItems).subscribe(
       (data: any) => {
-        console.log(data);
+        logger.log(data);
         this._commonService.openSnackBar(
           'Shopping list updated successfully',
           ''
@@ -134,7 +135,7 @@ export class ShoppingListComponent implements OnInit {
   }
 
   dblClick(item?: IShoppingItem): void {
-    console.log(item);
+    logger.log('Item double-clicked:', item);
   }
 
   handleProductEdit($event: IShoppingItem) {
@@ -154,7 +155,7 @@ export class ShoppingListComponent implements OnInit {
 
     dialogRef.afterClosed().subscribe((result) => {
       this.unsavedChangesExist = true;
-      console.log('The dialog was closed');
+      logger.log('The dialog was closed');
       const { name, quantity, id } = result;
       if (id) {
         const selectedItem = this.shoppingItems.find((el) => el.id === id);

@@ -4,6 +4,7 @@ import { NgxChartsModule, LegendPosition } from '@swimlane/ngx-charts';
 import { IPieChartData } from '../monthly-transaction-report.component';
 import { environment } from '../../../environments/environment';
 
+import { logger } from '../../../shared/utils/logger.util';
 const CURRENCY_SYMBOL = environment.currencySymbol;
 @Component({
   selector: 'tracker-pie-chart',
@@ -41,15 +42,15 @@ export class PieChartComponent {
   }
 
   onSelect(data: any): void {
-    // console.log('Item clicked', JSON.parse(JSON.stringify(data)));
+    // logger.log('Item clicked', JSON.parse(JSON.stringify(data)));
   }
 
   onActivate(data: any): void {
-    // console.log('Activate', JSON.parse(JSON.stringify(data)));
+    // logger.log('Activate', JSON.parse(JSON.stringify(data)));
   }
 
   onDeactivate(data: any): void {
-    // console.log('Deactivate', JSON.parse(JSON.stringify(data)));
+    // logger.log('Deactivate', JSON.parse(JSON.stringify(data)));
   }
 
   onResize(event: any) {

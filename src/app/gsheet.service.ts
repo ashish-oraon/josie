@@ -4,6 +4,7 @@ import { Observable, map, of, share, shareReplay, tap } from 'rxjs';
 import { environment } from './environments/environment';
 
 
+import { logger } from './shared/utils/logger.util';
 const staticData = {
   data: [
     {
@@ -9332,12 +9333,12 @@ export class GoogleSheetService {
 
   // Cache invalidation methods
   clearCache(): void {
-    console.log('🗑️ Clearing all cache');
+    logger.log('🗑️ Clearing all cache');
     this.cache.clear();
   }
 
   clearCacheByPattern(pattern: string): void {
-    console.log(`🗑️ Clearing cache for pattern: ${pattern}`);
+    logger.log(`🗑️ Clearing cache for pattern: ${pattern}`);
     const keysToDelete: string[] = [];
 
     for (const key of this.cache.keys()) {
@@ -9348,12 +9349,12 @@ export class GoogleSheetService {
 
     keysToDelete.forEach(key => {
       this.cache.delete(key);
-      console.log(`🗑️ Cleared cache key: ${key}`);
+      logger.log(`🗑️ Cleared cache key: ${key}`);
     });
   }
 
   clearTransactionCache(): void {
-    console.log('🗑️ Clearing transaction-related cache');
+    logger.log('🗑️ Clearing transaction-related cache');
     this.clearCacheByPattern('readTransactions');
   }
 
