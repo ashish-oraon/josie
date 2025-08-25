@@ -17,7 +17,6 @@ import { TrackerService } from '../../services/tracker.service';
 import { ITransaction } from '../../interfaces/transaction';
 import { Observable, map, of, startWith, Subject, takeUntil, shareReplay, distinctUntilChanged, debounceTime } from 'rxjs';
 import { DayCardComponent } from './day-card/day-card.component';
-import { LoaderService } from '../../../shared/loader.service';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDialog } from '@angular/material/dialog';
 import { DialogConfirmationComponent } from '../../../shared/component/dialog-confirmation/dialog-confirmation.component';
@@ -64,11 +63,11 @@ export class MonthViewComponent implements OnChanges, OnDestroy {
 
 
   basicConfig: LoaderConfig = {
-    message: 'Loading data...',
-    size: 'medium',
+    message: 'Loading transaction data...',
+    size: 'large',
     color: 'primary',
-    overlay: false,
-    backdrop: false
+    overlay: true,
+    backdrop: true
   };
 
   @Output() mEvent = new EventEmitter<unknown>();
@@ -108,7 +107,7 @@ export class MonthViewComponent implements OnChanges, OnDestroy {
     loadCount: 0
   };
 
-  isLoading$: Observable<boolean>;
+  isLoading$: Observable<boolean> = of(false);
 
         ngOnInit() {
     // ✅ SIMPLIFIED: Removed global loader integration, using only standalone local loader
@@ -186,14 +185,14 @@ export class MonthViewComponent implements OnChanges, OnDestroy {
     this.canShowSpinner = true;
     this.lastMonthKey = monthKey;
 
-    // Show local loader only (no global loader for direct loads)
-    this.Loader.show();
+    // Show reusable loader
+    this.isLoading$ = of(true);
 
     // Add timeout to prevent loader from getting stuck
     const loaderTimeout = setTimeout(() => {
       console.warn('⏰ Loader timeout reached, hiding spinner');
       this.canShowSpinner = false;
-      this.Loader.hide();
+      this.isLoading$ = of(false);
       this.forceUIUpdate();
     }, 10000); // 10 second timeout
 
@@ -228,12 +227,12 @@ export class MonthViewComponent implements OnChanges, OnDestroy {
             clearTimeout(loaderTimeout); // Clear timeout on error
             console.error('❌ Error loading month data directly:', error);
             this.canShowSpinner = false;
-            this.Loader.hide();
+            this.isLoading$ = of(false);
             this.forceUIUpdate();
           },
           complete: () => {
             clearTimeout(loaderTimeout); // Clear timeout on complete
-            this.Loader.hide();
+            this.isLoading$ = of(false);
             this.forceUIUpdate();
           }
         });
@@ -287,12 +286,12 @@ export class MonthViewComponent implements OnChanges, OnDestroy {
 
   constructor(
     private trackerService: TrackerService,
-    private Loader: LoaderService,
     public dialog: MatDialog,
     private commonService: CommonService,
     private cdr: ChangeDetectorRef
   ) {
-    this.isLoading$ = this.Loader.isLoading$;
+    // Initialize loading state
+    this.isLoading$ = of(false);
   }
 
     ngOnChanges(changes: SimpleChanges): void {
@@ -363,7 +362,7 @@ export class MonthViewComponent implements OnChanges, OnDestroy {
       this.performanceMetrics.cacheHits++;
 
       // ✅ SIMPLIFIED: Ensure local loader is hidden
-      this.Loader.hide();
+      this.isLoading$ = of(false);
       // No global loader to clear
       this.forceUIUpdate();
 
@@ -379,14 +378,14 @@ export class MonthViewComponent implements OnChanges, OnDestroy {
     this.canShowSpinner = true;
     this.lastMonthKey = monthKey;
 
-    // ✅ SIMPLIFIED: Show only local loader
-    this.Loader.show();
+    // ✅ SIMPLIFIED: Show reusable loader
+    this.isLoading$ = of(true);
 
     // Add timeout to prevent loader from getting stuck
     const loaderTimeout = setTimeout(() => {
       console.warn('⏰ Loader timeout reached, hiding spinner');
       this.canShowSpinner = false;
-      this.Loader.hide();
+      this.isLoading$ = of(false);
       // ✅ SIMPLIFIED: No global loader to clear
       // Force change detection to update UI
       this.forceUIUpdate();
@@ -423,13 +422,13 @@ export class MonthViewComponent implements OnChanges, OnDestroy {
             clearTimeout(loaderTimeout); // Clear timeout on error
             console.error('❌ Error loading month data:', error);
             this.canShowSpinner = false;
-            this.Loader.hide();
+            this.isLoading$ = of(false);
             // ✅ SIMPLIFIED: No global loader to clear
             this.forceUIUpdate();
           },
           complete: () => {
             clearTimeout(loaderTimeout); // Clear timeout on complete
-            this.Loader.hide();
+            this.isLoading$ = of(false);
             // ✅ SIMPLIFIED: No global loader to clear
             this.forceUIUpdate();
           }
@@ -464,7 +463,7 @@ export class MonthViewComponent implements OnChanges, OnDestroy {
     processData(transactionsOftheMonth: ITransaction[]) {
     if (!transactionsOftheMonth || transactionsOftheMonth.length === 0) {
       this.canShowSpinner = false;
-      this.Loader.hide();
+      this.isLoading$ = of(false);
       // ✅ SIMPLIFIED: No global loader to clear
       this.forceUIUpdate();
       console.log('📭 No transactions found for this month');
@@ -493,7 +492,7 @@ export class MonthViewComponent implements OnChanges, OnDestroy {
       new Date(b).getTime() - new Date(a).getTime()
     );
         this.canShowSpinner = false;
-    this.Loader.hide();
+    this.isLoading$ = of(false);
 
     // ✅ SIMPLIFIED: No global loader to clear
 
@@ -557,9 +556,9 @@ export class MonthViewComponent implements OnChanges, OnDestroy {
     console.log(`   lastMonthKey: ${this.lastMonthKey}`);
     console.log(`   monthDetail:`, this.monthDetail);
 
-    // Check loader service state
-    this.Loader.isLoading$.subscribe(loading => {
-      console.log(`   LoaderService.isLoading: ${loading}`);
+    // Check reusable loader state
+    this.isLoading$.subscribe(loading => {
+      console.log(`   ReusableLoader.isLoading: ${loading}`);
     }).unsubscribe();
   }
 
