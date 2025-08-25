@@ -11,6 +11,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { Router, ActivatedRoute } from '@angular/router';
 import { ITransaction } from '../../interfaces/transaction';
 import { ICategory } from '../../interfaces/category';
 import { TrackerService } from '../../services/tracker.service';
@@ -39,8 +40,6 @@ import { TrackerService } from '../../services/tracker.service';
 export class TransactionDetailsModalComponent {
   transaction: ITransaction;
   categories: ICategory[] = [];
-  isEditing = false;
-  editForm: any = {};
 
   // Payment method icons mapping
   paymentMethodIcons: { [key: string]: string } = {
@@ -64,11 +63,12 @@ export class TransactionDetailsModalComponent {
   constructor(
     public dialogRef: MatDialogRef<TransactionDetailsModalComponent>,
     @Inject(MAT_DIALOG_DATA) public data: { transaction: ITransaction },
-    private trackerService: TrackerService
+    private trackerService: TrackerService,
+    private router: Router,
+    private route: ActivatedRoute
   ) {
     this.transaction = data.transaction;
     this.loadCategories();
-    this.initializeEditForm();
   }
 
   loadCategories() {
@@ -80,18 +80,6 @@ export class TransactionDetailsModalComponent {
         console.error('Error loading categories:', error);
       }
     });
-  }
-
-  initializeEditForm() {
-    this.editForm = {
-      amount: this.transaction.amount,
-      category: this.transaction.category,
-      note: this.transaction.note,
-      date: this.transaction.date,
-      paymentMethod: this.transaction.paymentMethod,
-      paidBy: this.transaction.paidBy,
-      type: this.transaction.type
-    };
   }
 
   getPaymentMethodIcon(method: string): string {
@@ -130,28 +118,11 @@ export class TransactionDetailsModalComponent {
     });
   }
 
-  toggleEdit() {
-    this.isEditing = !this.isEditing;
-    if (!this.isEditing) {
-      this.initializeEditForm(); // Reset form when canceling edit
-    }
-  }
-
-  saveChanges() {
-    // Update the transaction object
-    Object.assign(this.transaction, this.editForm);
-
-    // Call the service to update
-    this.trackerService.updateTransaction(this.transaction, this.transaction.id).subscribe({
-      next: (result) => {
-        console.log('Transaction updated:', result);
-        this.isEditing = false;
-        // Emit event to refresh parent component
-        this.dialogRef.close({ action: 'updated', transaction: this.transaction });
-      },
-      error: (error) => {
-        console.error('Error updating transaction:', error);
-      }
+  editTransaction() {
+    // Close the modal and navigate to add-transaction route with edit action
+    this.dialogRef.close();
+    this.router.navigate(['/expense-tracker/add-transaction'], {
+      state: { transaction: this.transaction, action: 'edit' },
     });
   }
 

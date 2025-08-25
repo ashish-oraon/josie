@@ -63,6 +63,7 @@ export class MonthlyTransactionReportComponent implements OnChanges {
   transactionsOftheMonth: ITransaction[] = [];
   categoryData: IPieChartData[] = [];
   incomeCategoryData: IPieChartData[] = [];
+  incomeExpenseLineData: IPieChartData[] = [];
   panelOpenState: boolean = true;
   canShowSpinner: boolean = false;
   showRent: boolean = false;
@@ -195,12 +196,29 @@ export class MonthlyTransactionReportComponent implements OnChanges {
       value: incomeCategoryMap.get(category),
     }));
 
+    // Prepare income vs expense line chart data
+    this.incomeExpenseLineData = [
+      {
+        name: 'Income',
+        value: this.financialSummary.totalIncome
+      },
+      {
+        name: 'Expenses',
+        value: this.financialSummary.totalExpense
+      },
+      {
+        name: 'Net Amount',
+        value: this.financialSummary.netAmount
+      }
+    ];
+
     // Log calculation results for debugging
     console.log('📊 Monthly Transaction Report Calculation:', {
       month: this.monthDetail,
       financialSummary: this.financialSummary,
       expenseCategories: this.categoryData.length,
       incomeCategories: this.incomeCategoryData.length,
+      incomeExpenseLineData: this.incomeExpenseLineData,
       totalTransactions: transactionsOftheMonth.length
     });
 
@@ -220,6 +238,7 @@ export class MonthlyTransactionReportComponent implements OnChanges {
     };
     this.categoryData = [];
     this.incomeCategoryData = [];
+    this.incomeExpenseLineData = [];
   }
 
   // Helper method to get formatted amounts
