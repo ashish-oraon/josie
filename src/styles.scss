@@ -1,4 +1,5 @@
 /* You can add global styles to this file, and also import other style files */
+@import '@angular/material/prebuilt-themes/indigo-pink.css';
 
 html,
 body {
@@ -7,6 +8,50 @@ body {
 body {
   margin: 0;
   font-family: Roboto, "Helvetica Neue", sans-serif;
+}
+
+/* Light theme dialog overrides */
+.light-theme-dialog {
+  .mat-mdc-dialog-container {
+    background-color: #ffffff !important;
+    color: #333 !important;
+  }
+
+  .mat-mdc-dialog-surface {
+    background-color: #ffffff !important;
+    color: #333 !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12) !important;
+    border-radius: 8px !important;
+  }
+
+  .mat-mdc-dialog-title,
+  .mat-mdc-dialog-content,
+  .mat-mdc-dialog-actions {
+    color: #333 !important;
+  }
+}
+
+/* Global Material Design light theme overrides */
+.mat-mdc-dialog-container {
+  background-color: #ffffff !important;
+  color: #333 !important;
+}
+
+.mat-mdc-dialog-surface {
+  background-color: #ffffff !important;
+  color: #333 !important;
+}
+
+.mat-mdc-dialog-title {
+  color: #333 !important;
+}
+
+.mat-mdc-dialog-content {
+  color: #666 !important;
+}
+
+.mat-mdc-dialog-actions {
+  color: #333 !important;
 }
 
 .p-2 {

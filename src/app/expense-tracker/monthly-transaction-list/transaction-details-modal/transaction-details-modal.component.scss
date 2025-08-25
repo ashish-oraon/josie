@@ -1,6 +1,8 @@
 .transaction-modal-container {
   min-width: 600px;
   max-width: 800px;
+  background-color: #ffffff;  // ✅ Force white background
+  color: #333;                 // ✅ Force dark text
 
   @media (max-width: 768px) {
     min-width: 90vw;
@@ -49,6 +51,8 @@
   margin-bottom: 24px;
   border-radius: 12px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  background-color: #ffffff;  // ✅ Force white background
+  border: 1px solid #e0e0e0;  // ✅ Light border for definition
 
   .status-header {
     display: flex;
@@ -201,56 +205,42 @@
   }
 }
 
-// Material Design overrides
+// Material Design overrides - Light theme enforcement
 ::ng-deep {
   .mat-mdc-dialog-container {
     border-radius: 16px;
+    background-color: #ffffff !important;  // ✅ Force white background
+    color: #333 !important;                // ✅ Force dark text
+  }
+
+  .mat-mdc-dialog-surface {
+    background-color: #ffffff !important;  // ✅ Force white surface
+    color: #333 !important;                // ✅ Force dark text
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12) !important;  // ✅ Light shadow
   }
 
   .mat-mdc-dialog-content {
     padding: 0;
+    background-color: #ffffff !important;  // ✅ Force white content
+    color: #333 !important;                // ✅ Force dark text
   }
 
   .mat-mdc-dialog-actions {
     padding: 0;
-  }
-}
-
-// Dark theme support
-@media (prefers-color-scheme: dark) {
-  .transaction-modal-container {
-    background-color: #1a1a1a;
-    color: #fff;
+    background-color: #ffffff !important;  // ✅ Force white actions
+    color: #333 !important;                // ✅ Force dark text
   }
 
-  .modal-header h2 {
-    color: #fff;
-  }
+  // Override any Material Design dark theme
+  .mat-mdc-dialog-container.mat-mdc-dialog-container {
+    background-color: #ffffff !important;
 
-  .status-card {
-    background-color: #2d2d2d;
-
-    .transaction-date {
-      color: #ccc;
-    }
-  }
-
-  .details-section h3 {
-    color: #fff;
-    border-bottom-color: #444;
-  }
-
-  .details-grid .detail-item {
-    .label {
-      color: #ccc;
-    }
-
-    .value {
-      color: #fff;
-
-      mat-icon {
-        color: #ccc;
-      }
+    .mat-mdc-dialog-title,
+    .mat-mdc-dialog-content,
+    .mat-mdc-dialog-actions {
+      color: #333 !important;
     }
   }
 }
+
+// ✅ REMOVED: Dark theme support - forcing light theme for consistency

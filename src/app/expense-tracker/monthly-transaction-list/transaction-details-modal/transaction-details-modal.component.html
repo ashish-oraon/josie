@@ -68,24 +68,6 @@
           <span class="label">Paid By:</span>
           <span class="value">{{ transaction.paidBy }}</span>
         </div>
-
-        <div class="detail-item">
-          <span class="label">Transaction Type:</span>
-          <span class="value">
-            <mat-icon>{{ getTransactionTypeIcon(transaction.type) }}</mat-icon>
-            {{ transaction.type }}
-          </span>
-        </div>
-
-        <div class="detail-item">
-          <span class="label">Date:</span>
-          <span class="value">{{ formatDate(transaction.date) }}</span>
-        </div>
-
-        <div class="detail-item">
-          <span class="label">Transaction ID:</span>
-          <span class="value">{{ transaction.id }}</span>
-        </div>
       </div>
 
       <!-- Edit Mode -->

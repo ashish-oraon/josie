@@ -195,7 +195,8 @@ export class DayCardComponent implements OnChanges {
       width: '800px',
       maxWidth: '95vw',
       data: { transaction },
-      disableClose: false
+      disableClose: false,
+      panelClass: 'light-theme-dialog'  // ✅ Force light theme
     });
 
     dialogRef.afterClosed().subscribe((result) => {

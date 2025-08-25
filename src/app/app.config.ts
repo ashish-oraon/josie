@@ -12,6 +12,7 @@ import {
   withFetch,
 } from '@angular/common/http';
 import { provideNativeDateAdapter } from '@angular/material/core';
+import { provideAnimations } from '@angular/platform-browser/animations';
 import { LoaderInterceptor } from './shared/loader-interceptor.service';
 import { provideServiceWorker } from '@angular/service-worker';
 
@@ -22,6 +23,7 @@ export const appConfig: ApplicationConfig = {
     provideAnimationsAsync(),
     provideHttpClient(withFetch()),
     provideNativeDateAdapter(),
+    provideAnimations(),
     provideServiceWorker('ngsw-worker.js', {
         enabled: !isDevMode(),
         registrationStrategy: 'registerWhenStable:30000'

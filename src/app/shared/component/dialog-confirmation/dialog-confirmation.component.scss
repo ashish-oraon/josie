@@ -1,0 +1,67 @@
+:host {
+  display: block;
+}
+
+h1[mat-dialog-title] {
+  color: #333;
+  margin: 0 0 16px 0;
+  font-size: 20px;
+  font-weight: 500;
+}
+
+div[mat-dialog-content] {
+  color: #666;
+  margin-bottom: 24px;
+  line-height: 1.5;
+
+  p {
+    margin: 0;
+    font-size: 16px;
+  }
+}
+
+div[mat-dialog-actions] {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+
+  button[mat-button] {
+    min-width: 80px;
+    font-weight: 500;
+
+    &:first-child {
+      color: #666;
+    }
+
+    &:last-child {
+      color: #1976d2;
+      font-weight: 600;
+    }
+  }
+}
+
+// Ensure dialog uses light theme
+::ng-deep .mat-mdc-dialog-container {
+  background-color: #ffffff !important;
+  color: #333 !important;
+}
+
+::ng-deep .mat-mdc-dialog-surface {
+  background-color: #ffffff !important;
+  color: #333 !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12) !important;
+  border-radius: 8px !important;
+}
+
+// Override any dark theme styles
+::ng-deep .mat-mdc-dialog-container.mat-mdc-dialog-container {
+  background-color: #ffffff !important;
+
+  .mat-mdc-dialog-title,
+  .mat-mdc-dialog-content,
+  .mat-mdc-dialog-actions {
+    color: #333 !important;
+  }
+}

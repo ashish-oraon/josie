@@ -565,7 +565,12 @@ export class MonthViewComponent implements OnChanges, OnDestroy {
   showDialog(transaction: ITransaction): void {
     this.dialog
       .open(DialogConfirmationComponent, {
-        data: `Are you sure?`,
+        data: `Are you sure you want to delete this transaction?`,
+        panelClass: 'light-theme-dialog',
+        width: '400px',
+        maxWidth: '90vw',
+        disableClose: false,
+        autoFocus: true
       })
       .afterClosed()
       .pipe(takeUntil(this.destroy$))
