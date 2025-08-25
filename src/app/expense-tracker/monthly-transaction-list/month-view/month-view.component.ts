@@ -34,6 +34,7 @@ import {
 } from '@angular/material/autocomplete';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import { ReusableLoaderComponent, LoaderConfig } from '../../../shared/component/reusable-loader';
 
 @Component({
   selector: 'app-month-view',
@@ -49,6 +50,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
     MatButtonModule,
     MatIconModule,
     IncomeExpenseComponent,
+    ReusableLoaderComponent
   ],
   templateUrl: './month-view.component.html',
   styleUrl: './month-view.component.scss',
@@ -59,6 +61,15 @@ export class MonthViewComponent implements OnChanges, OnDestroy {
   monthDetail!: ITabInformation;
   @Input()
   triggerChange!: unknown;
+
+
+  basicConfig: LoaderConfig = {
+    message: 'Loading data...',
+    size: 'medium',
+    color: 'primary',
+    overlay: false,
+    backdrop: false
+  };
 
   @Output() mEvent = new EventEmitter<unknown>();
 
@@ -96,6 +107,8 @@ export class MonthViewComponent implements OnChanges, OnDestroy {
     totalLoadTime: 0,
     loadCount: 0
   };
+
+  isLoading$: Observable<boolean>;
 
         ngOnInit() {
     // ✅ SIMPLIFIED: Removed global loader integration, using only standalone local loader
@@ -278,7 +291,9 @@ export class MonthViewComponent implements OnChanges, OnDestroy {
     public dialog: MatDialog,
     private commonService: CommonService,
     private cdr: ChangeDetectorRef
-  ) {}
+  ) {
+    this.isLoading$ = this.Loader.isLoading$;
+  }
 
     ngOnChanges(changes: SimpleChanges): void {
     if (!this.monthDetail) {

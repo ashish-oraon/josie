@@ -10,6 +10,7 @@ import { LoaderService } from '../shared/loader.service';
 import { MatDialog } from '@angular/material/dialog';
 import { TransactionFormComponent } from './transaction-form/transaction-form.component';
 
+
 @Component({
   selector: 'app-expense-tracker',
   standalone: true,
@@ -19,13 +20,15 @@ import { TransactionFormComponent } from './transaction-form/transaction-form.co
     MatIconModule,
     MatButtonModule,
     MatProgressSpinnerModule,
-    CommonModule,
+    CommonModule
   ],
   templateUrl: './expense-tracker.component.html',
   styleUrl: './expense-tracker.component.scss',
 })
 export class ExpenseTrackerComponent {
   isLoading$: Observable<boolean>;
+
+
   constructor(private loaderService: LoaderService, public dialog: MatDialog) {
     this.isLoading$ = this.loaderService.isLoading$;
   }

@@ -1,0 +1,291 @@
+.demo-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+  font-family: 'Roboto', sans-serif;
+}
+
+.demo-container h1 {
+  color: #1976d2;
+  text-align: center;
+  margin-bottom: 0.5rem;
+  font-size: 2.5rem;
+  font-weight: 300;
+}
+
+.demo-description {
+  text-align: center;
+  color: #666;
+  font-size: 1.1rem;
+  margin-bottom: 3rem;
+  line-height: 1.6;
+}
+
+.demo-card {
+  margin-bottom: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e0e0e0;
+
+  .mat-card-header {
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    border-radius: 12px 12px 0 0;
+    padding: 1.5rem;
+
+    .mat-card-title {
+      color: #2c3e50;
+      font-size: 1.5rem;
+      font-weight: 500;
+      margin: 0;
+    }
+
+    .mat-card-subtitle {
+      color: #7f8c8d;
+      font-size: 1rem;
+      margin: 0.5rem 0 0 0;
+    }
+  }
+
+  .mat-card-content {
+    padding: 2rem;
+  }
+}
+
+.demo-section {
+  margin: 1.5rem 0;
+
+  p {
+    color: #555;
+    line-height: 1.6;
+    margin-bottom: 1rem;
+  }
+}
+
+.loader-demo-area {
+  min-height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px dashed #e0e0e0;
+  border-radius: 8px;
+  background-color: #fafafa;
+  margin: 1rem 0;
+  padding: 2rem;
+
+  .placeholder {
+    color: #999;
+    font-style: italic;
+    text-align: center;
+  }
+}
+
+.config-controls {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+
+  .mat-form-field {
+    width: 100%;
+  }
+}
+
+.demo-info {
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-top: 1rem;
+
+  p {
+    margin: 0 0 0.5rem 0;
+    font-weight: 500;
+    color: #495057;
+  }
+
+  ul {
+    margin: 0;
+    padding-left: 1.5rem;
+
+    li {
+      color: #6c757d;
+      line-height: 1.6;
+      margin-bottom: 0.25rem;
+    }
+  }
+}
+
+.code-examples {
+  .code-section {
+    margin-bottom: 2rem;
+
+    h4 {
+      color: #2c3e50;
+      margin-bottom: 0.75rem;
+      font-size: 1.1rem;
+      font-weight: 500;
+    }
+
+    pre {
+      background-color: #2d3748;
+      color: #e2e8f0;
+      padding: 1.5rem;
+      border-radius: 8px;
+      overflow-x: auto;
+      font-family: 'Fira Code', 'Monaco', 'Consolas', monospace;
+      font-size: 0.9rem;
+      line-height: 1.5;
+
+      code {
+        background: none;
+        padding: 0;
+        color: inherit;
+        font-size: inherit;
+      }
+    }
+  }
+}
+
+.config-reference {
+  overflow-x: auto;
+
+  .config-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+
+    th, td {
+      padding: 1rem;
+      text-align: left;
+      border-bottom: 1px solid #e0e0e0;
+    }
+
+    th {
+      background-color: #f8f9fa;
+      font-weight: 600;
+      color: #495057;
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    td {
+      color: #6c757d;
+      font-size: 0.9rem;
+      vertical-align: top;
+
+      code {
+        background-color: #f1f3f4;
+        color: #d73a49;
+        padding: 0.2rem 0.4rem;
+        border-radius: 4px;
+        font-family: 'Fira Code', 'Monaco', 'Consolas', monospace;
+        font-size: 0.85rem;
+      }
+
+      &:first-child {
+        font-weight: 500;
+        color: #495057;
+      }
+    }
+
+    tr:hover {
+      background-color: #f8f9fa;
+    }
+  }
+}
+
+// Responsive design
+@media (max-width: 768px) {
+  .demo-container {
+    padding: 1rem;
+
+    h1 {
+      font-size: 2rem;
+    }
+
+    .demo-description {
+      font-size: 1rem;
+    }
+  }
+
+  .demo-card {
+    .mat-card-content {
+      padding: 1.5rem;
+    }
+  }
+
+  .config-controls {
+    grid-template-columns: 1fr;
+  }
+
+  .config-table {
+    font-size: 0.8rem;
+
+    th, td {
+      padding: 0.75rem 0.5rem;
+    }
+  }
+}
+
+// Button styling
+button[mat-raised-button] {
+  margin: 0.5rem 0.5rem 0.5rem 0;
+  border-radius: 8px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  min-width: 120px;
+}
+
+// Material form field customization
+.mat-form-field {
+  .mat-form-field-wrapper {
+    padding-bottom: 0;
+  }
+
+  .mat-form-field-outline {
+    border-radius: 8px;
+  }
+}
+
+// Animation for demo cards
+.demo-card {
+  animation: slideInUp 0.3s ease-out;
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// Hover effects
+.demo-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+  transition: all 0.3s ease;
+}
+
+// Code syntax highlighting
+pre code {
+  .tag {
+    color: #ff7b72;
+  }
+
+  .attr-name {
+    color: #79c0ff;
+  }
+
+  .attr-value {
+    color: #a5d6ff;
+  }
+
+  .string {
+    color: #a5d6ff;
+  }
+}

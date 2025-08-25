@@ -1,0 +1,29 @@
+<div [class]="containerClasses">
+  <!-- Overlay with backdrop -->
+  <div *ngIf="showOverlay" class="loader-overlay">
+    <div *ngIf="showBackdrop" class="loader-backdrop"></div>
+
+    <div class="loader-content">
+      <mat-spinner
+        [diameter]="spinnerSize"
+        [color]="spinnerColor">
+      </mat-spinner>
+
+      <div *ngIf="displayMessage" class="loader-message">
+        {{ displayMessage }}
+      </div>
+    </div>
+  </div>
+
+  <!-- Inline loader (no overlay) -->
+  <div *ngIf="!showOverlay" class="loader-inline">
+    <mat-spinner
+      [diameter]="spinnerSize"
+      [color]="spinnerColor">
+    </mat-spinner>
+
+    <div *ngIf="displayMessage" class="loader-message">
+      {{ displayMessage }}
+    </div>
+  </div>
+</div>

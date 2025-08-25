@@ -1,0 +1,217 @@
+<div class="demo-container">
+  <h1>🔄 Reusable Loader Component Demo</h1>
+  <p class="demo-description">
+    This demo showcases the flexible and customizable reusable loader component with various configurations.
+  </p>
+
+  <!-- Basic Loader Demo -->
+  <mat-card class="demo-card">
+    <mat-card-header>
+      <mat-card-title>📱 Basic Inline Loader</mat-card-title>
+      <mat-card-subtitle>Simple inline loader without overlay</mat-card-subtitle>
+    </mat-card-header>
+
+    <mat-card-content>
+      <p>Basic loader that can be placed inline within content:</p>
+
+      <div class="demo-section">
+        <button mat-raised-button color="primary" (click)="toggleBasicLoader()">
+          {{ showBasicLoader ? 'Hide' : 'Show' }} Basic Loader
+        </button>
+
+        <div class="loader-demo-area">
+          <app-reusable-loader
+            *ngIf="showBasicLoader"
+            [config]="basicConfig">
+          </app-reusable-loader>
+
+          <div *ngIf="!showBasicLoader" class="placeholder">
+            Click button to show loader
+          </div>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Overlay Loader Demo -->
+  <mat-card class="demo-card">
+    <mat-card-header>
+      <mat-card-title>🖥️ Overlay Loader</mat-card-title>
+      <mat-card-subtitle>Full-screen overlay with backdrop</mat-card-subtitle>
+    </mat-card-header>
+
+    <mat-card-content>
+      <p>Overlay loader that covers the entire screen with optional backdrop:</p>
+
+      <div class="demo-section">
+        <button mat-raised-button color="accent" (click)="simulateLoading(2000)">
+          Show Overlay (2s)
+        </button>
+
+        <button mat-raised-button color="warn" (click)="simulateLoading(5000)">
+          Show Overlay (5s)
+        </button>
+
+        <div class="demo-info">
+          <p><strong>Features:</strong></p>
+          <ul>
+            <li>Full-screen overlay</li>
+            <li>Backdrop with blur effect</li>
+            <li>Centered content with shadow</li>
+            <li>Responsive design</li>
+          </ul>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Custom Configuration Demo -->
+  <mat-card class="demo-card">
+    <mat-card-header>
+      <mat-card-title>🎨 Custom Configuration</mat-card-title>
+      <mat-card-subtitle>Dynamic configuration with real-time updates</mat-card-subtitle>
+    </mat-card-header>
+
+    <mat-card-content>
+      <p>Customize the loader appearance and behavior in real-time:</p>
+
+      <div class="demo-section">
+        <div class="config-controls">
+          <mat-form-field appearance="outline">
+            <mat-label>Custom Message</mat-label>
+            <input matInput [(ngModel)]="customMessage" (input)="updateCustomMessage()">
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Size</mat-label>
+            <mat-select [(ngModel)]="customConfig.size" (selectionChange)="changeSize($event.value)">
+              <mat-option *ngFor="let size of sizes" [value]="size">
+                {{ size | titlecase }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Color</mat-label>
+            <mat-select [(ngModel)]="customConfig.color" (selectionChange)="changeColor($event.value)">
+              <mat-option *ngFor="let color of colors" [value]="color">
+                {{ color | titlecase }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <div class="demo-section">
+          <button mat-raised-button color="primary" (click)="simulateInlineLoading(3000)">
+            Show Custom Loader (3s)
+          </button>
+
+          <div class="loader-demo-area">
+            <app-reusable-loader
+              *ngIf="showCustomLoader"
+              [config]="customConfig">
+            </app-reusable-loader>
+
+            <div *ngIf="!showCustomLoader" class="placeholder">
+              Click button to show custom loader
+            </div>
+          </div>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Usage Examples -->
+  <mat-card class="demo-card">
+    <mat-card-header>
+      <mat-card-title>💻 Usage Examples</mat-card-title>
+      <mat-card-subtitle>Code examples for different use cases</mat-card-subtitle>
+    </mat-card-header>
+
+    <mat-card-content>
+      <div class="code-examples">
+        <div class="code-section">
+          <h4>Basic Usage</h4>
+          <pre><code>&lt;app-reusable-loader message="Loading..."&gt;&lt;/app-reusable-loader&gt;</code></pre>
+        </div>
+
+        <div class="code-section">
+          <h4>With Configuration Object</h4>
+          <pre><code>&lt;app-reusable-loader [config]="loaderConfig"&gt;&lt;/app-reusable-loader&gt;</code></pre>
+        </div>
+
+        <div class="code-section">
+          <h4>Individual Properties</h4>
+          <pre><code>&lt;app-reusable-loader
+  message="Processing..."
+  size="large"
+  color="accent"
+  [overlay]="true"
+  [backdrop]="true"&gt;
+&lt;/app-reusable-loader&gt;</code></pre>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Configuration Reference -->
+  <mat-card class="demo-card">
+    <mat-card-header>
+      <mat-card-title>📋 Configuration Reference</mat-card-title>
+      <mat-card-subtitle>All available options and their values</mat-card-subtitle>
+    </mat-card-header>
+
+    <mat-card-content>
+      <div class="config-reference">
+        <table class="config-table">
+          <thead>
+            <tr>
+              <th>Property</th>
+              <th>Type</th>
+              <th>Default</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>message</code></td>
+              <td>string</td>
+              <td>'Loading...'</td>
+              <td>Text displayed below the spinner</td>
+            </tr>
+            <tr>
+              <td><code>size</code></td>
+              <td>'small' \| 'medium' \| 'large'</td>
+              <td>'medium'</td>
+              <td>Spinner size (24px, 48px, 64px)</td>
+            </tr>
+            <tr>
+              <td><code>color</code></td>
+              <td>'primary' \| 'accent' \| 'warn'</td>
+              <td>'primary'</td>
+              <td>Spinner and message color theme</td>
+            </tr>
+            <tr>
+              <td><code>overlay</code></td>
+              <td>boolean</td>
+              <td>false</td>
+              <td>Whether to show as full-screen overlay</td>
+            </tr>
+            <tr>
+              <td><code>backdrop</code></td>
+              <td>boolean</td>
+              <td>false</td>
+              <td>Whether to show backdrop (requires overlay=true)</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Show overlay loader -->
+  <app-reusable-loader
+    *ngIf="showOverlayLoader"
+    [config]="overlayConfig">
+  </app-reusable-loader>
+</div>

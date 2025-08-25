@@ -1,5 +1,8 @@
 <div class="p-2">
-    @if (transactionsOftheMonth.length > 0){
+  @if(isLoading$ | async){
+  <app-reusable-loader [config]="basicConfig" *ngIf="isLoading$ | async">
+  </app-reusable-loader>
+  } @else{ @if (transactionsOftheMonth.length > 0){
 
   <tracker-income-expense
     [transactions]="transactionsOftheMonth"
@@ -44,10 +47,10 @@
     class="p-2"
     [transactions]="transactionMap.get(date)"
   ></tracker-day-card>
-  }   } @else{
+  } } @else{
   <!-- Show no data message -->
   <div class="no-data-container">
     <p>No Item for the month</p>
   </div>
-  }
+  } }
 </div>
