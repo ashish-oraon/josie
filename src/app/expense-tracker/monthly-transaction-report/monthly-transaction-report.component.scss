@@ -4,3 +4,147 @@
   justify-content: center;
   align-items: center;
 }
+
+// Financial Summary Section
+.financial-summary-section {
+  margin-bottom: 24px;
+}
+
+.summary-card {
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  background-color: #ffffff;
+  border: 1px solid #e0e0e0;
+  margin-bottom: 20px;
+}
+
+.summary-card mat-card-header {
+  padding: 16px 16px 0;
+}
+
+.summary-card mat-card-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #333;
+  margin: 0;
+}
+
+.summary-card mat-card-subtitle {
+  color: #666;
+  font-size: 1rem;
+  margin: 4px 0 0 0;
+}
+
+.summary-card mat-card-content {
+  padding: 16px;
+}
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.summary-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+  border-radius: 8px;
+  background-color: #f8f9fa;
+  border: 1px solid #e9ecef;
+  text-align: center;
+
+  &.income {
+    border-left: 4px solid #4CAF50;
+  }
+
+  &.expense {
+    border-left: 4px solid #F44336;
+  }
+
+  &.net {
+    border-left: 4px solid #2196F3;
+  }
+}
+
+.summary-item .label {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #666;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.summary-item .amount {
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+
+  &.positive {
+    color: #4CAF50;
+  }
+
+  &.negative {
+    color: #F44336;
+  }
+}
+
+.summary-item .count {
+  font-size: 0.8rem;
+  color: #999;
+  font-weight: 400;
+}
+
+.additional-info {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding: 16px;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+}
+
+.info-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  .label {
+    font-weight: 500;
+    color: #666;
+  }
+
+  .amount {
+    font-weight: 600;
+    color: #333;
+
+    &.positive {
+      color: #4CAF50;
+    }
+  }
+}
+
+// Responsive design
+@media (max-width: 768px) {
+  .summary-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .summary-item {
+    padding: 16px;
+
+    .amount {
+      font-size: 1.5rem;
+    }
+  }
+
+  .additional-info {
+    flex-direction: column;
+    gap: 12px;
+  }
+}

@@ -14,6 +14,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 import { MatExpansionModule } from '@angular/material/expansion';
 import { LineChartComponent } from './line-chart/line-chart.component';
+import { MatCardModule } from '@angular/material/card';
 
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { environment } from '../../environments/environment';
@@ -22,6 +23,17 @@ const CURRENCY_SYMBOL = environment.currencySymbol;
 export interface IPieChartData {
   name: string;
   value: number | undefined;
+}
+
+export interface IFinancialSummary {
+  totalIncome: number;
+  totalExpense: number;
+  totalTransfer: number;
+  totalRefund: number;
+  netAmount: number;
+  transactionCount: number;
+  expenseCount: number;
+  incomeCount: number;
 }
 @Component({
   selector: 'tracker-monthly-transaction-report',
@@ -36,6 +48,7 @@ export interface IPieChartData {
     PieChartComponent,
     LineChartComponent,
     MatExpansionModule,
+    MatCardModule,
     MatProgressSpinnerModule,
     MatSlideToggleModule,
   ],
@@ -49,9 +62,22 @@ export class MonthlyTransactionReportComponent implements OnChanges {
   public cancellableSubscriptions: any = {};
   transactionsOftheMonth: ITransaction[] = [];
   categoryData: IPieChartData[] = [];
+  incomeCategoryData: IPieChartData[] = [];
   panelOpenState: boolean = true;
   canShowSpinner: boolean = false;
   showRent: boolean = false;
+
+  // Financial summary data
+  financialSummary: IFinancialSummary = {
+    totalIncome: 0,
+    totalExpense: 0,
+    totalTransfer: 0,
+    totalRefund: 0,
+    netAmount: 0,
+    transactionCount: 0,
+    expenseCount: 0,
+    incomeCount: 0
+  };
 
   private toggleShowRent = new BehaviorSubject<boolean>(false);
   toggleShowRent$ = this.toggleShowRent.asObservable().pipe();
@@ -92,25 +118,117 @@ export class MonthlyTransactionReportComponent implements OnChanges {
   }
 
   processData(transactionsOftheMonth: ITransaction[]) {
-    const expensesOfTheMonth: ITransaction[] = transactionsOftheMonth.filter(
-      (tran) => tran.type === 'expense'
-    );
-    let sum: number = 0;
-    // let dateSet: Set<string> = new Set<string>();
-    let categoryMap: Map<string, number> = new Map<string, number>();
-    // graphData: graphModel[] = []
-    for (let tr of expensesOfTheMonth) {
-      categoryMap.set(
-        tr.category,
-        (categoryMap.get(tr.category) ?? 0) + tr.amount
-      );
+    if (!transactionsOftheMonth || transactionsOftheMonth.length === 0) {
+      this.resetFinancialData();
+      this.canShowSpinner = false;
+      return;
     }
-    this.categoryData = [...categoryMap.keys()].map((k) => ({
-      name: k.toUpperCase(),
-      value: categoryMap.get(k),
+
+    // Reset financial data
+    this.resetFinancialData();
+
+    // Initialize category maps for expenses and income
+    const expenseCategoryMap: Map<string, number> = new Map<string, number>();
+    const incomeCategoryMap: Map<string, number> = new Map<string, number>();
+
+    // Process each transaction with proper type classification
+    transactionsOftheMonth.forEach((transaction) => {
+      const amount = Math.abs(transaction.amount); // Ensure positive amount for calculations
+
+      switch (transaction.type?.toLowerCase()) {
+        case 'expense':
+          this.financialSummary.totalExpense += amount;
+          this.financialSummary.expenseCount++;
+          // Add to expense category map
+          expenseCategoryMap.set(
+            transaction.category,
+            (expenseCategoryMap.get(transaction.category) ?? 0) + amount
+          );
+          break;
+
+        case 'income':
+          this.financialSummary.totalIncome += amount;
+          this.financialSummary.incomeCount++;
+          // Add to income category map
+          incomeCategoryMap.set(
+            transaction.category,
+            (incomeCategoryMap.get(transaction.category) ?? 0) + amount
+          );
+          break;
+
+        case 'transfer':
+          this.financialSummary.totalTransfer += amount;
+          break;
+
+        case 'refund':
+          this.financialSummary.totalRefund += amount;
+          break;
+
+        default:
+          // Log unknown transaction types for debugging
+          console.warn(`⚠️ Unknown transaction type: ${transaction.type} for transaction ID: ${transaction.id}`);
+          // Default to expense if type is unknown
+          this.financialSummary.totalExpense += amount;
+          this.financialSummary.expenseCount++;
+          expenseCategoryMap.set(
+            transaction.category,
+            (expenseCategoryMap.get(transaction.category) ?? 0) + amount
+          );
+          break;
+      }
+
+      this.financialSummary.transactionCount++;
+    });
+
+    // Calculate net amount
+    this.financialSummary.netAmount = this.financialSummary.totalIncome - this.financialSummary.totalExpense;
+
+    // Prepare expense category data for charts
+    this.categoryData = [...expenseCategoryMap.keys()].map((category) => ({
+      name: category.toUpperCase(),
+      value: expenseCategoryMap.get(category),
     }));
 
+    // Prepare income category data for charts
+    this.incomeCategoryData = [...incomeCategoryMap.keys()].map((category) => ({
+      name: category.toUpperCase(),
+      value: incomeCategoryMap.get(category),
+    }));
+
+    // Log calculation results for debugging
+    console.log('📊 Monthly Transaction Report Calculation:', {
+      month: this.monthDetail,
+      financialSummary: this.financialSummary,
+      expenseCategories: this.categoryData.length,
+      incomeCategories: this.incomeCategoryData.length,
+      totalTransactions: transactionsOftheMonth.length
+    });
+
     this.canShowSpinner = false;
+  }
+
+  private resetFinancialData(): void {
+    this.financialSummary = {
+      totalIncome: 0,
+      totalExpense: 0,
+      totalTransfer: 0,
+      totalRefund: 0,
+      netAmount: 0,
+      transactionCount: 0,
+      expenseCount: 0,
+      incomeCount: 0
+    };
+    this.categoryData = [];
+    this.incomeCategoryData = [];
+  }
+
+  // Helper method to get formatted amounts
+  getFormattedAmount(amount: number): string {
+    return new Intl.NumberFormat('de-DE', {
+      style: 'currency',
+      currency: 'EUR',
+      minimumFractionDigits: 2
+    }).format(amount);
   }
 
   onShowRentChange($event: any) {

@@ -1,0 +1,60 @@
+:host {
+  display: block;
+}
+
+mat-card {
+  margin-bottom: 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  background-color: #ffffff;
+  border: 1px solid #e0e0e0;
+}
+
+mat-card-content {
+  padding: 16px;
+}
+
+mat-list {
+  padding: 0;
+}
+
+mat-list-item {
+  padding: 8px 0;
+
+  span[matListItemTitle] {
+    font-weight: 500;
+    color: #333;
+  }
+
+  span[matListItemMeta] {
+    font-weight: 600;
+    font-size: 1.1rem;
+
+    &.positive {
+      color: #4CAF50;  // Green for positive amounts
+    }
+
+    &.negative {
+      color: #F44336;  // Red for negative amounts
+    }
+  }
+}
+
+mat-divider {
+  margin: 8px 0;
+}
+
+// Responsive design
+@media (max-width: 768px) {
+  mat-card {
+    margin-bottom: 16px;
+  }
+
+  mat-card-content {
+    padding: 12px;
+  }
+
+  mat-list-item span[matListItemMeta] {
+    font-size: 1rem;
+  }
+}

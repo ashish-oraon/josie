@@ -1,5 +1,54 @@
 <div class="p-2">
   @if (transactionsOftheMonth.length > 0){
+
+  <!-- Financial Summary Section -->
+  <div class="financial-summary-section">
+    <mat-card class="summary-card">
+      <mat-card-header>
+        <mat-card-title>Financial Summary</mat-card-title>
+        <mat-card-subtitle>{{ monthDetail.header }}</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="summary-grid">
+          <div class="summary-item income">
+            <span class="label">Total Income</span>
+            <span class="amount positive">{{ getFormattedAmount(financialSummary.totalIncome) }}</span>
+            <span class="count">{{ financialSummary.incomeCount }} transactions</span>
+          </div>
+          <div class="summary-item expense">
+            <span class="label">Total Expenses</span>
+            <span class="amount negative">{{ getFormattedAmount(financialSummary.totalExpense) }}</span>
+            <span class="count">{{ financialSummary.expenseCount }} transactions</span>
+          </div>
+          <div class="summary-item net">
+            <span class="label">Net Amount</span>
+            <span class="amount" [class.positive]="financialSummary.netAmount >= 0" [class.negative]="financialSummary.netAmount < 0">
+              {{ getFormattedAmount(financialSummary.netAmount) }}
+            </span>
+            <span class="count">{{ financialSummary.transactionCount }} total</span>
+          </div>
+        </div>
+
+        @if (financialSummary.totalTransfer > 0 || financialSummary.totalRefund > 0){
+        <div class="additional-info">
+          @if (financialSummary.totalTransfer > 0){
+          <div class="info-item">
+            <span class="label">Transfers:</span>
+            <span class="amount">{{ getFormattedAmount(financialSummary.totalTransfer) }}</span>
+          </div>
+          }
+          @if (financialSummary.totalRefund > 0){
+          <div class="info-item">
+            <span class="label">Refunds:</span>
+            <span class="amount positive">{{ getFormattedAmount(financialSummary.totalRefund) }}</span>
+          </div>
+          }
+        </div>
+        }
+      </mat-card-content>
+    </mat-card>
+  </div>
+
   <mat-accordion>
     <mat-expansion-panel
       [expanded]="panelOpenState"
@@ -7,7 +56,7 @@
       (closed)="panelOpenState = false"
     >
       <mat-expansion-panel-header>
-        <mat-panel-title> Category Wise Expenses </mat-panel-title>
+        <mat-panel-title>Category Wise Expenses</mat-panel-title>
       </mat-expansion-panel-header>
       <mat-slide-toggle
         [(ngModel)]="showRent"
@@ -18,9 +67,21 @@
         [chartData]="categoryData"
       ></tracker-pie-chart>
     </mat-expansion-panel>
+
+    @if (incomeCategoryData.length > 0){
     <mat-expansion-panel>
       <mat-expansion-panel-header>
-        <mat-panel-title> Category Wise Expenses:Line Chart </mat-panel-title>
+        <mat-panel-title>Category Wise Income</mat-panel-title>
+      </mat-expansion-panel-header>
+      <tracker-pie-chart
+        [chartData]="incomeCategoryData"
+      ></tracker-pie-chart>
+    </mat-expansion-panel>
+    }
+
+    <mat-expansion-panel>
+      <mat-expansion-panel-header>
+        <mat-panel-title>Category Wise Expenses: Line Chart</mat-panel-title>
       </mat-expansion-panel-header>
       <mat-slide-toggle
         [(ngModel)]="showRent"
@@ -28,8 +89,10 @@
         >Show Rent</mat-slide-toggle
       >
       <tracker-line-chart [chartData]="categoryData"></tracker-line-chart>
-    </mat-expansion-panel> </mat-accordion
-  >} @else{
+    </mat-expansion-panel>
+  </mat-accordion>
+
+  } @else{
   <div class="spinner-container">
     @if(canShowSpinner){
     <mat-spinner></mat-spinner>

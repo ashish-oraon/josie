@@ -97,7 +97,8 @@
             <td mat-cell *matCellDef="let budget">
               <div class="category-cell">
                 <span class="category-icon" [style.color]="getCategoryColor(budget.Category)">
-                  {{ getCategoryIcon(budget.Category) }}
+                  <mat-icon matListItemIcon> {{ getCategoryIcon(budget.Category) }}</mat-icon>
+
                 </span>
                 <span class="category-name">{{ budget.Category }}</span>
               </div>

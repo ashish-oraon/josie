@@ -4,18 +4,18 @@
     <mat-list>
       <mat-list-item>
         <span matListItemTitle>Income</span>
-        <span matListItemMeta>{{ totalIncome | currency : "EUR" }}</span>
+        <span matListItemMeta>{{ getFormattedAmount(totalIncome) }}</span>
       </mat-list-item>
       <mat-list-item>
         <span matListItemTitle>Expense</span>
-        <span matListItemMeta> {{ totalExpense | currency : "EUR" }}</span>
+        <span matListItemMeta>{{ getFormattedAmount(totalExpense) }}</span>
       </mat-list-item>
       <mat-divider></mat-divider>
       <mat-list-item color="primary">
-        <span matListItemTitle></span>
-        <span matListItemMeta>{{
-          totalIncome - totalExpense | currency : "EUR"
-        }}</span>
+        <span matListItemTitle>Net Amount</span>
+        <span matListItemMeta [class.positive]="netAmount >= 0" [class.negative]="netAmount < 0">
+          {{ getFormattedAmount(netAmount) }}
+        </span>
       </mat-list-item>
     </mat-list>
   </mat-card-content>
