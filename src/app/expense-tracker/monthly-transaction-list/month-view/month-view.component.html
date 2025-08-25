@@ -45,11 +45,9 @@
     [transactions]="transactionMap.get(date)"
   ></tracker-day-card>
   }   } @else{
-  <!-- Only show no data message if data is not currently loading -->
-  @if (!isDataLoading) {
-    <div class="no-data-container">
-      <p>No Item for the month</p>
-    </div>
-  }
+  <!-- Show no data message -->
+  <div class="no-data-container">
+    <p>No Item for the month</p>
+  </div>
   }
 </div>

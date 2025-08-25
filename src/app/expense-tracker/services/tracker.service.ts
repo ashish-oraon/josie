@@ -73,23 +73,36 @@ export class TrackerService {
   });
   public unifiedLoadingState$ = this.unifiedLoadingSubject.asObservable();
 
-  selectTransactionAction: BehaviorSubject<any> = new BehaviorSubject(
+  selectTransactionAction: BehaviorSubject<string> = new BehaviorSubject(
     'May-2023'
   );
-  selectedTab: Observable<any> = this.selectTransactionAction
+  selectedTab: Observable<string> = this.selectTransactionAction
     .asObservable()
     .pipe();
 
   sheet: string = 'March-2024';
 
-  asyncTabs = () => {
+  asyncTabs = (): Array<{
+    month: number;
+    year: number;
+    date: Date;
+    header: string;
+    sheet: string;
+  }> => {
     const currentMonth = new Date().getMonth();
-    let months = [currentMonth];
+    const months = [currentMonth];
 
-    let date = new Date();
-    let tempDateArray: any[] = [];
-    for (var i = 0; i < PREVIOUSMONTHSTOSHOW + 2; i++) {
-      let tempD = this.subtractMonths(date, PREVIOUSMONTHSTOSHOW - i);
+    const date = new Date();
+    const tempDateArray: Array<{
+      month: number;
+      year: number;
+      date: Date;
+      header: string;
+      sheet: string;
+    }> = [];
+
+    for (let i = 0; i < PREVIOUSMONTHSTOSHOW + 2; i++) {
+      const tempD = this.subtractMonths(date, PREVIOUSMONTHSTOSHOW - i);
       tempDateArray.push({
         month: tempD.getMonth(),
         year: tempD.getFullYear(),
@@ -106,17 +119,18 @@ export class TrackerService {
     private commonService: CommonService
   ) {
     this.initializeObservables();
-    // Trigger initial data load
-    this.refreshData();
+    // ✅ FIXED: Don't trigger refreshData() in constructor - it causes infinite loop
+    // Initial data will be loaded when components first subscribe
   }
 
   private initializeObservables() {
-    // Initialize transactions with refresh trigger
+    // ✅ FIXED: Initialize transactions with initial load and refresh trigger
+    // Start with empty array to avoid undefined errors
     this.transactions = this.dataRefreshTrigger.pipe(
       switchMap(() => this.googleSheetsService
         .readData('readTransactions', this.sheet)
         .pipe(
-          map((arr: { data: any[]; length: number }) => {
+          map((arr: { data: ITransaction[]; length: number }) => {
             console.log(`📊 Refreshed transactions: ${arr.data?.length || 0} from ${this.sheet}`);
             // Stop loading state when data arrives
             this.setLoading(false);
@@ -403,9 +417,24 @@ export class TrackerService {
   }
 
   // Method to change sheet and refresh data
-  setSheet(newSheet: string): void {
+  setSheet(newSheet: string, triggerRefresh: boolean = true): void {
     console.log(`📋 Changing sheet from ${this.sheet} to ${newSheet}`);
     this.sheet = newSheet;
+
+    // ✅ IMPROVED: Only trigger data refresh when explicitly requested
+    // This prevents unnecessary backend calls when switching tabs
+    if (triggerRefresh) {
+      console.log('🔄 Triggering data refresh for sheet change');
+      this.dataRefreshTrigger.next(Date.now());
+    } else {
+      console.log('📦 Sheet changed without triggering refresh (using cached data)');
+    }
+  }
+
+  // ✅ NEW: Method to trigger initial data load when needed
+  initializeData(): void {
+    console.log('🚀 Triggering initial data load');
+    this.dataRefreshTrigger.next(Date.now());
   }
 
   // Budget-related methods
@@ -446,7 +475,13 @@ export class TrackerService {
   }
 
   // Method to get current month tab
-  getCurrentMonthTab(): any {
+  getCurrentMonthTab(): {
+    month: number;
+    year: number;
+    date: Date;
+    header: string;
+    sheet: string;
+  } | null {
     const tabs = this.asyncTabs();
     return tabs && tabs.length > 0 ? tabs[0] : null;
   }
@@ -469,7 +504,13 @@ export class TrackerService {
   }
 
   // Method to get current month tab by index
-  getCurrentMonthTabByIndex(): any {
+  getCurrentMonthTabByIndex(): {
+    month: number;
+    year: number;
+    date: Date;
+    header: string;
+    sheet: string;
+  } | null {
     const tabs = this.asyncTabs();
     const currentIndex = this.getCurrentMonthTabIndex();
     return currentIndex >= 0 && tabs.length > currentIndex ? tabs[currentIndex] : null;

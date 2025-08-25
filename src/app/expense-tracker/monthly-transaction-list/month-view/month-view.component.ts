@@ -36,7 +36,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 
 @Component({
-  selector: 'month-view',
+  selector: 'app-month-view',
   standalone: true,
   imports: [
     CommonModule,
@@ -58,9 +58,9 @@ export class MonthViewComponent implements OnChanges, OnDestroy {
   @Input()
   monthDetail!: ITabInformation;
   @Input()
-  triggerChange!: any;
+  triggerChange!: unknown;
 
-  @Output() mEvent = new EventEmitter<any>();
+  @Output() mEvent = new EventEmitter<unknown>();
 
   @ViewChild('input') input!: ElementRef<HTMLInputElement>;
 
@@ -73,7 +73,7 @@ export class MonthViewComponent implements OnChanges, OnDestroy {
   public cancellableSubscriptions: { [key: string]: any } = {};
 
   canShowSpinner: boolean = true;
-  isDataLoading: boolean = false;
+  // ✅ REMOVED: isDataLoading property - no longer using global loader integration
 
 
 
@@ -97,12 +97,8 @@ export class MonthViewComponent implements OnChanges, OnDestroy {
     loadCount: 0
   };
 
-      ngOnInit() {
-    // Subscribe to unified loading state to know when data is being loaded
-    this.trackerService.unifiedLoadingState$.subscribe(loadingState => {
-      this.isDataLoading = loadingState.isLoading;
-      console.log(`📊 Month-view received loading state: ${loadingState.isLoading} - ${loadingState.message}`);
-    });
+        ngOnInit() {
+    // ✅ SIMPLIFIED: Removed global loader integration, using only standalone local loader
 
     this.filteredOptions = this.searchControl.valueChanges.pipe(
       startWith(''),
@@ -140,8 +136,94 @@ export class MonthViewComponent implements OnChanges, OnDestroy {
     if (this.isCachedDataValid(monthKey)) {
       this.loadFromCache(monthKey);
     } else {
-      this.loadMonthData(monthKey);
+      // ✅ IMPROVED: Use direct loading to avoid triggering global refresh
+      this.loadMonthDataDirectly(monthKey);
     }
+  }
+
+  // ✅ RESTORED: Method to force fresh data load, bypassing cache
+  forceFreshDataLoad(): void {
+    if (!this.monthDetail) {
+      console.log('⏳ Cannot force fresh load - monthDetail not available');
+      return;
+    }
+
+    const { month, year } = this.monthDetail;
+    if (month === undefined || year === undefined) {
+      console.warn('⚠️ Cannot force fresh load - invalid monthDetail:', this.monthDetail);
+      return;
+    }
+
+    const monthKey = `${month}-${year}`;
+    console.log(`🔄 Force fresh data load for: ${monthKey} (bypassing cache)`);
+
+    // Clear this month's cache to ensure fresh data
+    this.monthCache.delete(monthKey);
+
+    // ✅ IMPROVED: Use direct loading to avoid triggering global refresh
+    this.loadMonthDataDirectly(monthKey);
+  }
+
+  // ✅ NEW: Method to load data directly from service without triggering global refresh
+  private loadMonthDataDirectly(monthKey: string): void {
+    const startTime = performance.now();
+    this.transactionsOftheMonth = [];
+    this.transactionMap.clear();
+    this.datesInTheMonth = [];
+    this.canShowSpinner = true;
+    this.lastMonthKey = monthKey;
+
+    // Show local loader only (no global loader for direct loads)
+    this.Loader.show();
+
+    // Add timeout to prevent loader from getting stuck
+    const loaderTimeout = setTimeout(() => {
+      console.warn('⏰ Loader timeout reached, hiding spinner');
+      this.canShowSpinner = false;
+      this.Loader.hide();
+      this.forceUIUpdate();
+    }, 10000); // 10 second timeout
+
+    // Unsubscribe from previous subscription
+    if (this.cancellableSubscriptions['allTransactionWithCatSubs']) {
+      this.cancellableSubscriptions['allTransactionWithCatSubs'].unsubscribe();
+    }
+
+    this.cancellableSubscriptions['allTransactionWithCatSubs'] =
+      this.trackerService.allTransactionsWithCategories$
+        .pipe(
+          takeUntil(this.destroy$),
+          map((data) => this.filterAndSortTransactions(data, monthKey)),
+          shareReplay(1) // Cache the result for multiple subscribers
+        )
+        .subscribe({
+          next: (data) => {
+            clearTimeout(loaderTimeout); // Clear timeout on success
+            this.transactionsOftheMonth = data;
+            this.processData(this.transactionsOftheMonth);
+            this.cacheMonthData(monthKey);
+
+            // Track performance metrics
+            const loadTime = performance.now() - startTime;
+            this.performanceMetrics.totalLoadTime += loadTime;
+            this.performanceMetrics.loadCount++;
+            this.performanceMetrics.cacheMisses++;
+
+            console.log(`⏱️ Month ${monthKey} loaded directly in ${loadTime.toFixed(2)}ms (Avg: ${(this.performanceMetrics.totalLoadTime / this.performanceMetrics.loadCount).toFixed(2)}ms)`);
+          },
+          error: (error) => {
+            clearTimeout(loaderTimeout); // Clear timeout on error
+            console.error('❌ Error loading month data directly:', error);
+            this.canShowSpinner = false;
+            this.Loader.hide();
+            this.forceUIUpdate();
+          },
+          complete: () => {
+            clearTimeout(loaderTimeout); // Clear timeout on complete
+            this.Loader.hide();
+            this.forceUIUpdate();
+          }
+        });
   }
 
   ngOnDestroy() {
@@ -198,7 +280,7 @@ export class MonthViewComponent implements OnChanges, OnDestroy {
     private cdr: ChangeDetectorRef
   ) {}
 
-  ngOnChanges(changes: SimpleChanges): void {
+    ngOnChanges(changes: SimpleChanges): void {
     if (!this.monthDetail) {
       console.log('⏳ Waiting for monthDetail input...');
       return;
@@ -215,25 +297,44 @@ export class MonthViewComponent implements OnChanges, OnDestroy {
     const monthKey = `${month}-${year}`;
     console.log(`🔄 MonthView ngOnChanges triggered for: ${monthKey}`);
 
-    // Update the service sheet to trigger data refresh for the new month
+    // ✅ IMPROVED: Only update service sheet if we don't have cached data
+    // This prevents unnecessary backend calls when switching tabs
     const sheetName = this.commonService.getSheetName(new Date(year, month));
-    this.trackerService.setSheet(sheetName);
+
+    // ✅ SIMPLIFIED: Removed global loader integration, using only local cache logic
 
     // Check if we have cached data for this month
     if (this.isCachedDataValid(monthKey)) {
+      console.log(`📦 Using cached data for ${monthKey}`);
+      // ✅ IMPROVED: Update sheet without triggering refresh when using cache
+      this.trackerService.setSheet(sheetName, false);
       this.loadFromCache(monthKey);
       return;
     }
 
-    // Load fresh data
-    this.loadMonthData(monthKey);
+    // ✅ IMPROVED: Load data directly without triggering global refresh for tab switching
+    console.log(`🔄 No cached data for ${monthKey}, loading fresh data directly`);
+    this.trackerService.setSheet(sheetName, false); // Update sheet but don't trigger refresh
+    this.loadMonthDataDirectly(monthKey); // Use direct loading method
   }
 
   private isCachedDataValid(monthKey: string): boolean {
     const cached = this.monthCache.get(monthKey);
-    if (!cached) return false;
+    if (!cached) {
+      console.log(`📦 No cache found for ${monthKey}`);
+      return false;
+    }
 
-    return (Date.now() - cached.timestamp) < this.CACHE_DURATION;
+    const age = Date.now() - cached.timestamp;
+    const isValid = age < this.CACHE_DURATION;
+
+    if (isValid) {
+      console.log(`📦 Cache for ${monthKey} is valid (age: ${(age / 1000).toFixed(1)}s)`);
+    } else {
+      console.log(`📦 Cache for ${monthKey} is expired (age: ${(age / 1000).toFixed(1)}s)`);
+    }
+
+    return isValid;
   }
 
   private loadFromCache(monthKey: string): void {
@@ -246,8 +347,9 @@ export class MonthViewComponent implements OnChanges, OnDestroy {
       this.lastMonthKey = monthKey;
       this.performanceMetrics.cacheHits++;
 
-      // Ensure loaders are hidden and UI is updated
+      // ✅ SIMPLIFIED: Ensure local loader is hidden
       this.Loader.hide();
+      // No global loader to clear
       this.forceUIUpdate();
 
       console.log(`🚀 Loaded month ${monthKey} from cache (Cache hits: ${this.performanceMetrics.cacheHits}, Misses: ${this.performanceMetrics.cacheMisses})`);
@@ -262,7 +364,7 @@ export class MonthViewComponent implements OnChanges, OnDestroy {
     this.canShowSpinner = true;
     this.lastMonthKey = monthKey;
 
-    // Show global loader
+    // ✅ SIMPLIFIED: Show only local loader
     this.Loader.show();
 
     // Add timeout to prevent loader from getting stuck
@@ -270,6 +372,7 @@ export class MonthViewComponent implements OnChanges, OnDestroy {
       console.warn('⏰ Loader timeout reached, hiding spinner');
       this.canShowSpinner = false;
       this.Loader.hide();
+      // ✅ SIMPLIFIED: No global loader to clear
       // Force change detection to update UI
       this.forceUIUpdate();
     }, 10000); // 10 second timeout
@@ -306,11 +409,13 @@ export class MonthViewComponent implements OnChanges, OnDestroy {
             console.error('❌ Error loading month data:', error);
             this.canShowSpinner = false;
             this.Loader.hide();
+            // ✅ SIMPLIFIED: No global loader to clear
             this.forceUIUpdate();
           },
           complete: () => {
             clearTimeout(loaderTimeout); // Clear timeout on complete
             this.Loader.hide();
+            // ✅ SIMPLIFIED: No global loader to clear
             this.forceUIUpdate();
           }
         });
@@ -345,6 +450,7 @@ export class MonthViewComponent implements OnChanges, OnDestroy {
     if (!transactionsOftheMonth || transactionsOftheMonth.length === 0) {
       this.canShowSpinner = false;
       this.Loader.hide();
+      // ✅ SIMPLIFIED: No global loader to clear
       this.forceUIUpdate();
       console.log('📭 No transactions found for this month');
       return;
@@ -353,11 +459,12 @@ export class MonthViewComponent implements OnChanges, OnDestroy {
     // Use more efficient data processing
     const dateMap = new Map<string, ITransaction[]>();
     const dateSet = new Set<string>();
-    let sum = 0;
+    // ✅ FIXED: Remove unused variable
+    // let sum = 0;
 
     // Single loop for better performance
     for (const tr of transactionsOftheMonth) {
-      sum += +tr.amount;
+      // sum += +tr.amount; // ✅ REMOVED: Unused variable
       dateSet.add(tr.date);
 
       if (!dateMap.has(tr.date)) {
@@ -370,24 +477,29 @@ export class MonthViewComponent implements OnChanges, OnDestroy {
     this.datesInTheMonth = Array.from(dateSet).sort((a, b) =>
       new Date(b).getTime() - new Date(a).getTime()
     );
-    this.canShowSpinner = false;
+        this.canShowSpinner = false;
     this.Loader.hide();
+
+    // ✅ SIMPLIFIED: No global loader to clear
+
     this.forceUIUpdate();
     console.log(`✅ Processed ${transactionsOftheMonth.length} transactions for ${this.datesInTheMonth.length} days`);
   }
 
   deleteTransaction(transaction: ITransaction) {
-    this.Loader.show();
+    // ✅ IMPROVED: This method is not used - delete operations are handled by the service
+    // The global loader will be managed by TrackerService
+    console.log('🗑️ Delete transaction called for:', transaction);
   }
 
-  handleDayEvent($event: any) {
+  handleDayEvent($event: { action: string; data: { transaction: ITransaction } }) {
     const { action, data } = $event;
     if (action === 'delete') {
       this.showDialog(data.transaction);
     } else if (action === 'refresh') {
-      // Clear cache and reload data
+      // ✅ IMPROVED: Clear cache and reload data directly
       this.clearMonthCache();
-      this.loadMonthData(this.lastMonthKey);
+      this.loadMonthDataDirectly(this.lastMonthKey);
     }
   }
 
@@ -457,9 +569,14 @@ export class MonthViewComponent implements OnChanges, OnDestroy {
               next: (data) => {
                 this.commonService.openSnackBar(data.message, '');
               },
-              error: (error) => console.error(error.message),
+              error: (error) => {
+                console.error('❌ Delete error:', error.message);
+                // ✅ IMPROVED: Clear global loader on error
+                this.trackerService.setLoading(false);
+              },
               complete: () => {
-                // Clear cache and reload
+                // ✅ IMPROVED: Clear cache and reload, but don't clear global loader
+                // The service will manage the refresh loader
                 this.clearMonthCache();
                 this.mEvent.emit();
               }

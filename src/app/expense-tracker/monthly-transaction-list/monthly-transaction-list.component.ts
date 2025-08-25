@@ -23,10 +23,22 @@ import { MonthlyTransactionReportComponent } from '../monthly-transaction-report
 export class MonthlyTransactionListComponent implements OnInit {
   links: string[] = [];
   background: ThemePalette = 'primary';
-  activeLink: any;
-  tabs: any[] = [];
+  activeLink: {
+    month: number;
+    year: number;
+    date: Date;
+    header: string;
+    sheet: string;
+  } | null = null;
+  tabs: Array<{
+    month: number;
+    year: number;
+    date: Date;
+    header: string;
+    sheet: string;
+  }> = [];
   selectedTab: number = 0;
-  triggerBoolean: any = { val: true };
+  triggerBoolean: { val: boolean } = { val: true };
 
   locationType: string = 'list';
 
@@ -35,19 +47,21 @@ export class MonthlyTransactionListComponent implements OnInit {
     private activatedRoute: ActivatedRoute
   ) {}
 
-  ngOnInit(): void {
-    // Show loader immediately when component loads
+    ngOnInit(): void {
+    // ✅ SIMPLIFIED: Removed global loader integration, using only local loaders
     console.log('🚀 Monthly transaction list component loading...');
-    this.trackerService.setLoading(true, 'Loading transaction list...');
 
     this.activatedRoute.data.subscribe(
-      ({ type }) => (this.locationType = type)
+      ({ type }) => {
+        this.locationType = type;
+        console.log(`📍 Location type set to: ${this.locationType}`);
+
+        // Initialize tabs for both views
+        this.initializeTabs();
+      }
     );
 
     this.links = ['month-view', 'qweqwe'];
-
-    // Wait for service to be ready before generating tabs
-    this.initializeTabs();
   }
 
   private initializeTabs(): void {
@@ -70,27 +84,32 @@ export class MonthlyTransactionListComponent implements OnInit {
       this.activeLink = this.trackerService.getCurrentMonthTabByIndex();
       console.log('📅 Active tab set to current month:', this.activeLink?.header);
 
-      // Update loader message to indicate data loading is starting
-      this.trackerService.setLoading(true, 'Loading transaction data...');
-
-      // Trigger change detection - this will trigger the month-view component to load data
+      // ✅ SIMPLIFIED: No global loader integration, just set up tabs
+      console.log(`📋 Setting up tabs for ${this.locationType} view`);
       this.triggerBoolean = { val: true };
     } else {
       console.warn('⚠️ No tabs generated');
-      // Clear loader if no tabs
-      this.trackerService.setLoading(false);
     }
   }
 
-  handleOutput(pa: any) {
-    this.triggerBoolean = { val: false };
+  handleOutput(pa: unknown) {
+    // this.triggerBoolean = { val: false };
   }
 
-    switchTab(link: any) {
+  // ✅ REMOVED: No longer needed with simplified loader system
+
+    switchTab(link: {
+      month: number;
+      year: number;
+      date: Date;
+      header: string;
+      sheet: string;
+    }) {
     this.activeLink = link;
     console.log('🔄 Switched to tab:', link?.header);
 
-    // No loader needed for tab switching - it should be instant
-    // The month-view component will handle its own data loading if needed
+    // ✅ IMPROVED: Tab switching should be instant and use cached data
+    // The month-view component will check cache first and only call backend if needed
+    // No loader needed - this should be a smooth, instant transition
   }
 }
