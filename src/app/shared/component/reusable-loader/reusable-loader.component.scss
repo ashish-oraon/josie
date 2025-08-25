@@ -143,11 +143,11 @@
 @media (prefers-color-scheme: dark) {
   .loader-overlay {
     .loader-content {
-      background-color: rgba(33, 33, 33, 0.95);
+      background-color: rgba(249, 246, 246, 0.95);
       border-color: rgba(255, 255, 255, 0.1);
 
       .loader-message {
-        color: #fff;
+        color: #000;
       }
     }
   }
