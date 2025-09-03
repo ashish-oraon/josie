@@ -1,0 +1,152 @@
+{
+  "title": "Diet Plan - Bengali (Munich)",
+  "days": [
+    {
+      "day": "Monday",
+      "meals": [
+        {"time": "07:30", "type": "Morning", "menu": "Warm water + 4 soaked almonds + 1 walnut"},
+        {"time": "08:00", "type": "Breakfast", "menu": "Blueberries + plain yogurt + pinch of cinnamon + 1 boiled egg"},
+        {"time": "10:30", "type": "Mid-Morning", "menu": "Orange + 4 soaked almonds"},
+        {"time": "13:00", "type": "Lunch", "menu": "Rice + moong dal + potol aloo curry + grilled salmon (or paneer) + cucumber salad"},
+        {"time": "16:30", "type": "Evening Snack", "menu": "Roasted makhana + ginger tea (caffeine-free)"},
+        {"time": "19:00", "type": "Dinner", "menu": "Roti + chicken curry (light) OR chana masala + sautéed spinach"},
+        {"time": "21:30", "type": "Before Bed", "menu": "Warm milk with turmeric"}
+      ],
+      "notes": [
+        "Hydrate 2–2.5 L/day",
+        "Use iodised salt; keep spices moderate",
+        "Choose pasteurised dairy; fully cook eggs/fish/meat",
+        "Prefer low-mercury fish (salmon, cod, trout, hilsa, bhetki)",
+        "Avoid raw/smoked fish, unpasteurised cheeses",
+        "Limit caffeine; herbal teas are best",
+        "Continue prenatal vitamins as prescribed"
+      ]
+    },
+    {
+      "day": "Tuesday",
+      "meals": [
+        {"time": "07:30", "type": "Morning", "menu": "Warm water + 4 soaked almonds + 1 walnut"},
+        {"time": "08:00", "type": "Breakfast", "menu": "Blueberries + plain yogurt + pinch of cinnamon + 1 boiled egg"},
+        {"time": "10:30", "type": "Mid-Morning", "menu": "Greek yogurt with chia seeds"},
+        {"time": "13:00", "type": "Lunch", "menu": "Rice + masoor dal + alu-posto + steamed rui/koi fish curry (or soy chunks curry)"},
+        {"time": "16:30", "type": "Evening Snack", "menu": "Roasted chana + pear slices"},
+        {"time": "19:00", "type": "Dinner", "menu": "Vegetable khichuri + beetroot raita"},
+        {"time": "21:30", "type": "Before Bed", "menu": "Warm milk"}
+      ],
+      "notes": [
+        "Hydrate 2–2.5 L/day",
+        "Use iodised salt; keep spices moderate",
+        "Choose pasteurised dairy; fully cook eggs/fish/meat",
+        "Prefer low-mercury fish (salmon, cod, trout, hilsa, bhetki)",
+        "Avoid raw/smoked fish, unpasteurised cheeses",
+        "Limit caffeine; herbal teas are best",
+        "Continue prenatal vitamins as prescribed"
+      ]
+    },
+    {
+      "day": "Wednesday",
+      "meals": [
+        {"time": "07:30", "type": "Morning", "menu": "Warm water + 4 soaked almonds + 1 walnut"},
+        {"time": "08:00", "type": "Breakfast", "menu": "Blueberries + plain yogurt + pinch of cinnamon + 1 boiled egg"},
+        {"time": "10:30", "type": "Mid-Morning", "menu": "Seasonal fruit (kiwi or pear)"},
+        {"time": "13:00", "type": "Lunch", "menu": "Rice + toor dal + lau chingri (or lau matar curry) + carrot cucumber salad"},
+        {"time": "16:30", "type": "Evening Snack", "menu": "Muri with roasted peanuts & chopped onion tomato (light jhalmuri)"},
+        {"time": "19:00", "type": "Dinner", "menu": "Roti + paneer matar curry + sautéed broccoli"},
+        {"time": "21:30", "type": "Before Bed", "menu": "Warm milk with cardamom"}
+      ],
+      "notes": [
+        "Hydrate 2–2.5 L/day",
+        "Use iodised salt; keep spices moderate",
+        "Choose pasteurised dairy; fully cook eggs/fish/meat",
+        "Prefer low-mercury fish (salmon, cod, trout, hilsa, bhetki)",
+        "Avoid raw/smoked fish, unpasteurised cheeses",
+        "Limit caffeine; herbal teas are best",
+        "Continue prenatal vitamins as prescribed"
+      ]
+    },
+    {
+      "day": "Thursday",
+      "meals": [
+        {"time": "07:30", "type": "Morning", "menu": "Warm water + 4 soaked almonds + 1 walnut"},
+        {"time": "08:00", "type": "Breakfast", "menu": "Blueberries + plain yogurt + pinch of cinnamon + 1 boiled egg"},
+        {"time": "10:30", "type": "Mid-Morning", "menu": "Papaya (ripe) or mango"},
+        {"time": "13:00", "type": "Lunch", "menu": "Rice + masoor dal + begun bhaja + steamed cod/hilsa curry (or soy nugget curry)"},
+        {"time": "16:30", "type": "Evening Snack", "menu": "Vegetable sandwich (whole-wheat) + herbal tea (caffeine-free)"},
+        {"time": "19:00", "type": "Dinner", "menu": "Moong dal khichdi + cabbage curry"},
+        {"time": "21:30", "type": "Before Bed", "menu": "Warm milk"}
+      ],
+      "notes": [
+        "Hydrate 2–2.5 L/day",
+        "Use iodised salt; keep spices moderate",
+        "Choose pasteurised dairy; fully cook eggs/fish/meat",
+        "Prefer low-mercury fish (salmon, cod, trout, hilsa, bhetki)",
+        "Avoid raw/smoked fish, unpasteurised cheeses",
+        "Limit caffeine; herbal teas are best",
+        "Continue prenatal vitamins as prescribed"
+      ]
+    },
+    {
+      "day": "Friday",
+      "meals": [
+        {"time": "07:30", "type": "Morning", "menu": "Warm water + 4 soaked almonds + 1 walnut"},
+        {"time": "08:00", "type": "Breakfast", "menu": "Blueberries + plain yogurt + pinch of cinnamon + 1 boiled egg"},
+        {"time": "10:30", "type": "Mid-Morning", "menu": "Fruit salad (apple, kiwi, orange)"},
+        {"time": "13:00", "type": "Lunch", "menu": "Rice + cholar dal + bandhakopi aloo curry + chicken stew (light) OR paneer curry"},
+        {"time": "16:30", "type": "Evening Snack", "menu": "Roasted makhana with a touch of ghee"},
+        {"time": "19:00", "type": "Dinner", "menu": "Vegetable pulao + cucumber raita"},
+        {"time": "21:30", "type": "Before Bed", "menu": "Warm milk with saffron"}
+      ],
+      "notes": [
+        "Hydrate 2–2.5 L/day",
+        "Use iodised salt; keep spices moderate",
+        "Choose pasteurised dairy; fully cook eggs/fish/meat",
+        "Prefer low-mercury fish (salmon, cod, trout, hilsa, bhetki)",
+        "Avoid raw/smoked fish, unpasteurised cheeses",
+        "Limit caffeine; herbal teas are best",
+        "Continue prenatal vitamins as prescribed"
+      ]
+    },
+    {
+      "day": "Saturday",
+      "meals": [
+        {"time": "07:30", "type": "Morning", "menu": "Warm water + 4 soaked almonds + 1 walnut"},
+        {"time": "08:00", "type": "Breakfast", "menu": "Blueberries + plain yogurt + pinch of cinnamon + 1 boiled egg"},
+        {"time": "10:30", "type": "Mid-Morning", "menu": "Banana or pear"},
+        {"time": "13:00", "type": "Lunch", "menu": "Rice + masoor dal + alu potol curry + steamed fish with mustard (or tofu curry)"},
+        {"time": "16:30", "type": "Evening Snack", "menu": "Muri with roasted chana & cucumber"},
+        {"time": "19:00", "type": "Dinner", "menu": "Roti + cauliflower curry + sautéed green beans"},
+        {"time": "21:30", "type": "Before Bed", "menu": "Warm milk"}
+      ],
+      "notes": [
+        "Hydrate 2–2.5 L/day",
+        "Use iodised salt; keep spices moderate",
+        "Choose pasteurised dairy; fully cook eggs/fish/meat",
+        "Prefer low-mercury fish (salmon, cod, trout, hilsa, bhetki)",
+        "Avoid raw/smoked fish, unpasteurised cheeses",
+        "Limit caffeine; herbal teas are best",
+        "Continue prenatal vitamins as prescribed"
+      ]
+    },
+    {
+      "day": "Sunday",
+      "meals": [
+        {"time": "07:30", "type": "Morning", "menu": "Warm water + 4 soaked almonds + 1 walnut"},
+        {"time": "08:00", "type": "Breakfast", "menu": "Blueberries + plain yogurt + pinch of cinnamon + 1 boiled egg"},
+        {"time": "10:30", "type": "Mid-Morning", "menu": "Grapes or mango"},
+        {"time": "13:00", "type": "Lunch", "menu": "Rice + moong dal + palong shaak bhaja + chicken curry (or chana dal with lauki)"},
+        {"time": "16:30", "type": "Evening Snack", "menu": "Roasted peanuts + ginger tea (caffeine-free)"},
+        {"time": "19:00", "type": "Dinner", "menu": "Vegetable khichuri + beetroot & carrot salad"},
+        {"time": "21:30", "type": "Before Bed", "menu": "Warm milk"}
+      ],
+      "notes": [
+        "Hydrate 2–2.5 L/day",
+        "Use iodised salt; keep spices moderate",
+        "Choose pasteurised dairy; fully cook eggs/fish/meat",
+        "Prefer low-mercury fish (salmon, cod, trout, hilsa, bhetki)",
+        "Avoid raw/smoked fish, unpasteurised cheeses",
+        "Limit caffeine; herbal teas are best",
+        "Continue prenatal vitamins as prescribed"
+      ]
+    }
+  ]
+}

@@ -16,6 +16,7 @@
 .container {
   display: grid;
   grid-template-columns: auto auto;
+  grid-template-rows: auto auto;
   gap: 1rem;
   padding: 1rem;
   max-width: 100vw;

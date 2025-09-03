@@ -1,0 +1,121 @@
+<div class="diet-container">
+  <!-- Navigation Header -->
+  <div class="navigation-header">
+    <button mat-icon-button (click)="goBack()" class="back-button" aria-label="Go back to home">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <h2 class="page-title">Diet Plan</h2>
+    <div class="spacer"></div>
+  </div>
+
+  <!-- Loading Spinner -->
+  <div *ngIf="isLoading" class="loading-container">
+    <mat-spinner diameter="50"></mat-spinner>
+    <p>Loading your diet plan...</p>
+  </div>
+
+  <!-- Diet Plan Content -->
+  <div *ngIf="!isLoading && dietPlan" class="diet-content">
+    <!-- Header -->
+    <mat-card class="header-card">
+      <mat-card-content>
+        <div class="header-content">
+          <mat-icon class="header-icon" color="primary">restaurant</mat-icon>
+          <div class="header-text">
+            <h1>{{ dietPlan.title }}</h1>
+            <p class="subtitle">Your personalized weekly meal plan</p>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Day Tabs -->
+    <mat-card class="tabs-card">
+      <mat-card-content>
+        <mat-tab-group
+          [(selectedIndex)]="selectedDayIndex"
+          (selectedIndexChange)="onDaySelected($event)"
+          class="day-tabs">
+          <mat-tab
+            *ngFor="let day of dietPlan.days; let i = index"
+            [label]="day.day"
+            [class.current-day]="isCurrentDay(day.day)">
+            <div class="tab-content">
+              <!-- Meals Section -->
+              <div class="meals-section">
+                <h2 class="section-title">
+                  <mat-icon>schedule</mat-icon>
+                  Today's Meals
+                </h2>
+
+                <div class="meals-grid">
+                  <mat-card
+                    *ngFor="let meal of day.meals"
+                    class="meal-card"
+                    [class.current-meal]="isCurrentMeal(meal.time)">
+                    <mat-card-content>
+                      <div class="meal-header">
+                        <div class="meal-time">
+                          <mat-icon class="time-icon">access_time</mat-icon>
+                          <span class="time-text">{{ meal.time }}</span>
+                        </div>
+                        <mat-chip
+                          [color]="getMealTypeColor(meal.type)"
+                          selected
+                          class="meal-type-chip">
+                          <mat-icon class="chip-icon">{{ getMealTypeIcon(meal.type) }}</mat-icon>
+                          {{ meal.type }}
+                        </mat-chip>
+                      </div>
+
+                      <mat-divider></mat-divider>
+
+                      <div class="meal-content">
+                        <p class="menu-text">{{ meal.menu }}</p>
+                      </div>
+                    </mat-card-content>
+                  </mat-card>
+                </div>
+              </div>
+
+              <!-- Notes Section -->
+              <div class="notes-section">
+                <h2 class="section-title">
+                  <mat-icon>info</mat-icon>
+                  Important Notes
+                </h2>
+
+                <mat-expansion-panel
+                  *ngFor="let note of day.notes; let i = index"
+                  class="note-panel">
+                  <mat-expansion-panel-header>
+                    <mat-panel-title>
+                      <mat-icon class="note-icon">lightbulb</mat-icon>
+                      Tip {{ i + 1 }}
+                    </mat-panel-title>
+                  </mat-expansion-panel-header>
+                  <p class="note-content">{{ note }}</p>
+                </mat-expansion-panel>
+              </div>
+            </div>
+          </mat-tab>
+        </mat-tab-group>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="!isLoading && !dietPlan" class="error-container">
+    <mat-card class="error-card">
+      <mat-card-content>
+        <mat-icon class="error-icon" color="warn">error</mat-icon>
+        <h2>Unable to load diet plan</h2>
+        <p>Please try again later or contact support.</p>
+        <button mat-raised-button color="primary" (click)="retryLoadDietPlan()">
+          <mat-icon>refresh</mat-icon>
+          Retry
+        </button>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>

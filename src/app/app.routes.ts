@@ -8,6 +8,7 @@ import { TransactionFormComponent } from './expense-tracker/transaction-form/tra
 import { BudgetManagementComponent } from './expense-tracker/budget-management/budget-management.component';
 import { AuthGuard } from './shared/services/auth.guard';
 import { TicTacToeComponent } from './tic-tac-toe/tic-tac-toe.component';
+import { DietComponent } from './diet/diet.component';
 
 export const routes: Routes = [
   {
@@ -55,6 +56,10 @@ export const routes: Routes = [
   {
     path: 'tic-tac-toe',
     component: TicTacToeComponent,
+  },
+  {
+    path: 'diet',
+    component: DietComponent,
   },
   {
     path: '',
