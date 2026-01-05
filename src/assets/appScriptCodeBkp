@@ -1,0 +1,366 @@
+function getSheetNameAccordingToMonthAndYear() {
+  var date = new Date();
+  var name = Utilities.formatDate(date, Session.getScriptTimeZone(), "MMMM-yyyy");
+
+  Logger.log("Current Month: " + name);
+  return name;
+}
+
+
+function generateToken(username, password) {
+  console.log(Utilities.base64Encode(username + ":" + password))
+  return Utilities.base64Encode(username + ":" + password);
+}
+
+function generateEncryptedPassword(password) {
+  // Generate a SHA-256 hash of the password
+  var hashedPassword = Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, password);
+
+  // Convert the hash bytes to a hex string
+  var hexHash = '';
+  for (var i = 0; i < hashedPassword.length; i++) {
+    var byte = hashedPassword[i];
+    hexHash += (byte >>> 4).toString(16);
+    hexHash += (byte & 0x0F).toString(16);
+  }
+
+  return hexHash;
+}
+
+// function test() {
+//   var plainPassword = 'myPassword123';
+//   var encryptedPassword = generateEncryptedPassword(plainPassword);
+//   Logger.log('Encrypted Password: ' + encryptedPassword);
+// }
+
+function createSheetAndSelect(sheetName) {
+  var spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+
+  // Check if sheet exists
+  var sheet = spreadsheet.getSheetByName(sheetName);
+
+  if (!sheet) {
+    // Sheet doesn't exist, create it
+    sheet = spreadsheet.insertSheet(sheetName);
+  }
+
+  // Select the sheet
+  spreadsheet.setActiveSheet(sheet);
+}
+
+const name = getSheetNameAccordingToMonthAndYear();
+createSheetAndSelect(name);
+// const app = SpreadsheetApp.openByUrl('https://docs.google.com/spreadsheets/d/14dbD61rTWw4EnXopoAAbP8kCQqFnI7Z7thJ3i7FUoPU/edit#gid=0');
+const spreadsheet = SpreadsheetApp.getActiveSpreadsheet()
+const transactionsSheet = spreadsheet.getSheetByName(name);
+
+// Logger.log(transactionsSheet.getDataRange().getValues());
+
+
+const categoriesSheet = spreadsheet.getSheetByName('Category');
+const shoppingListSheet = spreadsheet.getSheetByName('ShoppingList');
+const credsSheet = spreadsheet.getSheetByName('Creds');
+
+
+function doGet(e) {
+  var action = e.parameter.action;
+  var sheet = e.parameter.sheet;
+
+  var data;
+
+  switch (action) {
+    case 'readTransactions':
+      data = readTransactions();
+      break;
+    case 'readSingleTransaction':
+      var id = e.parameter.id;
+      data = readSingleTransaction(sheet, id);
+      break;
+    case 'readShoppingList':
+      data = readShoppingList();
+      break;
+    case 'readCategories':
+      data = readCategories();
+      break;
+    default:
+      data = { error: 'Invalid action' };
+  }
+
+  return ContentService.createTextOutput(JSON.stringify(data))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+function doPost(e) {
+  var data = JSON.parse(e.postData.contents);
+  var action = e.parameter.action;
+  switch (action) {
+    case 'create':
+      createData(data, data.sheetName);
+      const msg = getResponseText(data.sheetName);
+      result = { message: msg };
+      break;
+    case 'login':
+      result = processLogin(data);
+      break;
+    case 'update':
+      const updatedData = updateData(data.values, data.rowIndex, data.sheetName);
+      // const updatedData = arr.map(
+      //   ([
+      //     id,
+      //     amount,
+      //     category,
+      //     note,
+      //     date,
+      //     paymentMethod,
+      //     paidBy,
+      //     type,
+      //     isDeleted,
+      //   ]) => ({
+      //     id,
+      //     amount,
+      //     category,
+      //     note,
+      //     date: new Date(date),
+      //     paymentMethod,
+      //     paidBy,
+      //     type,
+      //     isDeleted,
+      //   }))[0];
+      result = { message: 'Transaction updated successfully', data: updatedData };
+      break;
+    case 'delete':
+      const rowIndex = e.parameter.rowIndex;
+      deleteData(data.rowIndex, data.sheetName);
+      result = { message: 'Transaction deleted successfully' };
+      break;
+    default:
+      result = { error: 'Invalid action' };
+  }
+  return ContentService.createTextOutput(JSON.stringify(result))
+    .setMimeType(ContentService.MimeType.JSON)
+
+
+}
+getSheets = () => {
+  const currentDate = new Date();
+  Logger.log(`Executing method:testMethod`);
+  const currentYear = currentDate.getFullYear().toString();
+  const currentMonth = currentDate.getMonth();
+  const sheets = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'].map(monthName => `${monthName}-${currentYear}`);
+  return { sheets, currentMonth };
+}
+
+function readTransactions() {
+  // Add the sheet names here
+  const { sheets, currentMonth } = getSheets();
+  let allTransactions = [];
+  for (let i = 0; i < currentMonth + 1; i++) {
+    let str = sheets[i];
+    createSheetAndSelect(str);
+    const sheet = spreadsheet.getSheetByName(str);
+    if (sheet) {
+      const values = sheet.getDataRange().getValues();
+      values.shift();
+      allTransactions.push(...values)
+    }
+  }
+  const payload = {
+    data: allTransactions.map(
+      ([
+        id,
+        amount,
+        category,
+        note,
+        date,
+        paymentMethod,
+        paidBy,
+        type,
+        isDeleted,
+      ]) => ({
+        id,
+        amount,
+        category,
+        note,
+        date: new Date(date),
+        paymentMethod,
+        paidBy,
+        type,
+        isDeleted,
+      })
+    ), length: allTransactions.length
+  }
+
+  Logger.log(payload)
+  return payload;
+}
+
+function readSingleTransaction(sheetName, rowIndex) {
+  var sheet = spreadsheet.getSheetByName(sheetName);
+  var dataRange = sheet.getDataRange(rowIndex, 1, 1, selectedSheet.getLastColumn());
+  var values = dataRange.getValues();
+  return { data: values };
+  // Row not found
+  Logger.log("Row not found with ID: " + rowId);
+}
+
+///////////////////////////
+function readData(sheetName) {
+  var res = sheetName.getDataRange().getValues();
+  return res;
+}
+
+function readShoppingList() {
+  var res = shoppingListSheet.getDataRange().getValues();
+  return res.map(([id, name, quantity, isAdded, isDeleted]) => ({
+    id,
+    name,
+    quantity,
+    isAdded,
+    isDeleted,
+  }));
+}
+
+function readCategories() {
+  var res = categoriesSheet.getDataRange().getValues();
+  // Skip header row and map to objects
+  return res.slice(1).map(([id, name, subType, type, icon, isDeleted]) => ({
+    id,
+    name,
+    subType,
+    type,
+    icon: icon || 'category',
+    isDeleted: isDeleted === true || isDeleted === 'true'
+  }));
+}
+
+
+function createData(data, sheetName) {
+  createSheetAndSelect(sheetName);
+  const selectedSheet = spreadsheet.getSheetByName(sheetName);
+  switch (sheetName) {
+    case 'transaction':
+      selectedSheet.appendRow(["=row()", data.amount, data.category, data.note, data.date, data.paymentMethod, data.paidBy, data.type, false]);
+      break;
+    case 'shoppingList':
+      shoppingListSheet.appendRow(["=row()", data.name, data.quantity, data.isAdded, data.isDeleted]);
+      break;
+    default:
+      selectedSheet.appendRow(["=row()", data.amount, data.category, data.note, data.date, data.paymentMethod, data.paidBy, data.type, false]);
+
+  }
+}
+
+
+function updateData(data, rowIndex, sheetName) {
+  if (sheetName == 'shoppingList') {
+    return clearAndInsertData(data);
+  } else {
+    createSheetAndSelect(sheetName);
+    const selectedSheet = spreadsheet.getSheetByName(sheetName);
+    var range = selectedSheet.getRange(rowIndex, 1, 1, selectedSheet.getLastColumn());
+    range.setValues([["=row()", data.amount, data.category, data.note, data.date, data.paymentMethod, data.paidBy, data.type, 'false']])
+    return range.getValues().map(
+      ([
+        id,
+        amount,
+        category,
+        note,
+        date,
+        paymentMethod,
+        paidBy,
+        type,
+        isDeleted,
+      ]) => ({
+        id,
+        amount,
+        category,
+        note,
+        date: new Date(date),
+        paymentMethod,
+        paidBy,
+        type,
+        isDeleted,
+      }))[0]
+  }
+}
+
+function deleteData(rowIndex, sheetName) {
+  createSheetAndSelect(sheetName);
+  const selectedSheet = spreadsheet.getSheetByName(sheetName);
+  selectedSheet.deleteRow(rowIndex);
+}
+
+function getResponseText(sheetName) {
+  switch (sheetName) {
+    case 'transaction':
+      return 'Transaction updated successfully';
+      break;
+    case 'shoppingList':
+      return 'New item added successfully';
+      break;
+    default:
+      return 'Transaction updated successfully';
+
+  }
+
+}
+
+function processLogin(data) {
+  const { username, password } = { ...data };
+  Logger.log(generateEncryptedPassword(password));
+  const users = credsSheet.getDataRange().getValues();
+  const foundUser = users.find(user => user[0] === username);
+  if (foundUser) {
+    const [fetchedUser, fetchedPass] = foundUser;
+    if (fetchedUser === username && fetchedPass === generateEncryptedPassword(password)) {
+      const token = generateToken(username, new Date())
+      return { token, message: 'Login successful!' };
+    } else {
+      return { token: '', message: 'Username or password is incorrect, Try again!' };
+    }
+  } else {
+    return { token: '', message: 'User not found,Please sign up!' };
+  }
+
+}
+
+function handleUnauthorized(msg) {
+  var response = ContentService.createTextOutput(msg);
+  response.setStatusCode(401);
+  return response;
+}
+
+function clearAndInsertData(payload) {
+
+  Logger.log('executing clear and insert')
+  var lastRow = shoppingListSheet.getLastRow();
+
+
+  if (lastRow > 1) {
+    shoppingListSheet.getRange(2, 1, lastRow - 1, shoppingListSheet.getLastColumn()).clearContent();
+  }
+
+  const newData = payload.map(obj => ["=row()", obj.name, obj.quantity, obj.isAdded, 'false'])
+  Logger.log(newData);
+
+  // shoppingListSheet.getRange(2, 1, newData.length, newData[0].length).setValues(newData);
+
+  const range = shoppingListSheet.getRange(2, 1, newData.length, newData[0].length);
+  range.setValues(newData);
+  return range.getValues().map(
+    ([
+      id,
+      name,
+      quantity,
+      isAdded,
+      isDeleted,
+    ]) => ({
+      id,
+      name,
+      quantity,
+      isAdded,
+      isDeleted,
+    }));
+}
+
+

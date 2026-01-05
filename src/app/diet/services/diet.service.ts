@@ -20,7 +20,7 @@ export class DietService {
     }
 
     logger.log('📋 Loading diet data from assets');
-    return this.http.get<IDietPlan>('/assets/diet.json').pipe(
+    return this.http.get<IDietPlan>('assets/diet.json').pipe(
       tap((data) => {
         this.dietData = data;
         logger.log('📋 Diet data loaded successfully:', data.title);
