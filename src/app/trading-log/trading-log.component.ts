@@ -3,6 +3,7 @@ import { RouterModule } from '@angular/router';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { Observable } from 'rxjs';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { CommonModule } from '@angular/common';
@@ -18,6 +19,7 @@ import { LoaderService } from '../shared/loader.service';
     MatButtonModule,
     MatProgressSpinnerModule,
     CommonModule,
+    MatTooltipModule,
   ],
   templateUrl: './trading-log.component.html',
   styleUrl: './trading-log.component.scss',

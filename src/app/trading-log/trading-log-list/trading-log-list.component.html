@@ -5,21 +5,31 @@
         <mat-icon>trending_up</mat-icon>
         Trading Log
       </mat-card-title>
+      <div class="header-actions">
+        <button
+          mat-raised-button
+          color="primary"
+          routerLink="/trading-log/add"
+        >
+          <mat-icon>add</mat-icon>
+          Add Trade
+        </button>
+      </div>
     </mat-card-header>
     <mat-card-content>
-      @if (isLoading) {
+      @if (isLoading()) {
         <div class="loading-container">
           <mat-spinner [diameter]="50"></mat-spinner>
           <p>Loading trading data...</p>
         </div>
-      } @else if (tradingLogs.length === 0) {
+      } @else if (tradingLogs().length === 0) {
         <div class="no-data-container">
           <mat-icon>info</mat-icon>
           <p>No trading data available</p>
         </div>
       } @else {
         <div class="table-container">
-          <table mat-table [dataSource]="tradingLogs" class="trading-table">
+          <table mat-table [dataSource]="tradingLogs()" class="trading-table">
             <ng-container matColumnDef="Stock">
               <th mat-header-cell *matHeaderCellDef>Stock</th>
               <td mat-cell *matCellDef="let entry">{{ entry.Stock }}</td>
@@ -35,7 +45,7 @@
             <ng-container matColumnDef="Buy Price">
               <th mat-header-cell *matHeaderCellDef>Buy Price</th>
               <td mat-cell *matCellDef="let entry">
-                ₹{{ entry['Buy Price'] | number: '1.2-2' }}
+                {{ formatCurrency(entry['Buy Price'], entry.Exchange) }}
               </td>
             </ng-container>
 
@@ -47,7 +57,7 @@
             <ng-container matColumnDef="Current Value">
               <th mat-header-cell *matHeaderCellDef>Current Value</th>
               <td mat-cell *matCellDef="let entry">
-                {{ entry['Current Value'] }}
+                {{ formatCurrency(entry['Current Value'], entry.Exchange) }}
               </td>
             </ng-container>
 
@@ -58,7 +68,7 @@
                 *matCellDef="let entry"
                 [class]="getGainClass(entry['% Gain'])"
               >
-                {{ entry['Gain Amount'] }}
+                {{ formatCurrency(entry['Gain Amount'], entry.Exchange) }}
               </td>
             </ng-container>
 
@@ -69,7 +79,7 @@
                 *matCellDef="let entry"
                 [class]="getGainClass(entry['% Gain'])"
               >
-                {{ entry['% Gain'] }}
+                {{ getFormattedPercentGain(entry['% Gain']) }}
               </td>
             </ng-container>
 
@@ -83,7 +93,7 @@
             <ng-container matColumnDef="Target Price">
               <th mat-header-cell *matHeaderCellDef>Target Price</th>
               <td mat-cell *matCellDef="let entry">
-                {{ entry['Target Price'] }}
+                {{ formatCurrency(entry['Target Price'], entry.Exchange) }}
               </td>
             </ng-container>
 

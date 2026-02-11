@@ -1,0 +1,267 @@
+<mat-card class="form-card">
+  <mat-card-header>
+    <div mat-card-avatar>
+      <button mat-icon-button (click)="goBack()">
+        <mat-icon>arrow_back</mat-icon>
+      </button>
+    </div>
+    <mat-card-title>
+      {{ formType === 'add' ? 'Add Trade' : 'Edit Trade' }}
+    </mat-card-title>
+  </mat-card-header>
+  <form
+    [formGroup]="tradingLogForm"
+    (ngSubmit)="onSubmit()"
+    class="trading-log-form"
+  >
+    <!-- Input Fields Section -->
+    <div class="form-section">
+      <h3>Trade Information</h3>
+
+      @if (!showCustomListInput) {
+      <div class="form-row">
+        <mat-form-field class="form-field">
+          <mat-label>List/Portfolio</mat-label>
+          <mat-select formControlName="List" required (selectionChange)="onListChange($event)">
+            @for (listOption of listOptions; track listOption) {
+            <mat-option [value]="listOption">
+              {{ listOption }}
+            </mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+      </div>
+      } @else {
+      <div class="form-row">
+        <mat-form-field class="form-field">
+          <mat-label>List/Portfolio</mat-label>
+          <input matInput formControlName="List" placeholder="Enter custom list name" required />
+          <button
+            mat-icon-button
+            matSuffix
+            (click)="resetListSelection()"
+            type="button"
+            matTooltip="Select from list"
+          >
+            <mat-icon>arrow_back</mat-icon>
+          </button>
+        </mat-form-field>
+      </div>
+      }
+
+      <div class="form-row">
+        <mat-form-field class="form-field">
+          <mat-label>Stock Symbol</mat-label>
+          <input matInput formControlName="Stock" placeholder="e.g., LICI" required />
+        </mat-form-field>
+      </div>
+
+      <div class="form-row">
+        <mat-form-field class="form-field">
+          <mat-label>Buy Date</mat-label>
+          <input
+            matInput
+            [matDatepicker]="picker"
+            formControlName="Buy Date"
+            required
+            (click)="picker.open()"
+          />
+          <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+          <mat-datepicker touchUi #picker></mat-datepicker>
+        </mat-form-field>
+      </div>
+
+      <div class="form-row">
+        <mat-form-field class="form-field">
+          <mat-label>Buy Price</mat-label>
+          <input
+            matInput
+            formControlName="Buy Price"
+            type="number"
+            step="0.01"
+            placeholder="0.00"
+            required
+          />
+        </mat-form-field>
+      </div>
+
+      <div class="form-row">
+        <mat-form-field class="form-field">
+          <mat-label>Quantity</mat-label>
+          <input
+            matInput
+            formControlName="Qty"
+            type="number"
+            placeholder="0"
+            required
+          />
+        </mat-form-field>
+      </div>
+
+      <div class="form-row">
+        <mat-form-field class="form-field">
+          <mat-label>Current Market Price (CMP)</mat-label>
+          <input
+            matInput
+            formControlName="CMP"
+            type="number"
+            step="0.01"
+            placeholder="Leave empty to use Buy Price"
+          />
+          <mat-hint>Leave empty to auto-fetch from Google Finance</mat-hint>
+        </mat-form-field>
+      </div>
+
+      <div class="form-row">
+        <mat-form-field class="form-field">
+          <mat-label>Strategy Name</mat-label>
+          <mat-select formControlName="Strategy Name" required>
+            @for (strategy of strategyNames; track strategy.id) {
+            <mat-option [value]="strategy.name">
+              {{ strategy.name }}
+            </mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+      </div>
+
+      <div class="form-row">
+        <mat-form-field class="form-field">
+          <mat-label>Target Price</mat-label>
+          <input
+            matInput
+            formControlName="Target Price"
+            type="number"
+            step="0.01"
+            placeholder="0.00"
+            required
+          />
+        </mat-form-field>
+      </div>
+
+      <div class="form-row">
+        <mat-form-field class="form-field">
+          <mat-label>Exchange</mat-label>
+          <mat-select formControlName="Exchange" required>
+            @for (exchange of exchanges; track exchange.id) {
+            <mat-option [value]="exchange.name">
+              {{ exchange.name }}
+            </mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+      </div>
+
+      <div class="form-row">
+        <mat-form-field class="form-field">
+          <mat-label>Account Owner</mat-label>
+          <mat-select formControlName="Account Owner" required>
+            @for (owner of accountOwners; track owner.id) {
+            <mat-option [value]="owner.name">
+              {{ owner.name }}
+            </mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+      </div>
+    </div>
+
+    <!-- Calculated Fields Section (Read-only) -->
+    <div class="form-section">
+      <mat-expansion-panel [expanded]="false">
+        <mat-expansion-panel-header>
+          <mat-panel-title>
+            <mat-icon>calculate</mat-icon>
+            Calculated Values
+          </mat-panel-title>
+          <mat-panel-description>
+            View computed trading metrics
+          </mat-panel-description>
+        </mat-expansion-panel-header>
+
+        <div class="calculated-grid">
+        <div class="calculated-item">
+          <label>Buy Value</label>
+          <div class="calculated-value">
+            {{ getCurrencySymbol() }}{{ calculatedFields.buyValue | number: '1.2-2' }}
+          </div>
+        </div>
+
+        <div class="calculated-item">
+          <label>Current Value</label>
+          <div class="calculated-value">
+            {{ getCurrencySymbol() }}{{ calculatedFields.currentValue | number: '1.2-2' }}
+          </div>
+        </div>
+
+        <div class="calculated-item">
+          <label>Gain/Loss Amount</label>
+          <div
+            class="calculated-value"
+            [class.gain-positive]="calculatedFields.gainAmount > 0"
+            [class.gain-negative]="calculatedFields.gainAmount < 0"
+          >
+            {{ getCurrencySymbol() }}{{ calculatedFields.gainAmount | number: '1.2-2' }}
+          </div>
+        </div>
+
+        <div class="calculated-item">
+          <label>% Gain/Loss</label>
+          <div
+            class="calculated-value"
+            [class.gain-positive]="calculatedFields.percentGain > 0"
+            [class.gain-negative]="calculatedFields.percentGain < 0"
+          >
+            {{ calculatedFields.percentGain | number: '1.2-2' }}%
+          </div>
+        </div>
+
+        <div class="calculated-item">
+          <label>Target Value</label>
+          <div class="calculated-value">
+            {{ getCurrencySymbol() }}{{ calculatedFields.targetValue | number: '1.2-2' }}
+          </div>
+        </div>
+
+        <div class="calculated-item">
+          <label>Total Potential Gain</label>
+          <div class="calculated-value">
+            {{ calculatedFields.totalPotentialGain | number: '1.2-2' }}%
+          </div>
+        </div>
+
+        <div class="calculated-item">
+          <label>Remaining Gain</label>
+          <div class="calculated-value">
+            {{ calculatedFields.remainingGain | number: '1.2-2' }}%
+          </div>
+        </div>
+
+        <div class="calculated-item">
+          <label>Time Frame (Days)</label>
+          <div class="calculated-value">
+            {{ calculatedFields.timeFrame }}
+          </div>
+        </div>
+        </div>
+      </mat-expansion-panel>
+    </div>
+
+    <!-- Submit Button -->
+    <div class="form-row full-width button-row">
+      <button
+        mat-raised-button
+        color="primary"
+        type="submit"
+        [disabled]="!tradingLogForm.valid"
+      >
+        {{ formType === 'add' ? 'Add Trade' : 'Update Trade' }}
+        @if(isLoading$ | async){
+        <mat-icon>
+          <mat-spinner color="accent" diameter="20"></mat-spinner>
+        </mat-icon>
+        }
+      </button>
+    </div>
+  </form>
+</mat-card>

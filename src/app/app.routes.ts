@@ -11,6 +11,7 @@ import { TicTacToeComponent } from './tic-tac-toe/tic-tac-toe.component';
 import { DietComponent } from './diet/diet.component';
 import { TradingLogComponent } from './trading-log/trading-log.component';
 import { TradingLogListComponent } from './trading-log/trading-log-list/trading-log-list.component';
+import { TradingLogFormComponent } from './trading-log/trading-log-form/trading-log-form.component';
 
 export const routes: Routes = [
   {
@@ -71,6 +72,14 @@ export const routes: Routes = [
       {
         path: '',
         component: TradingLogListComponent,
+      },
+      {
+        path: 'add',
+        component: TradingLogFormComponent,
+      },
+      {
+        path: 'edit/:id',
+        component: TradingLogFormComponent,
       },
     ],
   },

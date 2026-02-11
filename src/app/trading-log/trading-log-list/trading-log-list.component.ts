@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { GoogleSheetService } from '../../shared/gsheet.service';
 import { MatCardModule } from '@angular/material/card';
@@ -6,6 +6,8 @@ import { MatTableModule } from '@angular/material/table';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { RouterModule } from '@angular/router';
+import { environment } from '../../../environments/environment';
 
 interface TradingLogEntry {
   id?: number;
@@ -40,6 +42,7 @@ interface TradingLogEntry {
     MatIconModule,
     MatButtonModule,
     MatProgressSpinnerModule,
+    RouterModule,
   ],
   templateUrl: './trading-log-list.component.html',
   styleUrl: './trading-log-list.component.scss',
@@ -56,8 +59,8 @@ export class TradingLogListComponent implements OnInit {
     'Strategy Name',
     'Target Price',
   ];
-  tradingLogs: TradingLogEntry[] = [];
-  isLoading = false;
+  tradingLogs = signal<TradingLogEntry[]>([]);
+  isLoading = signal<boolean>(false);
 
   constructor(private googleSheetService: GoogleSheetService) {}
 
@@ -66,34 +69,132 @@ export class TradingLogListComponent implements OnInit {
   }
 
   loadTradingLogs(): void {
-    this.isLoading = true;
+    this.isLoading.set(true);
     this.googleSheetService.readTradingLogs().subscribe({
       next: (response: { data: TradingLogEntry[]; length: number }) => {
+        console.log('Trading logs response:', response);
+        console.log('Number of entries received:', response?.data?.length);
+
         if (response && response.data) {
-          // Convert Buy Date strings to Date objects if needed
-          this.tradingLogs = response.data.map((entry: TradingLogEntry) => ({
-            ...entry,
-            'Buy Date': entry['Buy Date'] instanceof Date 
-              ? entry['Buy Date'] 
-              : new Date(entry['Buy Date'])
-          }));
+          // Convert Buy Date strings to Date objects if needed and ensure % Gain is string
+          const processedLogs = response.data
+            .map((entry: any) => {
+              try {
+                // Ensure % Gain is a string
+                const percentGainValue = entry['% Gain'];
+                let percentGain: string;
+                if (typeof percentGainValue === 'string') {
+                  percentGain = percentGainValue;
+                } else if (percentGainValue !== null && percentGainValue !== undefined) {
+                  const gainStr = String(percentGainValue);
+                  percentGain = gainStr.includes('%') ? gainStr : gainStr + '%';
+                } else {
+                  percentGain = '0%';
+                }
+
+                return {
+                  ...entry,
+                  'Buy Date': entry['Buy Date'] instanceof Date
+                    ? entry['Buy Date']
+                    : new Date(entry['Buy Date']),
+                  '% Gain': percentGain
+                } as TradingLogEntry;
+              } catch (error) {
+                console.error('Error parsing entry:', entry, error);
+                const percentGainValue = entry['% Gain'];
+                return {
+                  ...entry,
+                  'Buy Date': new Date(),
+                  '% Gain': percentGainValue ? String(percentGainValue) : '0%'
+                } as TradingLogEntry;
+              }
+            })
+            .filter((entry: TradingLogEntry) => entry && entry.Stock); // Filter out invalid entries
+
+          console.log('Processed trading logs:', processedLogs.length);
+          console.log('Sample entry:', processedLogs[0]);
+          this.tradingLogs.set(processedLogs);
         } else {
-          this.tradingLogs = [];
+          this.tradingLogs.set([]);
         }
-        this.isLoading = false;
+        this.isLoading.set(false);
       },
       error: (error: any) => {
         console.error('Error loading trading log:', error);
-        this.isLoading = false;
-        this.tradingLogs = [];
+        this.isLoading.set(false);
+        this.tradingLogs.set([]);
       },
     });
   }
 
-  getGainClass(gainPercent: string): string {
-    const gain = parseFloat(gainPercent.replace('%', '').replace(',', ''));
+  getGainClass(gainPercent: string | number | undefined): string {
+    if (gainPercent === undefined || gainPercent === null) {
+      return 'gain-neutral';
+    }
+
+    // Convert to string if it's a number
+    const gainStr = typeof gainPercent === 'string'
+      ? gainPercent
+      : gainPercent.toString();
+
+    // Remove % and commas, then parse
+    const gain = parseFloat(gainStr.replace('%', '').replace(/,/g, '')) || 0;
+
     if (gain > 0) return 'gain-positive';
     if (gain < 0) return 'gain-negative';
     return 'gain-neutral';
+  }
+
+  getFormattedPercentGain(gainPercent: string | number | undefined): string {
+    if (gainPercent === undefined || gainPercent === null) {
+      return '0.00%';
+    }
+
+    // Convert to string if it's a number
+    const gainStr = typeof gainPercent === 'string'
+      ? gainPercent
+      : String(gainPercent);
+
+    // Remove % and commas, then parse
+    const gain = parseFloat(gainStr.replace('%', '').replace(/,/g, '')) || 0;
+
+    // Format to 2 decimal places and add % sign
+    return gain.toFixed(2) + '%';
+  }
+
+  getCurrencySymbol(exchange?: string): string {
+    if (!exchange) {
+      return environment.currencySymbol || '₹';
+    }
+
+    const exchangeLower = exchange.toLowerCase().trim();
+
+    if (exchangeLower === 'india') {
+      return '₹';
+    } else if (exchangeLower === 'germany') {
+      return '€';
+    } else if (exchangeLower === 'us') {
+      return '$';
+    }
+
+    // Fallback to environment currency symbol
+    return environment.currencySymbol || '₹';
+  }
+
+  formatCurrency(value: string | number | undefined, exchange?: string): string {
+    const currencySymbol = this.getCurrencySymbol(exchange);
+
+    if (value === undefined || value === null) {
+      return currencySymbol + '0.00';
+    }
+
+    // Convert to string if it's a number
+    const valueStr = typeof value === 'string' ? value : String(value);
+
+    // Remove currency symbols, commas, and parse
+    const numValue = parseFloat(valueStr.replace(/[₹€$,\s]/g, '')) || 0;
+
+    // Format to 2 decimal places with currency symbol
+    return currencySymbol + numValue.toFixed(2);
   }
 }
