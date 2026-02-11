@@ -19,6 +19,35 @@ mat-card-header {
 .header-actions {
   display: flex;
   gap: 0.5rem;
+  align-items: center;
+}
+
+.column-menu-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 1rem;
+  font-weight: 500;
+  min-width: 200px;
+
+  .reset-button {
+    width: 32px;
+    height: 32px;
+    line-height: 32px;
+  }
+}
+
+mat-menu {
+  mat-checkbox {
+    margin-right: 0.5rem;
+  }
+
+  button[mat-menu-item] {
+    display: flex;
+    align-items: center;
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
 }
 
 mat-card-title {
@@ -53,18 +82,61 @@ mat-card-title {
 
 .trading-table {
   width: 100%;
-  min-width: 800px;
+  min-width: 600px;
+  table-layout: fixed; // Use fixed layout for percentage-based columns
 }
 
 .trading-table th {
   font-weight: 600;
   background-color: rgba(0, 0, 0, 0.04);
+  white-space: nowrap;
 }
 
 .trading-table td,
 .trading-table th {
-  padding: 1rem;
+  padding: 0.5rem 0.75rem;
   text-align: left;
+}
+
+// Column-specific widths using percentages
+.col-stock {
+  width: 8%;
+  min-width: 5rem;
+}
+
+.col-date {
+  width: 10%;
+  min-width: 7rem;
+  white-space: nowrap;
+}
+
+.col-price {
+  width: 10%;
+  min-width: 7rem;
+  text-align: right;
+}
+
+.col-qty {
+  width: 6%;
+  min-width: 4rem;
+  text-align: right;
+}
+
+.col-percent {
+  width: 8%;
+  min-width: 5.5rem;
+  text-align: right;
+}
+
+.col-strategy {
+  width: 12%;
+  min-width: 8rem;
+}
+
+.mat-column-actions {
+  width: 10%;
+  min-width: 8rem;
+  text-align: center;
 }
 
 .trading-table tr:hover {
@@ -95,8 +167,13 @@ mat-card-title {
     font-size: 0.875rem;
   }
 
+  .trading-table {
+    min-width: 500px;
+    font-size: 0.875rem;
+  }
+
   .trading-table td,
   .trading-table th {
-    padding: 0.5rem;
+    padding: 0.4rem 0.5rem;
   }
 }

@@ -11,6 +11,10 @@ import { MatDialog } from '@angular/material/dialog';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatMenuModule } from '@angular/material/menu';
+import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatDividerModule } from '@angular/material/divider';
+import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { environment } from '../../../environments/environment';
 import { TradeDetailsModalComponent } from '../trade-details-modal/trade-details-modal.component';
@@ -53,23 +57,35 @@ interface TradingLogEntry {
     MatDialogModule,
     MatTooltipModule,
     MatSnackBarModule,
+    MatMenuModule,
+    MatCheckboxModule,
+    MatDividerModule,
+    FormsModule,
   ],
   templateUrl: './trading-log-list.component.html',
   styleUrl: './trading-log-list.component.scss',
 })
 export class TradingLogListComponent implements OnInit {
-  displayedColumns: string[] = [
-    'Stock',
-    'Buy Date',
-    'Buy Price',
-    'Qty',
-    'Current Value',
-    'Gain Amount',
-    '% Gain',
-    'Strategy Name',
-    'Target Price',
-    'actions',
+  // All available columns
+  allColumns: { key: string; label: string; defaultVisible: boolean }[] = [
+    { key: 'Stock', label: 'Stock', defaultVisible: true },
+    { key: 'Buy Date', label: 'Buy Date', defaultVisible: true },
+    { key: 'Buy Price', label: 'Buy Price', defaultVisible: true },
+    { key: 'Qty', label: 'Quantity', defaultVisible: true },
+    { key: 'Current Value', label: 'Current Value', defaultVisible: true },
+    { key: 'Gain Amount', label: 'Gain/Loss', defaultVisible: true },
+    { key: '% Gain', label: '% Gain', defaultVisible: true },
+    { key: 'Strategy Name', label: 'Strategy', defaultVisible: true },
+    { key: 'Target Price', label: 'Target Price', defaultVisible: true },
+    { key: 'actions', label: 'Actions', defaultVisible: true },
   ];
+
+  // Column visibility state
+  columnVisibility = signal<{ [key: string]: boolean }>({});
+  
+  // Computed displayed columns based on visibility
+  displayedColumns = signal<string[]>([]);
+  
   tradingLogs = signal<TradingLogEntry[]>([]);
   isLoading = signal<boolean>(false);
 
@@ -81,7 +97,68 @@ export class TradingLogListComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    this.initializeColumnVisibility();
     this.loadTradingLogs();
+  }
+
+  initializeColumnVisibility(): void {
+    // Load from localStorage or use defaults
+    const savedVisibility = localStorage.getItem('tradingLogColumnVisibility');
+    let visibility: { [key: string]: boolean };
+    
+    if (savedVisibility) {
+      try {
+        visibility = JSON.parse(savedVisibility);
+        // Ensure all columns have visibility state
+        this.allColumns.forEach(col => {
+          if (visibility[col.key] === undefined) {
+            visibility[col.key] = col.defaultVisible;
+          }
+        });
+      } catch (e) {
+        visibility = this.getDefaultVisibility();
+      }
+    } else {
+      visibility = this.getDefaultVisibility();
+    }
+    
+    this.columnVisibility.set(visibility);
+    this.updateDisplayedColumns();
+  }
+
+  getDefaultVisibility(): { [key: string]: boolean } {
+    const visibility: { [key: string]: boolean } = {};
+    this.allColumns.forEach(col => {
+      visibility[col.key] = col.defaultVisible;
+    });
+    return visibility;
+  }
+
+  updateDisplayedColumns(): void {
+    const visible = this.allColumns
+      .filter(col => this.columnVisibility()[col.key])
+      .map(col => col.key);
+    this.displayedColumns.set(visible);
+  }
+
+  toggleColumnVisibility(columnKey: string): void {
+    const current = this.columnVisibility();
+    const newVisibility = {
+      ...current,
+      [columnKey]: !current[columnKey]
+    };
+    this.columnVisibility.set(newVisibility);
+    this.updateDisplayedColumns();
+    
+    // Save to localStorage
+    localStorage.setItem('tradingLogColumnVisibility', JSON.stringify(newVisibility));
+  }
+
+  resetColumnVisibility(): void {
+    const defaultVisibility = this.getDefaultVisibility();
+    this.columnVisibility.set(defaultVisibility);
+    this.updateDisplayedColumns();
+    localStorage.setItem('tradingLogColumnVisibility', JSON.stringify(defaultVisibility));
   }
 
   loadTradingLogs(): void {
