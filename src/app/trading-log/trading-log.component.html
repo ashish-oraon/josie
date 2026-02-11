@@ -1,0 +1,23 @@
+<div class="container mat-drawer-container">
+  <div style="height: 80vh">
+    <router-outlet></router-outlet>
+  </div>
+  <mat-toolbar class="navigation-panel" color="primary" style="height: 5vh">
+    <mat-toolbar-row>
+      <button
+        mat-icon-button
+        routerLink="/trading-log"
+        routerLinkActive="active"
+      >
+        <mat-icon>trending_up</mat-icon>
+      </button>
+      <button
+        mat-icon-button
+        routerLink="../home"
+        routerLinkActive="active"
+      >
+        <mat-icon>home</mat-icon>
+      </button>
+    </mat-toolbar-row>
+  </mat-toolbar>
+</div>

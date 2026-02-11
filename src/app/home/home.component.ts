@@ -56,6 +56,13 @@ export class HomeComponent {
       description: 'Track your meals and nutrition',
       color: 'warn',
     },
+    {
+      path: 'trading-log',
+      icon: 'trending_up',
+      label: 'Trading Log',
+      description: 'View your trading portfolio',
+      color: 'primary',
+    },
   ];
 
   constructor(private router: Router) {}

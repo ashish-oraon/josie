@@ -1,0 +1,96 @@
+.trading-log-container {
+  padding: 1rem;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+mat-card {
+  margin-bottom: 1rem;
+}
+
+mat-card-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+mat-card-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.5rem;
+  font-weight: 500;
+}
+
+.loading-container,
+.no-data-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  gap: 1rem;
+}
+
+.no-data-container mat-icon {
+  font-size: 4rem;
+  width: 4rem;
+  height: 4rem;
+  color: rgba(0, 0, 0, 0.38);
+}
+
+.table-container {
+  overflow-x: auto;
+  max-width: 100%;
+}
+
+.trading-table {
+  width: 100%;
+  min-width: 800px;
+}
+
+.trading-table th {
+  font-weight: 600;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+
+.trading-table td,
+.trading-table th {
+  padding: 1rem;
+  text-align: left;
+}
+
+.trading-table tr:hover {
+  background-color: rgba(0, 0, 0, 0.02);
+}
+
+.gain-positive {
+  color: #4caf50;
+  font-weight: 500;
+}
+
+.gain-negative {
+  color: #f44336;
+  font-weight: 500;
+}
+
+.gain-neutral {
+  color: rgba(0, 0, 0, 0.6);
+}
+
+// Responsive design
+@media (max-width: 768px) {
+  .trading-log-container {
+    padding: 0.5rem;
+  }
+
+  .trading-table {
+    font-size: 0.875rem;
+  }
+
+  .trading-table td,
+  .trading-table th {
+    padding: 0.5rem;
+  }
+}

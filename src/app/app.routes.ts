@@ -9,6 +9,8 @@ import { BudgetManagementComponent } from './expense-tracker/budget-management/b
 import { AuthGuard } from './shared/services/auth.guard';
 import { TicTacToeComponent } from './tic-tac-toe/tic-tac-toe.component';
 import { DietComponent } from './diet/diet.component';
+import { TradingLogComponent } from './trading-log/trading-log.component';
+import { TradingLogListComponent } from './trading-log/trading-log-list/trading-log-list.component';
 
 export const routes: Routes = [
   {
@@ -60,6 +62,17 @@ export const routes: Routes = [
   {
     path: 'diet',
     component: DietComponent,
+  },
+  {
+    path: 'trading-log',
+    canActivate: [AuthGuard],
+    component: TradingLogComponent,
+    children: [
+      {
+        path: '',
+        component: TradingLogListComponent,
+      },
+    ],
   },
   {
     path: '',

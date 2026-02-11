@@ -71,7 +71,8 @@ export class AppComponent implements OnInit {
     // Protected routes are those that require authentication (expense-tracker, etc.)
     this.isOnProtectedRoute = url.includes('/expense-tracker') ||
                               url.includes('/shopping-list') ||
-                              url.includes('/home');
+                              url.includes('/home') ||
+                              url.includes('/trading-log');
 
     logger.log('🛡️ Protected route status:', {
       url,
