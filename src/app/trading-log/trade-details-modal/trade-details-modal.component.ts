@@ -24,11 +24,11 @@ interface TradingLogEntry {
   CMP: number;
   'Current Value': string;
   'Gain Amount': string;
-  '% Gain': string;
+  '% Gain': string | number;
   'Strategy Name': string;
   'Target Price': string;
-  'Total Potential Gain': string;
-  'Remaining Gain': string;
+  'Total Potential Gain': string | number;
+  'Remaining Gain': string | number;
   'Target Value': string;
   'Time Frame': number;
   'Account Owner': string;
@@ -113,14 +113,20 @@ export class TradeDetailsModalComponent {
       return 'gain-neutral';
     }
     
-    const gainStr = typeof gainPercent === 'string' 
-      ? gainPercent 
-      : gainPercent.toString();
+    let numValue: number;
     
-    const gain = parseFloat(gainStr.replace('%', '').replace(/,/g, '')) || 0;
+    // If it's already a number, it's from percentage-formatted column (0.27 for 27%, 1.4397 for 143.97%)
+    // Always multiply by 100 to convert to percentage
+    if (typeof gainPercent === 'number') {
+      numValue = gainPercent * 100;
+    } else {
+      // If it's a string, parse it (already in percentage format like "27%" or "143.97%")
+      const gainStr = gainPercent.replace('%', '').replace(/,/g, '').trim();
+      numValue = parseFloat(gainStr) || 0;
+    }
     
-    if (gain > 0) return 'gain-positive';
-    if (gain < 0) return 'gain-negative';
+    if (numValue > 0) return 'gain-positive';
+    if (numValue < 0) return 'gain-negative';
     return 'gain-neutral';
   }
 
@@ -129,13 +135,19 @@ export class TradeDetailsModalComponent {
       return '0.00%';
     }
     
-    const gainStr = typeof gainPercent === 'string' 
-      ? gainPercent 
-      : String(gainPercent);
+    let numValue: number;
     
-    const gain = parseFloat(gainStr.replace('%', '').replace(/,/g, '')) || 0;
+    // If it's already a number, it's from percentage-formatted column (0.27 for 27%, 1.4397 for 143.97%)
+    // Always multiply by 100 to convert to percentage
+    if (typeof gainPercent === 'number') {
+      numValue = gainPercent * 100;
+    } else {
+      // If it's a string, parse it (already in percentage format like "27%" or "143.97%")
+      const gainStr = gainPercent.replace('%', '').replace(/,/g, '').trim();
+      numValue = parseFloat(gainStr) || 0;
+    }
     
-    return gain.toFixed(2) + '%';
+    return numValue.toFixed(2) + '%';
   }
 
   formatPercentage(value: string | number | undefined): string {
@@ -143,21 +155,16 @@ export class TradeDetailsModalComponent {
       return '0.00%';
     }
     
-    const valueStr = typeof value === 'string' ? value : String(value);
-    // Remove any existing % sign and commas
-    const cleanValue = valueStr.replace('%', '').replace(/,/g, '').trim();
-    let numValue = parseFloat(cleanValue);
+    let numValue: number;
     
-    // Check if it's NaN
-    if (isNaN(numValue)) {
-      return '0.00%';
-    }
-    
-    // If the absolute value is less than 1 and not zero, it's likely a decimal (0.27) 
-    // and needs to be multiplied by 100 to convert to percentage (27%)
-    // If it's already a percentage (27), use it as is
-    if (Math.abs(numValue) < 1 && numValue !== 0) {
-      numValue = numValue * 100;
+    // If it's already a number, it's from percentage-formatted column (0.27 for 27%, 1.4397 for 143.97%)
+    // Always multiply by 100 to convert to percentage
+    if (typeof value === 'number') {
+      numValue = value * 100;
+    } else {
+      // If it's a string, parse it (already in percentage format like "27%" or "143.97%")
+      const valueStr = value.replace('%', '').replace(/,/g, '').trim();
+      numValue = parseFloat(valueStr) || 0;
     }
     
     return numValue.toFixed(2) + '%';

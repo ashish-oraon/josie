@@ -33,11 +33,11 @@ interface TradingLogEntry {
   CMP: number;
   'Current Value': string;
   'Gain Amount': string;
-  '% Gain': string;
+  '% Gain': string | number;
   'Strategy Name': string;
   'Target Price': string;
-  'Total Potential Gain': string;
-  'Remaining Gain': string;
+  'Total Potential Gain': string | number;
+  'Remaining Gain': string | number;
   'Target Value': string;
   'Time Frame': number;
   'Account Owner': string;
@@ -269,8 +269,15 @@ export class TradingLogListComponent implements OnInit {
       return 0;
     }
 
-    const gainStr = typeof gainPercent === 'string' ? gainPercent : String(gainPercent);
-    return parseFloat(gainStr.replace('%', '').replace(/,/g, '')) || 0;
+    // If it's already a number, it's from percentage-formatted column (0.27 for 27%, 1.4397 for 143.97%)
+    // Always multiply by 100 to convert to percentage
+    if (typeof gainPercent === 'number') {
+      return gainPercent * 100;
+    }
+
+    // If it's a string, parse it (already in percentage format like "27%" or "143.97%")
+    const gainStr = gainPercent.replace('%', '').replace(/,/g, '').trim();
+    return parseFloat(gainStr) || 0;
   }
 
   parseCurrency(value: string | number | undefined): number {
@@ -347,42 +354,41 @@ export class TradingLogListComponent implements OnInit {
     this.googleSheetService.readTradingLogs().subscribe({
       next: (response: { data: TradingLogEntry[]; length: number }) => {
         if (response && response.data && Array.isArray(response.data)) {
-          // Convert Buy Date strings to Date objects if needed and ensure % Gain is string
+          // Convert Buy Date strings to Date objects
+          // Keep % Gain, Remaining Gain, Total Potential Gain as numbers (they come as decimals from percentage-formatted columns)
           const processedLogs = response.data
             .map((entry: any, index: number) => {
               try {
-                // Ensure % Gain is a string
-                const percentGainValue = entry['% Gain'];
-                let percentGain: string;
-                if (typeof percentGainValue === 'string') {
-                  percentGain = percentGainValue;
-                } else if (percentGainValue !== null && percentGainValue !== undefined) {
-                  const gainStr = String(percentGainValue);
-                  percentGain = gainStr.includes('%') ? gainStr : gainStr + '%';
-                } else {
-                  percentGain = '0%';
-                }
-
-                return {
-                  ...entry,
-                  id: entry.id || index + 1, // Ensure id is set
-                  'Buy Date': entry['Buy Date'] instanceof Date
-                    ? entry['Buy Date']
-                    : new Date(entry['Buy Date']),
-                  '% Gain': percentGain
-                } as TradingLogEntry;
-              } catch (error) {
-                console.error('Error parsing entry:', entry, error);
-                const percentGainValue = entry['% Gain'];
                 return {
                   ...entry,
                   id: entry.id || index + 1,
+                  'Buy Date': entry['Buy Date'] instanceof Date
+                    ? entry['Buy Date']
+                    : new Date(entry['Buy Date']),
+                  // Keep percentage values as numbers (they're decimals from percentage-formatted columns)
+                  '% Gain': entry['% Gain'] !== undefined && entry['% Gain'] !== null 
+                    ? (typeof entry['% Gain'] === 'number' ? entry['% Gain'] : parseFloat(String(entry['% Gain']).replace('%', '').replace(/,/g, '')) || 0)
+                    : 0,
+                  'Remaining Gain': entry['Remaining Gain'] !== undefined && entry['Remaining Gain'] !== null
+                    ? (typeof entry['Remaining Gain'] === 'number' ? entry['Remaining Gain'] : parseFloat(String(entry['Remaining Gain']).replace('%', '').replace(/,/g, '')) || 0)
+                    : 0,
+                  'Total Potential Gain': entry['Total Potential Gain'] !== undefined && entry['Total Potential Gain'] !== null
+                    ? (typeof entry['Total Potential Gain'] === 'number' ? entry['Total Potential Gain'] : parseFloat(String(entry['Total Potential Gain']).replace('%', '').replace(/,/g, '')) || 0)
+                    : 0,
+                } as TradingLogEntry;
+              } catch (error) {
+                console.error('Error parsing entry:', entry, error);
+                return {
+                  ...entry,
+                  id: index + 1,
                   'Buy Date': new Date(),
-                  '% Gain': percentGainValue ? String(percentGainValue) : '0%'
+                  '% Gain': 0,
+                  'Remaining Gain': 0,
+                  'Total Potential Gain': 0,
                 } as TradingLogEntry;
               }
             })
-            .filter((entry: TradingLogEntry) => entry && entry.Stock); // Filter out invalid entries
+            .filter((entry: TradingLogEntry) => entry && entry.Stock);
 
           this.tradingLogs.set(processedLogs);
         } else {
@@ -403,16 +409,24 @@ export class TradingLogListComponent implements OnInit {
       return 'gain-neutral';
     }
 
-    // Convert to string if it's a number
-    const gainStr = typeof gainPercent === 'string'
-      ? gainPercent
-      : gainPercent.toString();
+    let numValue: number;
+    
+    // If it's already a number, use it directly
+    if (typeof gainPercent === 'number') {
+      numValue = gainPercent;
+    } else {
+      // If it's a string, parse it
+      const gainStr = gainPercent.replace('%', '').replace(/,/g, '').trim();
+      numValue = parseFloat(gainStr) || 0;
+    }
 
-    // Remove % and commas, then parse
-    const gain = parseFloat(gainStr.replace('%', '').replace(/,/g, '')) || 0;
+    // If it's a decimal (< 1), it's from percentage-formatted column, multiply by 100
+    if (Math.abs(numValue) < 1 && numValue !== 0) {
+      numValue = numValue * 100;
+    }
 
-    if (gain > 0) return 'gain-positive';
-    if (gain < 0) return 'gain-negative';
+    if (numValue > 0) return 'gain-positive';
+    if (numValue < 0) return 'gain-negative';
     return 'gain-neutral';
   }
 
@@ -421,16 +435,19 @@ export class TradingLogListComponent implements OnInit {
       return '0.00%';
     }
 
-    // Convert to string if it's a number
-    const gainStr = typeof gainPercent === 'string'
-      ? gainPercent
-      : String(gainPercent);
+    let numValue: number;
+    
+    // If it's already a number, it's from percentage-formatted column (0.27 for 27%, 1.4397 for 143.97%)
+    // Always multiply by 100 to convert to percentage
+    if (typeof gainPercent === 'number') {
+      numValue = gainPercent * 100;
+    } else {
+      // If it's a string, parse it (already in percentage format like "27%" or "143.97%")
+      const gainStr = gainPercent.replace('%', '').replace(/,/g, '').trim();
+      numValue = parseFloat(gainStr) || 0;
+    }
 
-    // Remove % and commas, then parse
-    const gain = parseFloat(gainStr.replace('%', '').replace(/,/g, '')) || 0;
-
-    // Format to 2 decimal places and add % sign
-    return gain.toFixed(2) + '%';
+    return numValue.toFixed(2) + '%';
   }
 
   getCurrencySymbol(exchange?: string): string {
