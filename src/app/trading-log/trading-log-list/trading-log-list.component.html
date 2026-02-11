@@ -87,6 +87,16 @@
         </mat-form-field>
 
         <mat-form-field class="filter-field">
+          <mat-label>Filter by Status</mat-label>
+          <mat-select [value]="selectedStatus()" (selectionChange)="onStatusFilterChange($event.value)">
+            <mat-option value="Active">Active</mat-option>
+            <mat-option value="Partial">Partial</mat-option>
+            <mat-option value="Sold">Sold</mat-option>
+            <mat-option value="all">All Statuses</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field class="filter-field">
           <mat-label>Sort By</mat-label>
           <mat-select [value]="selectedSortBy()" (selectionChange)="onSortChange($event.value)">
             @for (option of sortOptions; track option.value) {
@@ -111,7 +121,7 @@
           <mat-icon>{{ sortOrder() === 'asc' ? 'arrow_upward' : 'arrow_downward' }}</mat-icon>
         </button>
 
-        @if (selectedExchange() !== 'all' || selectedOwner() !== 'all') {
+        @if (selectedExchange() !== 'all' || selectedOwner() !== 'all' || selectedStatus() !== 'Active') {
           <button
             mat-button
             color="accent"
@@ -133,7 +143,7 @@
         <div class="no-data-container">
           <mat-icon>info</mat-icon>
           <p>
-            @if (selectedExchange() !== 'all' || selectedOwner() !== 'all') {
+            @if (selectedExchange() !== 'all' || selectedOwner() !== 'all' || selectedStatus() !== 'Active') {
               No trades match the selected filters
             } @else {
               No trading data available

@@ -101,12 +101,14 @@ export class TradingLogListComponent implements OnInit {
     
     const exchangeFilter = this.selectedExchange();
     const ownerFilter = this.selectedOwner();
+    const statusFilter = this.selectedStatus();
     
     // Apply filters
     let filtered = logs.filter(log => {
       const matchesExchange = !exchangeFilter || exchangeFilter === 'all' || log.Exchange === exchangeFilter;
       const matchesOwner = !ownerFilter || ownerFilter === 'all' || log['Account Owner'] === ownerFilter;
-      return matchesExchange && matchesOwner;
+      const matchesStatus = !statusFilter || statusFilter === 'all' || (log.Status || 'Active') === statusFilter;
+      return matchesExchange && matchesOwner && matchesStatus;
     });
     
     // Apply sorting
@@ -121,6 +123,7 @@ export class TradingLogListComponent implements OnInit {
   // Filter state
   selectedExchange = signal<string>('all');
   selectedOwner = signal<string>('all');
+  selectedStatus = signal<string>('Active');
   
   // Sort state
   selectedSortBy = signal<string>('% Gain');
@@ -186,6 +189,11 @@ export class TradingLogListComponent implements OnInit {
   clearFilters(): void {
     this.selectedExchange.set('all');
     this.selectedOwner.set('all');
+    this.selectedStatus.set('Active');
+  }
+
+  onStatusFilterChange(value: string): void {
+    this.selectedStatus.set(value);
   }
 
   onSortChange(sortBy: string): void {
