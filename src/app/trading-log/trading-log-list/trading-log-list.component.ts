@@ -1,12 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
-import {
-  MatCardModule,
-  MatCardHeaderModule,
-  MatCardTitleModule,
-  MatCardContentModule,
-} from '@angular/material/card';
+import { MatCardModule } from '@angular/material/card';
 import { MatTableModule } from '@angular/material/table';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
@@ -38,9 +33,6 @@ interface TradingLogEntry {
   imports: [
     CommonModule,
     MatCardModule,
-    MatCardHeaderModule,
-    MatCardTitleModule,
-    MatCardContentModule,
     MatTableModule,
     MatIconModule,
     MatButtonModule,

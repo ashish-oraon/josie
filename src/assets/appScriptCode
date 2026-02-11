@@ -1,6 +1,6 @@
 function getSheetNameAccordingToMonthAndYear() {
-  var date = new Date();
-  var name = Utilities.formatDate(date, Session.getScriptTimeZone(), "MMMM-yyyy");
+  const date = new Date();
+  const name = Utilities.formatDate(date, Session.getScriptTimeZone(), "MMMM-yyyy");
 
   Logger.log("Current Month: " + name);
   return name;
@@ -14,12 +14,12 @@ function generateToken(username, password) {
 
 function generateEncryptedPassword(password) {
   // Generate a SHA-256 hash of the password
-  var hashedPassword = Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, password);
+  const hashedPassword = Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, password);
 
   // Convert the hash bytes to a hex string
-  var hexHash = '';
-  for (var i = 0; i < hashedPassword.length; i++) {
-    var byte = hashedPassword[i];
+  let hexHash = '';
+  for (let i = 0; i < hashedPassword.length; i++) {
+    const byte = hashedPassword[i];
     hexHash += (byte >>> 4).toString(16);
     hexHash += (byte & 0x0F).toString(16);
   }
@@ -34,10 +34,10 @@ function generateEncryptedPassword(password) {
 // }
 
 function createSheetAndSelect(sheetName) {
-  var spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+  const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
 
   // Check if sheet exists
-  var sheet = spreadsheet.getSheetByName(sheetName);
+  let sheet = spreadsheet.getSheetByName(sheetName);
 
   if (!sheet) {
     // Sheet doesn't exist, create it
@@ -67,17 +67,17 @@ const credsSheet = spreadsheet.getSheetByName('Creds');
 
 
 function doGet(e) {
-  var action = e.parameter.action;
-  var sheet = e.parameter.sheet;
+  const action = e.parameter.action;
+  const sheet = e.parameter.sheet;
 
-  var data;
+  let data;
 
   switch (action) {
     case 'readTransactions':
       data = readTransactions();
       break;
     case 'readSingleTransaction':
-      var id = e.parameter.id;
+      const id = e.parameter.id;
       data = readSingleTransaction(sheet, id);
       break;
     case 'readShoppingList':
@@ -95,8 +95,10 @@ function doGet(e) {
 }
 
 function doPost(e) {
-  var data = JSON.parse(e.postData.contents);
-  var action = e.parameter.action;
+  const data = JSON.parse(e.postData.contents);
+  const action = e.parameter.action;
+  let result; // Declare result variable
+  
   switch (action) {
     case 'create':
       createData(data, data.sheetName);
@@ -266,22 +268,44 @@ function readTransactions() {
 }
 
 function readSingleTransaction(sheetName, rowIndex) {
-  var sheet = spreadsheet.getSheetByName(sheetName);
-  var dataRange = sheet.getDataRange(rowIndex, 1, 1, selectedSheet.getLastColumn());
-  var values = dataRange.getValues();
+  const sheet = spreadsheet.getSheetByName(sheetName);
+  
+  // Check if sheet exists
+  if (!sheet) {
+    Logger.log("Sheet not found: " + sheetName);
+    return { error: 'Sheet not found', data: null };
+  }
+  
+  // Validate rowIndex
+  if (!rowIndex || rowIndex < 1) {
+    Logger.log("Invalid row index: " + rowIndex);
+    return { error: 'Invalid row index', data: null };
+  }
+  
+  // Check if row exists
+  const lastRow = sheet.getLastRow();
+  if (rowIndex > lastRow) {
+    Logger.log("Row index " + rowIndex + " exceeds last row " + lastRow);
+    return { error: 'Row not found', data: null };
+  }
+  
+  // Get the row data
+  const lastColumn = sheet.getLastColumn();
+  const dataRange = sheet.getRange(rowIndex, 1, 1, lastColumn);
+  const values = dataRange.getValues();
+  
+  Logger.log("Read transaction from sheet: " + sheetName + ", row: " + rowIndex);
   return { data: values };
-  // Row not found
-  Logger.log("Row not found with ID: " + rowId);
 }
 
 ///////////////////////////
 function readData(sheetName) {
-  var res = sheetName.getDataRange().getValues();
+  const res = sheetName.getDataRange().getValues();
   return res;
 }
 
 function readShoppingList() {
-  var res = shoppingListSheet.getDataRange().getValues();
+  const res = shoppingListSheet.getDataRange().getValues();
   return res.map(([id, name, quantity, isAdded, isDeleted]) => ({
     id,
     name,
@@ -292,7 +316,7 @@ function readShoppingList() {
 }
 
 function readCategories() {
-  var res = categoriesSheet.getDataRange().getValues();
+  const res = categoriesSheet.getDataRange().getValues();
   // Skip header row and map to objects
   return res.slice(1).map(([id, name, subType, type, icon, isDeleted]) => ({
     id,
@@ -328,7 +352,7 @@ function updateData(data, rowIndex, sheetName) {
   } else {
     createSheetAndSelect(sheetName);
     const selectedSheet = spreadsheet.getSheetByName(sheetName);
-    var range = selectedSheet.getRange(rowIndex, 1, 1, selectedSheet.getLastColumn());
+    const range = selectedSheet.getRange(rowIndex, 1, 1, selectedSheet.getLastColumn());
     range.setValues([["=row()", data.amount, data.category, data.note, data.date, data.paymentMethod, data.paidBy, data.type, 'false']])
     return range.getValues().map(
       ([
@@ -396,7 +420,7 @@ function processLogin(data) {
 }
 
 function handleUnauthorized(msg) {
-  var response = ContentService.createTextOutput(msg);
+  const response = ContentService.createTextOutput(msg);
   response.setStatusCode(401);
   return response;
 }
@@ -404,7 +428,7 @@ function handleUnauthorized(msg) {
 function clearAndInsertData(payload) {
 
   Logger.log('executing clear and insert')
-  var lastRow = shoppingListSheet.getLastRow();
+  const lastRow = shoppingListSheet.getLastRow();
 
 
   if (lastRow > 1) {
