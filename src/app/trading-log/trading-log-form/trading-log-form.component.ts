@@ -340,6 +340,7 @@ export class TradingLogFormComponent implements OnInit {
       const formValue = this.tradingLogForm.value;
       const payload = {
         ...formValue,
+        Stock: (formValue.Stock || '').toUpperCase().trim(),
         'Buy Date': formValue['Buy Date'],
         'Buy Price': parseFloat(formValue['Buy Price']),
         Qty: parseInt(formValue.Qty),

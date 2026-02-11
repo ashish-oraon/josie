@@ -4,6 +4,49 @@
   overflow-x: auto;
 }
 
+mat-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.header-actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.column-menu-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 1rem;
+  font-weight: 500;
+  min-width: 200px;
+
+  .reset-button {
+    width: 32px;
+    height: 32px;
+    line-height: 32px;
+  }
+}
+
+mat-menu {
+  mat-checkbox {
+    margin-right: 0.5rem;
+  }
+
+  button[mat-menu-item] {
+    display: flex;
+    align-items: center;
+    padding-left: 1rem;
+  }
+}
+
 mat-card {
   margin-bottom: 1rem;
 }
@@ -11,8 +54,44 @@ mat-card {
 mat-card-header {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 0.5rem;
   margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.header-actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.column-menu-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 1rem;
+  font-weight: 500;
+  min-width: 200px;
+
+  .reset-button {
+    width: 32px;
+    height: 32px;
+    line-height: 32px;
+  }
+}
+
+mat-menu {
+  mat-checkbox {
+    margin-right: 0.5rem;
+  }
+
+  button[mat-menu-item] {
+    display: flex;
+    align-items: center;
+    padding-left: 1rem;
+  }
 }
 
 // Summary Cards
@@ -112,6 +191,16 @@ mat-card-header {
   .filter-field {
     min-width: 9.375rem;
     flex: 0 1 auto;
+  }
+
+  .sort-toggle-btn {
+    flex-shrink: 0;
+  }
+
+  .sort-indicator {
+    margin-left: 0.5rem;
+    color: rgba(0, 0, 0, 0.6);
+    font-size: 0.875rem;
   }
 
   .clear-filters-btn {

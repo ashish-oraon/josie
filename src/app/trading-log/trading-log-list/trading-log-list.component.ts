@@ -76,10 +76,12 @@ export class TradingLogListComponent implements OnInit {
     { key: 'Stock', label: 'Stock', defaultVisible: true },
     { key: 'Buy Date', label: 'Buy Date', defaultVisible: true },
     { key: 'Buy Price', label: 'Buy Price', defaultVisible: true },
+    { key: 'CMP', label: 'Current Price (CMP)', defaultVisible: true },
     { key: 'Qty', label: 'Quantity', defaultVisible: true },
     { key: 'Current Value', label: 'Current Value', defaultVisible: true },
     { key: 'Gain Amount', label: 'Gain/Loss', defaultVisible: true },
     { key: '% Gain', label: '% Gain', defaultVisible: true },
+    { key: 'Remaining Gain', label: 'Remaining Gain', defaultVisible: true },
     { key: 'Strategy Name', label: 'Strategy', defaultVisible: true },
     { key: 'Target Price', label: 'Target Price', defaultVisible: true },
     { key: 'actions', label: 'Actions', defaultVisible: true },
@@ -107,7 +109,19 @@ export class TradingLogListComponent implements OnInit {
     let filtered = logs.filter(log => {
       const matchesExchange = !exchangeFilter || exchangeFilter === 'all' || log.Exchange === exchangeFilter;
       const matchesOwner = !ownerFilter || ownerFilter === 'all' || log['Account Owner'] === ownerFilter;
-      const matchesStatus = !statusFilter || statusFilter === 'all' || (log.Status || 'Active') === statusFilter;
+      
+      const logStatus = log.Status || 'Active';
+      let matchesStatus = false;
+      
+      if (!statusFilter || statusFilter === 'all') {
+        matchesStatus = true;
+      } else if (statusFilter === 'Active') {
+        // Show both Active and Partial trades by default
+        matchesStatus = logStatus === 'Active' || logStatus === 'Partial';
+      } else {
+        matchesStatus = logStatus === statusFilter;
+      }
+      
       return matchesExchange && matchesOwner && matchesStatus;
     });
 

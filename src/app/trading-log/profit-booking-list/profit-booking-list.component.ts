@@ -10,6 +10,9 @@ import { RouterModule } from '@angular/router';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSelectModule } from '@angular/material/select';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatMenuModule } from '@angular/material/menu';
+import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatDividerModule } from '@angular/material/divider';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { environment } from '../../../environments/environment';
@@ -55,6 +58,9 @@ interface ProfitBookingEntry {
     MatTooltipModule,
     MatSelectModule,
     MatFormFieldModule,
+    MatMenuModule,
+    MatCheckboxModule,
+    MatDividerModule,
     FormsModule,
   ],
   templateUrl: './profit-booking-list.component.html',
@@ -64,27 +70,38 @@ export class ProfitBookingListComponent implements OnInit {
   profitBookings = signal<ProfitBookingEntry[]>([]);
   isLoading = signal<boolean>(false);
 
-  // Filter state
   selectedExchange = signal<string>('all');
   selectedOwner = signal<string>('all');
 
-  // Master data for filters
+  selectedSortBy = signal<string>('Sell Date');
+  sortOrder = signal<'asc' | 'desc'>('desc');
+
   exchanges: any[] = [];
   accountOwners: any[] = [];
 
-  // Displayed columns
-  displayedColumns: string[] = [
-    'Stock',
-    'Sell Date',
-    'Quantity Sold',
-    'Buy Price',
-    'Sell Price',
-    'Profit/Loss Amount',
-    'Profit/Loss %',
-    'Holding Period',
-    'Exchange',
-    'Account Owner',
+  sortOptions = [
+    { value: 'Sell Date', label: 'Sell Date' },
+    { value: 'Holding Period', label: 'Holding Period' },
+    { value: 'Profit/Loss Amount', label: 'Profit/Loss Amount' },
+    { value: 'Profit/Loss %', label: 'Profit/Loss %' },
+    { value: 'Stock', label: 'Stock Name' },
   ];
+
+  allColumns: { key: string; label: string; defaultVisible: boolean }[] = [
+    { key: 'Stock', label: 'Stock', defaultVisible: true },
+    { key: 'Sell Date', label: 'Sell Date', defaultVisible: true },
+    { key: 'Quantity Sold', label: 'Quantity Sold', defaultVisible: true },
+    { key: 'Buy Price', label: 'Buy Price', defaultVisible: true },
+    { key: 'Sell Price', label: 'Sell Price', defaultVisible: true },
+    { key: 'Profit/Loss Amount', label: 'Profit/Loss (INR)', defaultVisible: true },
+    { key: 'Profit/Loss %', label: 'Profit/Loss %', defaultVisible: true },
+    { key: 'Holding Period', label: 'Holding Period', defaultVisible: true },
+    { key: 'Exchange', label: 'Exchange', defaultVisible: true },
+    { key: 'Account Owner', label: 'Account Owner', defaultVisible: true },
+  ];
+
+  columnVisibility = signal<{ [key: string]: boolean }>({});
+  displayedColumns = signal<string[]>([]);
 
   // Summary statistics (computed) - using INR converted values
   summaryStats = computed(() => {
@@ -165,7 +182,10 @@ export class ProfitBookingListComponent implements OnInit {
   });
 
   filteredBookings = computed(() => {
-    return this.getFilteredBookings();
+    const filtered = this.getFilteredBookings();
+    const sortBy = this.selectedSortBy();
+    const order = this.sortOrder();
+    return this.sortProfitBookings(filtered, sortBy, order);
   });
 
   constructor(
@@ -175,8 +195,65 @@ export class ProfitBookingListComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    this.initializeColumnVisibility();
     this.loadMasterData();
     this.loadProfitBookings();
+  }
+
+  initializeColumnVisibility(): void {
+    const savedVisibility = localStorage.getItem('profitBookingColumnVisibility');
+    let visibility: { [key: string]: boolean };
+    
+    if (savedVisibility) {
+      try {
+        visibility = JSON.parse(savedVisibility);
+        this.allColumns.forEach(col => {
+          if (visibility[col.key] === undefined) {
+            visibility[col.key] = col.defaultVisible;
+          }
+        });
+      } catch (e) {
+        visibility = this.getDefaultVisibility();
+      }
+    } else {
+      visibility = this.getDefaultVisibility();
+    }
+    
+    this.columnVisibility.set(visibility);
+    this.updateDisplayedColumns();
+  }
+
+  getDefaultVisibility(): { [key: string]: boolean } {
+    const visibility: { [key: string]: boolean } = {};
+    this.allColumns.forEach(col => {
+      visibility[col.key] = col.defaultVisible;
+    });
+    return visibility;
+  }
+
+  updateDisplayedColumns(): void {
+    const visible = this.allColumns
+      .filter(col => this.columnVisibility()[col.key])
+      .map(col => col.key);
+    this.displayedColumns.set(visible);
+  }
+
+  toggleColumnVisibility(columnKey: string): void {
+    const current = this.columnVisibility();
+    const newVisibility = {
+      ...current,
+      [columnKey]: !current[columnKey]
+    };
+    this.columnVisibility.set(newVisibility);
+    this.updateDisplayedColumns();
+    localStorage.setItem('profitBookingColumnVisibility', JSON.stringify(newVisibility));
+  }
+
+  resetColumnVisibility(): void {
+    const defaultVisibility = this.getDefaultVisibility();
+    this.columnVisibility.set(defaultVisibility);
+    this.updateDisplayedColumns();
+    localStorage.setItem('profitBookingColumnVisibility', JSON.stringify(defaultVisibility));
   }
 
   loadMasterData(): void {
@@ -307,6 +384,82 @@ export class ProfitBookingListComponent implements OnInit {
   clearFilters(): void {
     this.selectedExchange.set('all');
     this.selectedOwner.set('all');
+  }
+
+  onSortChange(sortBy: string): void {
+    if (this.selectedSortBy() === sortBy) {
+      this.sortOrder.set(this.sortOrder() === 'asc' ? 'desc' : 'asc');
+    } else {
+      this.selectedSortBy.set(sortBy);
+      const defaultOrder = sortBy === 'Stock' ? 'asc' : 'desc';
+      this.sortOrder.set(defaultOrder);
+    }
+  }
+
+  sortProfitBookings(bookings: ProfitBookingEntry[], sortBy: string, order: 'asc' | 'desc'): ProfitBookingEntry[] {
+    if (!Array.isArray(bookings)) {
+      return [];
+    }
+
+    const sorted = [...bookings].sort((a, b) => {
+      let comparison = 0;
+
+      switch (sortBy) {
+        case 'Sell Date':
+          const dateA = a['Sell Date'] instanceof Date ? a['Sell Date'] : new Date(a['Sell Date']);
+          const dateB = b['Sell Date'] instanceof Date ? b['Sell Date'] : new Date(b['Sell Date']);
+          comparison = dateA.getTime() - dateB.getTime();
+          break;
+
+        case 'Holding Period':
+          const periodA = parseInt(String(a['Holding Period'] || 0));
+          const periodB = parseInt(String(b['Holding Period'] || 0));
+          comparison = periodA - periodB;
+          break;
+
+        case 'Profit/Loss Amount':
+          const profitA = this.getProfitAmount(a);
+          const profitB = this.getProfitAmount(b);
+          comparison = profitA - profitB;
+          break;
+
+        case 'Profit/Loss %':
+          const percentA = parseFloat(String(a['Profit/Loss %'] || 0));
+          const percentB = parseFloat(String(b['Profit/Loss %'] || 0));
+          comparison = percentA - percentB;
+          break;
+
+        case 'Stock':
+          comparison = (a.Stock || '').localeCompare(b.Stock || '');
+          break;
+
+        default:
+          return 0;
+      }
+
+      return order === 'asc' ? comparison : -comparison;
+    });
+
+    return sorted;
+  }
+
+  getProfitAmount(booking: ProfitBookingEntry): number {
+    const profitInrValue: any = booking['Profit/Loss Amount (INR)'];
+    
+    if (profitInrValue !== undefined && profitInrValue !== null) {
+      const profitInrStr = String(profitInrValue);
+      if (profitInrStr.trim() !== '') {
+        const profitInr = typeof profitInrValue === 'number' 
+          ? profitInrValue 
+          : parseFloat(profitInrStr);
+        
+        if (!isNaN(profitInr) && isFinite(profitInr)) {
+          return profitInr;
+        }
+      }
+    }
+    
+    return parseFloat(String(booking['Profit/Loss Amount'] || 0));
   }
 
   getCurrencySymbol(exchange?: string): string {

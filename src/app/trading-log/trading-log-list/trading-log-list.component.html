@@ -172,6 +172,13 @@
               </td>
             </ng-container>
 
+            <ng-container matColumnDef="CMP">
+              <th mat-header-cell *matHeaderCellDef class="col-price">Current Price (CMP)</th>
+              <td mat-cell *matCellDef="let entry" class="col-price">
+                {{ formatCurrency(entry.CMP, entry.Exchange) }}
+              </td>
+            </ng-container>
+
             <ng-container matColumnDef="Qty">
               <th mat-header-cell *matHeaderCellDef class="col-qty">Quantity</th>
               <td mat-cell *matCellDef="let entry" class="col-qty">{{ entry.Qty }}</td>
@@ -205,6 +212,18 @@
                 [class]="getGainClass(entry['% Gain'])"
               >
                 {{ getFormattedPercentGain(entry['% Gain']) }}
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="Remaining Gain">
+              <th mat-header-cell *matHeaderCellDef class="col-percent">Remaining Gain</th>
+              <td
+                mat-cell
+                *matCellDef="let entry"
+                class="col-percent"
+                [class]="getGainClass(entry['Remaining Gain'])"
+              >
+                {{ getFormattedPercentGain(entry['Remaining Gain']) }}
               </td>
             </ng-container>
 
