@@ -42,14 +42,72 @@ function createSheetAndSelect(sheetName) {
   if (!sheet) {
     // Sheet doesn't exist, create it
     sheet = spreadsheet.insertSheet(sheetName);
-    // Initialize header row for transaction sheets (not for Category, ShoppingList, or Creds)
-    if (sheetName !== 'Category' && sheetName !== 'ShoppingList' && sheetName !== 'Creds' && !sheetName.includes('Creds')) {
+    // Initialize header row for transaction sheets (not for Category, ShoppingList, Creds, or Trading Log sheets)
+    if (sheetName !== 'Category' && 
+        sheetName !== 'ShoppingList' && 
+        sheetName !== 'Creds' && 
+        sheetName !== 'TradingLog' &&
+        sheetName !== 'Exchange' &&
+        sheetName !== 'AccountOwners' &&
+        sheetName !== 'StrategyNames' &&
+        !sheetName.includes('Creds')) {
       sheet.appendRow(['ID', 'Amount', 'Category', 'Note', 'Date', 'Payment Method', 'Paid By', 'Type', 'Is Deleted']);
     }
   }
 
   // Select the sheet
   spreadsheet.setActiveSheet(sheet);
+}
+
+function initializeTradingLogSheets() {
+  const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+  
+  // Initialize TradingLog sheet
+  let tradingLog = spreadsheet.getSheetByName('TradingLog');
+  if (!tradingLog) {
+    tradingLog = spreadsheet.insertSheet('TradingLog');
+    tradingLog.appendRow([
+      'ID', 'List', 'Stock', 'Buy Date', 'Buy Price', 'Qty', 'Buy Value', 
+      'CMP', 'Current Value', 'Gain Amount', '% Gain', 'Strategy Name', 
+      'Target Price', 'Total Potential Gain', 'Remaining Gain', 'Target Value', 
+      'Time Frame', 'Account Owner', 'Exchange', 'Status'
+    ]);
+  }
+  
+  // Initialize Exchange sheet
+  let exchange = spreadsheet.getSheetByName('Exchange');
+  if (!exchange) {
+    exchange = spreadsheet.insertSheet('Exchange');
+    exchange.appendRow(['ID', 'Exchange Name']);
+    exchange.appendRow(['=row()', 'India']);
+    exchange.appendRow(['=row()', 'Germany']);
+    exchange.appendRow(['=row()', 'US']);
+  }
+  
+  // Initialize AccountOwners sheet
+  let accountOwners = spreadsheet.getSheetByName('AccountOwners');
+  if (!accountOwners) {
+    accountOwners = spreadsheet.insertSheet('AccountOwners');
+    accountOwners.appendRow(['ID', 'Account Owner']);
+    accountOwners.appendRow(['=row()', 'Own']);
+    accountOwners.appendRow(['=row()', 'Ai']);
+    accountOwners.appendRow(['=row()', 'Aj']);
+  }
+  
+  // Initialize StrategyNames sheet
+  let strategyNames = spreadsheet.getSheetByName('StrategyNames');
+  if (!strategyNames) {
+    strategyNames = spreadsheet.insertSheet('StrategyNames');
+    strategyNames.appendRow(['ID', 'Strategy Name']);
+    strategyNames.appendRow(['=row()', 'Super Strategy']);
+    strategyNames.appendRow(['=row()', 'SMA +BDC']);
+    strategyNames.appendRow(['=row()', 'Support Resistance']);
+    strategyNames.appendRow(['=row()', 'Envelop']);
+    strategyNames.appendRow(['=row()', 'Knox']);
+    strategyNames.appendRow(['=row()', '52 weeks High Low']);
+    strategyNames.appendRow(['=row()', '67 ka Funda']);
+    strategyNames.appendRow(['=row()', 'ABCD']);
+  }
 }
 
 const name = getSheetNameAccordingToMonthAndYear();
@@ -64,6 +122,9 @@ const transactionsSheet = spreadsheet.getSheetByName(name);
 const categoriesSheet = spreadsheet.getSheetByName('Category');
 const shoppingListSheet = spreadsheet.getSheetByName('ShoppingList');
 const credsSheet = spreadsheet.getSheetByName('Creds');
+
+// Initialize Trading Log master data sheets if they don't exist (called after spreadsheet is defined)
+initializeTradingLogSheets();
 
 
 function doGet(e) {
@@ -85,6 +146,22 @@ function doGet(e) {
       break;
     case 'readCategories':
       data = readCategories();
+      break;
+    case 'readTradingLogs':
+      data = readTradingLogs();
+      break;
+    case 'readSingleTradingLog':
+      const tradeId = e.parameter.id;
+      data = readSingleTradingLog(tradeId);
+      break;
+    case 'readExchanges':
+      data = readExchanges();
+      break;
+    case 'readAccountOwners':
+      data = readAccountOwners();
+      break;
+    case 'readStrategyNames':
+      data = readStrategyNames();
       break;
     default:
       data = { error: 'Invalid action' };
@@ -138,6 +215,15 @@ function doPost(e) {
       const rowIndex = e.parameter.rowIndex;
       deleteData(data.rowIndex, data.sheetName);
       result = { message: 'Transaction deleted successfully' };
+      break;
+    case 'createTradingLog':
+      result = createTradingLog(data);
+      break;
+    case 'updateTradingLog':
+      result = updateTradingLog(data);
+      break;
+    case 'deleteTradingLog':
+      result = deleteTradingLog(data.rowIndex);
       break;
     default:
       result = { error: 'Invalid action' };
@@ -456,6 +542,306 @@ function clearAndInsertData(payload) {
       isAdded,
       isDeleted,
     }));
+}
+
+// ==================== Trading Log Functions ====================
+
+function calculateTradingLogFields(trade) {
+  const buyPrice = parseFloat(trade['Buy Price']) || 0;
+  const qty = parseInt(trade.Qty) || 0;
+  const cmp = parseFloat(trade.CMP) || buyPrice; // Default to Buy Price if CMP not provided
+  const targetPrice = parseFloat(trade['Target Price']) || 0;
+  const buyDate = new Date(trade['Buy Date']);
+  const today = new Date();
+  
+  // Calculate fields
+  const buyValue = buyPrice * qty;
+  const currentValue = cmp * qty;
+  const gainAmount = currentValue - buyValue;
+  const percentGain = buyValue !== 0 ? (gainAmount / buyValue) * 100 : 0;
+  const targetValue = targetPrice * qty;
+  const totalPotentialGain = buyPrice !== 0 ? ((targetPrice - buyPrice) / buyPrice) * 100 : 0;
+  const remainingGain = buyPrice !== 0 ? ((targetPrice - cmp) / buyPrice) * 100 : 0;
+  const timeFrame = Math.floor((today - buyDate) / (1000 * 60 * 60 * 24)); // Days
+  
+  return {
+    'Buy Value': buyValue.toFixed(2),
+    'Current Value': currentValue.toFixed(2),
+    'Gain Amount': gainAmount.toFixed(2),
+    '% Gain': percentGain.toFixed(2) + '%',
+    'Target Value': targetValue.toFixed(2),
+    'Total Potential Gain': totalPotentialGain.toFixed(2) + '%',
+    'Remaining Gain': remainingGain.toFixed(2) + '%',
+    'Time Frame': timeFrame
+  };
+}
+
+function readTradingLogs() {
+  const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = spreadsheet.getSheetByName('TradingLog');
+  
+  if (!sheet) {
+    Logger.log('TradingLog sheet not found');
+    return { data: [], length: 0 };
+  }
+  
+  const values = sheet.getDataRange().getValues();
+  if (values.length <= 1) {
+    return { data: [], length: 0 };
+  }
+  
+  // Skip header row
+  const dataRows = values.slice(1);
+  const filteredRows = dataRows.filter(row => row && row.length > 0);
+  
+  const tradingLogs = filteredRows.map(([
+    id,
+    list,
+    stock,
+    buyDate,
+    buyPrice,
+    qty,
+    buyValue,
+    cmp,
+    currentValue,
+    gainAmount,
+    percentGain,
+    strategyName,
+    targetPrice,
+    totalPotentialGain,
+    remainingGain,
+    targetValue,
+    timeFrame,
+    accountOwner,
+    exchange,
+    status
+  ]) => ({
+    id,
+    List: list || '',
+    Stock: stock || '',
+    'Buy Date': buyDate ? parseDateFromSheet(buyDate) : new Date(),
+    'Buy Price': parseFloat(buyPrice) || 0,
+    Qty: parseInt(qty) || 0,
+    'Buy Value': buyValue || '',
+    CMP: parseFloat(cmp) || 0,
+    'Current Value': currentValue || '',
+    'Gain Amount': gainAmount || '',
+    '% Gain': percentGain || '',
+    'Strategy Name': strategyName || '',
+    'Target Price': targetPrice || '',
+    'Total Potential Gain': totalPotentialGain || '',
+    'Remaining Gain': remainingGain || '',
+    'Target Value': targetValue || '',
+    'Time Frame': parseInt(timeFrame) || 0,
+    'Account Owner': accountOwner || '',
+    Exchange: exchange || '',
+    Status: status || 'Active'
+  }));
+  
+  Logger.log('Read trading logs:', tradingLogs.length);
+  return { data: tradingLogs, length: tradingLogs.length };
+}
+
+function readSingleTradingLog(rowIndex) {
+  const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = spreadsheet.getSheetByName('TradingLog');
+  
+  if (!sheet) {
+    return { error: 'TradingLog sheet not found', data: null };
+  }
+  
+  if (!rowIndex || rowIndex < 2) {
+    return { error: 'Invalid row index', data: null };
+  }
+  
+  const lastRow = sheet.getLastRow();
+  if (rowIndex > lastRow) {
+    return { error: 'Row not found', data: null };
+  }
+  
+  const values = sheet.getRange(rowIndex, 1, 1, sheet.getLastColumn()).getValues()[0];
+  
+  return {
+    data: {
+      id: values[0],
+      List: values[1] || '',
+      Stock: values[2] || '',
+      'Buy Date': parseDateFromSheet(values[3]),
+      'Buy Price': parseFloat(values[4]) || 0,
+      Qty: parseInt(values[5]) || 0,
+      'Buy Value': values[6] || '',
+      CMP: parseFloat(values[7]) || 0,
+      'Current Value': values[8] || '',
+      'Gain Amount': values[9] || '',
+      '% Gain': values[10] || '',
+      'Strategy Name': values[11] || '',
+      'Target Price': values[12] || '',
+      'Total Potential Gain': values[13] || '',
+      'Remaining Gain': values[14] || '',
+      'Target Value': values[15] || '',
+      'Time Frame': parseInt(values[16]) || 0,
+      'Account Owner': values[17] || '',
+      Exchange: values[18] || '',
+      Status: values[19] || 'Active'
+    }
+  };
+}
+
+function createTradingLog(data) {
+  const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+  let sheet = spreadsheet.getSheetByName('TradingLog');
+  
+  if (!sheet) {
+    initializeTradingLogSheets();
+    sheet = spreadsheet.getSheetByName('TradingLog');
+  }
+  
+  // Calculate all fields
+  const calculated = calculateTradingLogFields(data);
+  
+  // Format buy date
+  const buyDate = data['Buy Date'] instanceof Date 
+    ? data['Buy Date'] 
+    : parseDateFromSheet(data['Buy Date']);
+  
+  // Insert row
+  sheet.appendRow([
+    "=row()", // ID
+    data.List || '',
+    data.Stock || '',
+    buyDate,
+    parseFloat(data['Buy Price']) || 0,
+    parseInt(data.Qty) || 0,
+    calculated['Buy Value'],
+    parseFloat(data.CMP) || parseFloat(data['Buy Price']) || 0,
+    calculated['Current Value'],
+    calculated['Gain Amount'],
+    calculated['% Gain'],
+    data['Strategy Name'] || '',
+    parseFloat(data['Target Price']) || 0,
+    calculated['Total Potential Gain'],
+    calculated['Remaining Gain'],
+    calculated['Target Value'],
+    calculated['Time Frame'],
+    data['Account Owner'] || '',
+    data.Exchange || '',
+    data.Status || 'Active'
+  ]);
+  
+  return { message: 'Trading log created successfully' };
+}
+
+function updateTradingLog(data) {
+  const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = spreadsheet.getSheetByName('TradingLog');
+  
+  if (!sheet) {
+    return { error: 'TradingLog sheet not found' };
+  }
+  
+  const rowIndex = data.rowIndex;
+  if (!rowIndex || rowIndex < 2) {
+    return { error: 'Invalid row index' };
+  }
+  
+  // Calculate all fields
+  const calculated = calculateTradingLogFields(data);
+  
+  // Format buy date
+  const buyDate = data['Buy Date'] instanceof Date 
+    ? data['Buy Date'] 
+    : parseDateFromSheet(data['Buy Date']);
+  
+  // Update row
+  const range = sheet.getRange(rowIndex, 1, 1, sheet.getLastColumn());
+  range.setValues([[
+    "=row()", // ID
+    data.List || '',
+    data.Stock || '',
+    buyDate,
+    parseFloat(data['Buy Price']) || 0,
+    parseInt(data.Qty) || 0,
+    calculated['Buy Value'],
+    parseFloat(data.CMP) || parseFloat(data['Buy Price']) || 0,
+    calculated['Current Value'],
+    calculated['Gain Amount'],
+    calculated['% Gain'],
+    data['Strategy Name'] || '',
+    parseFloat(data['Target Price']) || 0,
+    calculated['Total Potential Gain'],
+    calculated['Remaining Gain'],
+    calculated['Target Value'],
+    calculated['Time Frame'],
+    data['Account Owner'] || '',
+    data.Exchange || '',
+    data.Status || 'Active'
+  ]]);
+  
+  return { message: 'Trading log updated successfully' };
+}
+
+function deleteTradingLog(rowIndex) {
+  const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = spreadsheet.getSheetByName('TradingLog');
+  
+  if (!sheet) {
+    return { error: 'TradingLog sheet not found' };
+  }
+  
+  if (!rowIndex || rowIndex < 2) {
+    return { error: 'Invalid row index' };
+  }
+  
+  sheet.deleteRow(rowIndex);
+  return { message: 'Trading log deleted successfully' };
+}
+
+function readExchanges() {
+  const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = spreadsheet.getSheetByName('Exchange');
+  
+  if (!sheet) {
+    return [];
+  }
+  
+  const values = sheet.getDataRange().getValues();
+  // Skip header row
+  return values.slice(1).map(([id, name]) => ({
+    id,
+    name: name || ''
+  })).filter(item => item.name);
+}
+
+function readAccountOwners() {
+  const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = spreadsheet.getSheetByName('AccountOwners');
+  
+  if (!sheet) {
+    return [];
+  }
+  
+  const values = sheet.getDataRange().getValues();
+  // Skip header row
+  return values.slice(1).map(([id, name]) => ({
+    id,
+    name: name || ''
+  })).filter(item => item.name);
+}
+
+function readStrategyNames() {
+  const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = spreadsheet.getSheetByName('StrategyNames');
+  
+  if (!sheet) {
+    return [];
+  }
+  
+  const values = sheet.getDataRange().getValues();
+  // Skip header row
+  return values.slice(1).map(([id, name]) => ({
+    id,
+    name: name || ''
+  })).filter(item => item.name);
 }
 
 
