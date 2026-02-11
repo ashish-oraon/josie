@@ -7,7 +7,11 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { RouterModule } from '@angular/router';
+import { MatDialog } from '@angular/material/dialog';
+import { MatDialogModule } from '@angular/material/dialog';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { environment } from '../../../environments/environment';
+import { TradeDetailsModalComponent } from '../trade-details-modal/trade-details-modal.component';
 
 interface TradingLogEntry {
   id?: number;
@@ -43,6 +47,8 @@ interface TradingLogEntry {
     MatButtonModule,
     MatProgressSpinnerModule,
     RouterModule,
+    MatDialogModule,
+    MatTooltipModule,
   ],
   templateUrl: './trading-log-list.component.html',
   styleUrl: './trading-log-list.component.scss',
@@ -58,11 +64,15 @@ export class TradingLogListComponent implements OnInit {
     '% Gain',
     'Strategy Name',
     'Target Price',
+    'actions',
   ];
   tradingLogs = signal<TradingLogEntry[]>([]);
   isLoading = signal<boolean>(false);
 
-  constructor(private googleSheetService: GoogleSheetService) {}
+  constructor(
+    private googleSheetService: GoogleSheetService,
+    private dialog: MatDialog
+  ) {}
 
   ngOnInit(): void {
     this.loadTradingLogs();
@@ -78,7 +88,7 @@ export class TradingLogListComponent implements OnInit {
         if (response && response.data) {
           // Convert Buy Date strings to Date objects if needed and ensure % Gain is string
           const processedLogs = response.data
-            .map((entry: any) => {
+            .map((entry: any, index: number) => {
               try {
                 // Ensure % Gain is a string
                 const percentGainValue = entry['% Gain'];
@@ -94,6 +104,7 @@ export class TradingLogListComponent implements OnInit {
 
                 return {
                   ...entry,
+                  id: entry.id || index + 1, // Ensure id is set
                   'Buy Date': entry['Buy Date'] instanceof Date
                     ? entry['Buy Date']
                     : new Date(entry['Buy Date']),
@@ -104,6 +115,7 @@ export class TradingLogListComponent implements OnInit {
                 const percentGainValue = entry['% Gain'];
                 return {
                   ...entry,
+                  id: entry.id || index + 1,
                   'Buy Date': new Date(),
                   '% Gain': percentGainValue ? String(percentGainValue) : '0%'
                 } as TradingLogEntry;
@@ -196,5 +208,21 @@ export class TradingLogListComponent implements OnInit {
 
     // Format to 2 decimal places with currency symbol
     return currencySymbol + numValue.toFixed(2);
+  }
+
+  viewTrade(trade: TradingLogEntry, index: number): void {
+    // Find the actual row index in the trading logs array
+    const rowIndex = this.tradingLogs().findIndex(t => t.id === trade.id) + 1; // +1 because sheet rows are 1-indexed
+    
+    const dialogRef = this.dialog.open(TradeDetailsModalComponent, {
+      width: '600px',
+      maxWidth: '90vw',
+      data: { trade, rowIndex },
+      panelClass: 'trade-details-dialog'
+    });
+
+    dialogRef.afterClosed().subscribe(() => {
+      // Optionally refresh data after closing
+    });
   }
 }

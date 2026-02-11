@@ -1,0 +1,143 @@
+<div class="trade-modal-container">
+  <!-- Header -->
+  <div class="modal-header">
+    <h2 mat-dialog-title>
+      <mat-icon>trending_up</mat-icon>
+      Trade Details
+    </h2>
+    <button mat-icon-button (click)="close()" class="close-button">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <!-- Content -->
+  <mat-dialog-content class="modal-content">
+    <!-- Status Card -->
+    <mat-card class="status-card">
+      <mat-card-content>
+        <div class="status-header">
+          <div class="stock-info">
+            <h3>{{ trade.Stock }}</h3>
+            <mat-chip [style.background-color]="getStatusColor(trade.Status)" selected>
+              {{ trade.Status || 'Active' }}
+            </mat-chip>
+          </div>
+          <div class="gain-display">
+            <span class="gain-amount" [class]="getGainClass(trade['% Gain'])">
+              {{ formatCurrency(trade['Gain Amount'], trade.Exchange) }}
+            </span>
+            <span class="gain-percent" [class]="getGainClass(trade['% Gain'])">
+              {{ getFormattedPercentGain(trade['% Gain']) }}
+            </span>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Trade Information -->
+    <div class="details-section">
+      <h3>Trade Information</h3>
+      <div class="details-grid">
+        <div class="detail-item">
+          <span class="label">List/Portfolio:</span>
+          <span class="value">{{ trade.List }}</span>
+        </div>
+
+        <div class="detail-item">
+          <span class="label">Stock Symbol:</span>
+          <span class="value">{{ trade.Stock }}</span>
+        </div>
+
+        <div class="detail-item">
+          <span class="label">Buy Date:</span>
+          <span class="value">{{ formatDate(trade['Buy Date']) }}</span>
+        </div>
+
+        <div class="detail-item">
+          <span class="label">Buy Price:</span>
+          <span class="value">{{ formatCurrency(trade['Buy Price'], trade.Exchange) }}</span>
+        </div>
+
+        <div class="detail-item">
+          <span class="label">Quantity:</span>
+          <span class="value">{{ trade.Qty }}</span>
+        </div>
+
+        <div class="detail-item">
+          <span class="label">Buy Value:</span>
+          <span class="value">{{ formatCurrency(trade['Buy Value'], trade.Exchange) }}</span>
+        </div>
+
+        <div class="detail-item">
+          <span class="label">Current Market Price (CMP):</span>
+          <span class="value">{{ formatCurrency(trade.CMP, trade.Exchange) }}</span>
+        </div>
+
+        <div class="detail-item">
+          <span class="label">Current Value:</span>
+          <span class="value">{{ formatCurrency(trade['Current Value'], trade.Exchange) }}</span>
+        </div>
+
+        <div class="detail-item">
+          <span class="label">Target Price:</span>
+          <span class="value">{{ formatCurrency(trade['Target Price'], trade.Exchange) }}</span>
+        </div>
+
+        <div class="detail-item">
+          <span class="label">Target Value:</span>
+          <span class="value">{{ formatCurrency(trade['Target Value'], trade.Exchange) }}</span>
+        </div>
+
+        <div class="detail-item">
+          <span class="label">Strategy Name:</span>
+          <span class="value">{{ trade['Strategy Name'] }}</span>
+        </div>
+
+        <div class="detail-item">
+          <span class="label">Exchange:</span>
+          <span class="value">{{ trade.Exchange }}</span>
+        </div>
+
+        <div class="detail-item">
+          <span class="label">Account Owner:</span>
+          <span class="value">{{ trade['Account Owner'] }}</span>
+        </div>
+
+        <div class="detail-item">
+          <span class="label">Time Frame:</span>
+          <span class="value">{{ trade['Time Frame'] }} days</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Calculated Metrics -->
+    <div class="details-section">
+      <h3>Calculated Metrics</h3>
+      <div class="metrics-grid">
+        <div class="metric-item">
+          <span class="metric-label">Total Potential Gain</span>
+          <span class="metric-value">{{ formatPercentage(trade['Total Potential Gain']) }}</span>
+        </div>
+
+        <div class="metric-item">
+          <span class="metric-label">Remaining Gain</span>
+          <span class="metric-value">{{ formatPercentage(trade['Remaining Gain']) }}</span>
+        </div>
+      </div>
+    </div>
+  </mat-dialog-content>
+
+  <!-- Actions -->
+  <mat-dialog-actions class="modal-actions">
+    <div class="action-buttons">
+      <button mat-button (click)="editTrade()" color="primary">
+        <mat-icon>edit</mat-icon>
+        Edit
+      </button>
+      <button mat-button (click)="close()">
+        <mat-icon>close</mat-icon>
+        Close
+      </button>
+    </div>
+  </mat-dialog-actions>
+</div>
