@@ -1,28 +1,146 @@
+.container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  padding: 1.5rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  min-height: calc(100vh - 100px);
+  padding-bottom: 60px; // Space for attribution link
+}
+
+.navigation-card {
+  height: 100%;
+  min-height: 200px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+
+  &:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+  }
+
+  &:active {
+    transform: translateY(-4px);
+  }
+
+  &:focus {
+    outline: 2px solid var(--mat-primary-color);
+    outline-offset: 2px;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--mat-primary-color);
+    outline-offset: 2px;
+  }
+}
+
 .mat-mdc-card-content {
   display: flex;
   justify-content: center;
   align-items: center;
-}
-.mat-icon {
-  font-size: 8rem;
-  height: 8rem;
-  width: 8rem;
-}
-.mdc-card {
-  height: 30vh;
-  justify-content: center;
-  align-items: center;
-}
-.container {
-  display: grid;
-  grid-template-columns: auto auto;
-  grid-template-rows: auto auto;
-  gap: 1rem;
-  padding: 1rem;
-  max-width: 100vw;
+  height: 100%;
+  padding: 2rem;
 }
 
-a.pin-bottom{
-  bottom:0;
+.card-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  text-align: center;
+}
+
+.mat-icon {
+  font-size: 5rem;
+  height: 5rem;
+  width: 5rem;
+  transition: transform 0.3s ease;
+}
+
+.navigation-card:hover .mat-icon {
+  transform: scale(1.1);
+}
+
+.card-label {
+  font-size: 1.25rem;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.87);
+  margin-top: 0.5rem;
+}
+
+.attribution-link {
   position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 0.5rem;
+  background-color: rgba(255, 255, 255, 0.9);
+  text-align: center;
+  font-size: 0.75rem;
+  color: rgba(0, 0, 0, 0.6);
+  text-decoration: none;
+  z-index: 10;
+  transition: background-color 0.2s ease;
+
+  &:hover {
+    background-color: rgba(255, 255, 255, 1);
+    color: rgba(0, 0, 0, 0.87);
+  }
+}
+
+// Responsive design
+@media (max-width: 768px) {
+  .container {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    padding: 1rem;
+    padding-bottom: 50px;
+  }
+
+  .navigation-card {
+    min-height: 150px;
+  }
+
+  .mat-icon {
+    font-size: 4rem;
+    height: 4rem;
+    width: 4rem;
+  }
+
+  .card-label {
+    font-size: 1rem;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  .container {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1025px) {
+  .container {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+// Dark mode support (if using Angular Material theme)
+@media (prefers-color-scheme: dark) {
+  .card-label {
+    color: rgba(255, 255, 255, 0.87);
+  }
+
+  .attribution-link {
+    background-color: rgba(0, 0, 0, 0.9);
+    color: rgba(255, 255, 255, 0.6);
+
+    &:hover {
+      background-color: rgba(0, 0, 0, 1);
+      color: rgba(255, 255, 255, 0.87);
+    }
+  }
 }

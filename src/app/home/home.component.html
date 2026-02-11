@@ -1,60 +1,34 @@
 <div class="container">
-  <mat-card
-    onKeyDown="redirectTo('expense-tracker')"
-    (click)="redirectTo('expense-tracker')"
-  >
-    <mat-card-content>
-      <mat-icon
-        color="primary"
-        aria-hidden="false"
-        aria-label="Example home icon"
-        fontIcon="receipt"
-      ></mat-icon>
-    </mat-card-content>
-  </mat-card>
-  <mat-card
-    onKeyDown="redirectTo('shopping-list')"
-    (click)="redirectTo('shopping-list')"
-  >
-    <mat-card-content
-      ><mat-icon
-        color="accent"
-        aria-hidden="false"
-        aria-label="Example home icon"
-        fontIcon="add_shopping_cart"
-      ></mat-icon
-    ></mat-card-content>
-  </mat-card>
-  <mat-card
-    onKeyDown="redirectTo('tic-tac-toe')"
-    (click)="redirectTo('tic-tac-toe')"
-  >
-    <mat-card-content
-      ><mat-icon
-        color="secondary"
-        aria-hidden="false"
-        aria-label="Tic Tac Toe"
-        fontIcon="games"
-      ></mat-icon
-    ></mat-card-content> </mat-card
-  >
-  <mat-card
-    onKeyDown="redirectTo('diet')"
-    (click)="redirectTo('diet')"
-  >
-    <mat-card-content
-      ><mat-icon
-        color="warn"
-        aria-hidden="false"
-        aria-label="Diet Tracker"
-        fontIcon="restaurant"
-      ></mat-icon
-    ></mat-card-content> </mat-card
-  >
+  @for (card of navigationCards; track card.path) {
+    <mat-card
+      class="navigation-card"
+      [attr.aria-label]="card.label"
+      role="button"
+      tabindex="0"
+      [matTooltip]="card.description"
+      (click)="redirectTo(card.path)"
+      (keydown)="handleKeyDown($event, card.path)"
+    >
+      <mat-card-content>
+        <div class="card-content">
+          <mat-icon
+            [color]="card.color"
+            [fontIcon]="card.icon"
+            [attr.aria-hidden]="false"
+            [attr.aria-label]="card.label + ' icon'"
+          ></mat-icon>
+          <span class="card-label">{{ card.label }}</span>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  }
 </div>
 <a
-    href="https://www.flaticon.com/free-stickers/improvement"
-    title="improvement stickers"
-    class="pin-bottom"
-    >Improvement stickers created by Stickers - Flaticon</a
-  >
+  href="https://www.flaticon.com/free-stickers/improvement"
+  title="improvement stickers"
+  class="attribution-link"
+  target="_blank"
+  rel="noopener noreferrer"
+>
+  Improvement stickers created by Stickers - Flaticon
+</a>
