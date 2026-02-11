@@ -546,15 +546,36 @@ function clearAndInsertData(payload) {
 
 // ==================== Trading Log Functions ====================
 
+function getCMPFormula(exchange, stockColumn) {
+  // Stock column is column C (3), CMP is column H (8)
+  // Formula references the Stock column in the same row
+  const exchangeUpper = (exchange || '').toUpperCase();
+  
+  if (exchangeUpper === 'INDIA') {
+    return `=GOOGLEFINANCE("NSE:"&${stockColumn}, "PRICE")`;
+  } else if (exchangeUpper === 'GERMANY') {
+    return `=GOOGLEFINANCE("FRA:"&${stockColumn}, "PRICE")`;
+  } else if (exchangeUpper === 'US') {
+    return `=GOOGLEFINANCE("NYSE:"&${stockColumn}, "PRICE")`;
+  }
+  
+  // Default: return Buy Price if exchange not recognized
+  return '';
+}
+
 function calculateTradingLogFields(trade) {
+  // This function is used for initial calculations when creating/updating
+  // Note: When CMP uses GOOGLEFINANCE formula, the sheet will calculate values automatically
   const buyPrice = parseFloat(trade['Buy Price']) || 0;
   const qty = parseInt(trade.Qty) || 0;
-  const cmp = parseFloat(trade.CMP) || buyPrice; // Default to Buy Price if CMP not provided
+  const cmp = parseFloat(trade.CMP) || buyPrice; // Default to Buy Price if CMP not provided (for initial calculation)
   const targetPrice = parseFloat(trade['Target Price']) || 0;
-  const buyDate = new Date(trade['Buy Date']);
+  const buyDate = trade['Buy Date'] instanceof Date 
+    ? trade['Buy Date'] 
+    : parseDateFromSheet(trade['Buy Date']);
   const today = new Date();
   
-  // Calculate fields
+  // Calculate fields (used for initial display, but formulas in sheet will override)
   const buyValue = buyPrice * qty;
   const currentValue = cmp * qty;
   const gainAmount = currentValue - buyValue;
@@ -704,29 +725,64 @@ function createTradingLog(data) {
     ? data['Buy Date'] 
     : parseDateFromSheet(data['Buy Date']);
   
+  // Get the next row number
+  const nextRow = sheet.getLastRow() + 1;
+  const stockColumn = 'C' + nextRow; // Column C (Stock) in the new row
+  
+  // Determine CMP value/formula
+  let cmpValue;
+  const exchange = data.Exchange || '';
+  if (data.CMP && parseFloat(data.CMP) > 0) {
+    // If CMP is provided, use it
+    cmpValue = parseFloat(data.CMP);
+  } else if (exchange) {
+    // Use formula based on exchange
+    cmpValue = getCMPFormula(exchange, stockColumn);
+  } else {
+    // Default to Buy Price
+    cmpValue = parseFloat(data['Buy Price']) || 0;
+  }
+  
   // Insert row
   sheet.appendRow([
-    "=row()", // ID
-    data.List || '',
-    data.Stock || '',
-    buyDate,
-    parseFloat(data['Buy Price']) || 0,
-    parseInt(data.Qty) || 0,
-    calculated['Buy Value'],
-    parseFloat(data.CMP) || parseFloat(data['Buy Price']) || 0,
-    calculated['Current Value'],
-    calculated['Gain Amount'],
-    calculated['% Gain'],
-    data['Strategy Name'] || '',
-    parseFloat(data['Target Price']) || 0,
-    calculated['Total Potential Gain'],
-    calculated['Remaining Gain'],
-    calculated['Target Value'],
-    calculated['Time Frame'],
-    data['Account Owner'] || '',
-    data.Exchange || '',
-    data.Status || 'Active'
+    "=row()", // ID (Column A)
+    data.List || '', // Column B
+    data.Stock || '', // Column C
+    buyDate, // Column D
+    parseFloat(data['Buy Price']) || 0, // Column E
+    parseInt(data.Qty) || 0, // Column F
+    calculated['Buy Value'], // Column G
+    cmpValue, // Column H (CMP - formula or value)
+    calculated['Current Value'], // Column I
+    calculated['Gain Amount'], // Column J
+    calculated['% Gain'], // Column K
+    data['Strategy Name'] || '', // Column L
+    parseFloat(data['Target Price']) || 0, // Column M
+    calculated['Total Potential Gain'], // Column N
+    calculated['Remaining Gain'], // Column O
+    calculated['Target Value'], // Column P
+    calculated['Time Frame'], // Column Q
+    data['Account Owner'] || '', // Column R
+    data.Exchange || '', // Column S
+    data.Status || 'Active' // Column T
   ]);
+  
+  // If CMP is a formula, set it using setFormula
+  if (typeof cmpValue === 'string' && cmpValue.startsWith('=')) {
+    sheet.getRange(nextRow, 8).setFormula(cmpValue); // Column H (8) is CMP
+  }
+  
+  // Update calculated fields that depend on CMP (Current Value, Gain Amount, % Gain, Remaining Gain)
+  // These need to be recalculated after CMP is set
+  const currentValueFormula = `=H${nextRow}*F${nextRow}`; // CMP * Qty
+  const gainAmountFormula = `=I${nextRow}-G${nextRow}`; // Current Value - Buy Value
+  const percentGainFormula = `=IF(G${nextRow}<>0, (J${nextRow}/G${nextRow})*100, 0)`; // (Gain Amount / Buy Value) * 100
+  const remainingGainFormula = `=IF(E${nextRow}<>0, ((M${nextRow}-H${nextRow})/E${nextRow})*100, 0)`; // ((Target Price - CMP) / Buy Price) * 100
+  
+  sheet.getRange(nextRow, 9).setFormula(currentValueFormula); // Current Value
+  sheet.getRange(nextRow, 10).setFormula(gainAmountFormula); // Gain Amount
+  sheet.getRange(nextRow, 11).setFormula(percentGainFormula); // % Gain
+  sheet.getRange(nextRow, 15).setFormula(remainingGainFormula); // Remaining Gain
   
   return { message: 'Trading log created successfully' };
 }
@@ -744,38 +800,67 @@ function updateTradingLog(data) {
     return { error: 'Invalid row index' };
   }
   
-  // Calculate all fields
-  const calculated = calculateTradingLogFields(data);
-  
   // Format buy date
   const buyDate = data['Buy Date'] instanceof Date 
     ? data['Buy Date'] 
     : parseDateFromSheet(data['Buy Date']);
   
-  // Update row
-  const range = sheet.getRange(rowIndex, 1, 1, sheet.getLastColumn());
-  range.setValues([[
-    "=row()", // ID
-    data.List || '',
-    data.Stock || '',
-    buyDate,
-    parseFloat(data['Buy Price']) || 0,
-    parseInt(data.Qty) || 0,
-    calculated['Buy Value'],
-    parseFloat(data.CMP) || parseFloat(data['Buy Price']) || 0,
-    calculated['Current Value'],
-    calculated['Gain Amount'],
-    calculated['% Gain'],
-    data['Strategy Name'] || '',
-    parseFloat(data['Target Price']) || 0,
-    calculated['Total Potential Gain'],
-    calculated['Remaining Gain'],
-    calculated['Target Value'],
-    calculated['Time Frame'],
-    data['Account Owner'] || '',
-    data.Exchange || '',
-    data.Status || 'Active'
-  ]]);
+  const stockColumn = 'C' + rowIndex; // Column C (Stock) in the row being updated
+  
+  // Determine CMP value/formula
+  let cmpValue;
+  const exchange = data.Exchange || '';
+  if (data.CMP && parseFloat(data.CMP) > 0 && !isNaN(parseFloat(data.CMP))) {
+    // If CMP is provided as a number, use it
+    cmpValue = parseFloat(data.CMP);
+  } else if (exchange) {
+    // Use formula based on exchange
+    cmpValue = getCMPFormula(exchange, stockColumn);
+  } else {
+    // Default to Buy Price
+    cmpValue = parseFloat(data['Buy Price']) || 0;
+  }
+  
+  // Calculate static fields
+  const buyPrice = parseFloat(data['Buy Price']) || 0;
+  const qty = parseInt(data.Qty) || 0;
+  const buyValue = buyPrice * qty;
+  const targetPrice = parseFloat(data['Target Price']) || 0;
+  const targetValue = targetPrice * qty;
+  const totalPotentialGain = buyPrice !== 0 ? ((targetPrice - buyPrice) / buyPrice) * 100 : 0;
+  const buyDateObj = buyDate instanceof Date ? buyDate : parseDateFromSheet(buyDate);
+  const today = new Date();
+  const timeFrame = Math.floor((today - buyDateObj) / (1000 * 60 * 60 * 24));
+  
+  // Update row with static values
+  sheet.getRange(rowIndex, 1).setFormula("=row()"); // ID
+  sheet.getRange(rowIndex, 2).setValue(data.List || ''); // List
+  sheet.getRange(rowIndex, 3).setValue(data.Stock || ''); // Stock
+  sheet.getRange(rowIndex, 4).setValue(buyDate); // Buy Date
+  sheet.getRange(rowIndex, 5).setValue(buyPrice); // Buy Price
+  sheet.getRange(rowIndex, 6).setValue(qty); // Qty
+  sheet.getRange(rowIndex, 7).setFormula(`=E${rowIndex}*F${rowIndex}`); // Buy Value = Buy Price * Qty
+  
+  // Set CMP (formula or value)
+  if (typeof cmpValue === 'string' && cmpValue.startsWith('=')) {
+    sheet.getRange(rowIndex, 8).setFormula(cmpValue); // CMP formula
+  } else {
+    sheet.getRange(rowIndex, 8).setValue(cmpValue); // CMP value
+  }
+  
+  // Set calculated formulas
+  sheet.getRange(rowIndex, 9).setFormula(`=H${rowIndex}*F${rowIndex}`); // Current Value = CMP * Qty
+  sheet.getRange(rowIndex, 10).setFormula(`=I${rowIndex}-G${rowIndex}`); // Gain Amount = Current Value - Buy Value
+  sheet.getRange(rowIndex, 11).setFormula(`=IF(G${rowIndex}<>0, (J${rowIndex}/G${rowIndex})*100, 0)`); // % Gain
+  sheet.getRange(rowIndex, 12).setValue(data['Strategy Name'] || ''); // Strategy Name
+  sheet.getRange(rowIndex, 13).setValue(targetPrice); // Target Price
+  sheet.getRange(rowIndex, 14).setFormula(`=IF(E${rowIndex}<>0, ((M${rowIndex}-E${rowIndex})/E${rowIndex})*100, 0)`); // Total Potential Gain
+  sheet.getRange(rowIndex, 15).setFormula(`=IF(E${rowIndex}<>0, ((M${rowIndex}-H${rowIndex})/E${rowIndex})*100, 0)`); // Remaining Gain
+  sheet.getRange(rowIndex, 16).setFormula(`=M${rowIndex}*F${rowIndex}`); // Target Value = Target Price * Qty
+  sheet.getRange(rowIndex, 17).setValue(timeFrame); // Time Frame
+  sheet.getRange(rowIndex, 18).setValue(data['Account Owner'] || ''); // Account Owner
+  sheet.getRange(rowIndex, 19).setValue(exchange); // Exchange
+  sheet.getRange(rowIndex, 20).setValue(data.Status || 'Active'); // Status
   
   return { message: 'Trading log updated successfully' };
 }
