@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, map, share, shareReplay } from 'rxjs';
-import { environment } from 'src/environments/environment';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root',
@@ -62,6 +62,55 @@ export class GoogleSheetService {
       `${this.apiUrl}?action=login`,
       JSON.stringify(creds)
     );
+  }
+
+  // ==================== Trading Log Methods ====================
+
+  readTradingLogs(): Observable<{ data: any[]; length: number }> {
+    return this.http.get<{ data: any[]; length: number }>(
+      `${this.apiUrl}?action=readTradingLogs`
+    );
+  }
+
+  readSingleTradingLog(id: number): Observable<any> {
+    return this.http.get<any>(
+      `${this.apiUrl}?action=readSingleTradingLog&id=${id}`
+    );
+  }
+
+  createTradingLog(data: any): Observable<any> {
+    return this.http.post<any>(
+      `${this.apiUrl}?action=createTradingLog`,
+      JSON.stringify(data)
+    );
+  }
+
+  updateTradingLog(data: any): Observable<any> {
+    return this.http.post<any>(
+      `${this.apiUrl}?action=updateTradingLog`,
+      JSON.stringify(data)
+    );
+  }
+
+  deleteTradingLog(rowIndex: number): Observable<any> {
+    return this.http.post<any>(
+      `${this.apiUrl}?action=deleteTradingLog`,
+      JSON.stringify({ rowIndex })
+    );
+  }
+
+  // ==================== Master Data Methods ====================
+
+  readExchanges(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}?action=readExchanges`);
+  }
+
+  readAccountOwners(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}?action=readAccountOwners`);
+  }
+
+  readStrategyNames(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}?action=readStrategyNames`);
   }
 }
 
