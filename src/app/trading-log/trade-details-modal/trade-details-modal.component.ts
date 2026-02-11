@@ -7,7 +7,11 @@ import { MatCardModule } from '@angular/material/card';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatDividerModule } from '@angular/material/divider';
 import { Router } from '@angular/router';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { environment } from '../../../environments/environment';
+import { GoogleSheetService } from '../../shared/gsheet.service';
+import { DialogConfirmationComponent } from '../../shared/component/dialog-confirmation/dialog-confirmation.component';
+import { MatDialog } from '@angular/material/dialog';
 
 interface TradingLogEntry {
   id?: number;
@@ -54,7 +58,10 @@ export class TradeDetailsModalComponent {
   constructor(
     public dialogRef: MatDialogRef<TradeDetailsModalComponent>,
     @Inject(MAT_DIALOG_DATA) public data: { trade: TradingLogEntry; rowIndex?: number },
-    private router: Router
+    private router: Router,
+    private googleSheetService: GoogleSheetService,
+    private snackBar: MatSnackBar,
+    private dialog: MatDialog
   ) {
     this.trade = data.trade;
     this.rowIndex = data.rowIndex || null;
@@ -170,6 +177,43 @@ export class TradeDetailsModalComponent {
     this.dialogRef.close();
     this.router.navigate(['/trading-log/edit', this.trade.id], {
       state: { trade: this.trade, rowIndex: this.rowIndex },
+    });
+  }
+
+  deleteTrade() {
+    if (!this.rowIndex) {
+      this.snackBar.open('Unable to delete: Row index not found', '', { duration: 3000 });
+      return;
+    }
+
+    const confirmDialogRef = this.dialog.open(DialogConfirmationComponent, {
+      data: `Are you sure you want to delete the trade for ${this.trade.Stock}?`,
+      width: '400px',
+      maxWidth: '90vw',
+      panelClass: 'light-theme-dialog',
+    });
+
+    confirmDialogRef.afterClosed().subscribe((confirmed: boolean) => {
+      if (confirmed) {
+        this.googleSheetService.deleteTradingLog(this.rowIndex!).subscribe({
+          next: (response) => {
+            this.snackBar.open(
+              response.message || 'Trade deleted successfully',
+              '',
+              { duration: 3000 }
+            );
+            this.dialogRef.close({ action: 'deleted', trade: this.trade });
+          },
+          error: (error) => {
+            console.error('Error deleting trade:', error);
+            this.snackBar.open(
+              'Error deleting trade. Please try again.',
+              '',
+              { duration: 3000 }
+            );
+          },
+        });
+      }
     });
   }
 

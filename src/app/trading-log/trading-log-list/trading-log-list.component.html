@@ -108,6 +108,22 @@
                 >
                   <mat-icon>visibility</mat-icon>
                 </button>
+                <button
+                  mat-icon-button
+                  color="accent"
+                  (click)="editTrade(entry, i)"
+                  matTooltip="Edit Trade"
+                >
+                  <mat-icon>edit</mat-icon>
+                </button>
+                <button
+                  mat-icon-button
+                  color="warn"
+                  (click)="deleteTrade(entry, i)"
+                  matTooltip="Delete Trade"
+                >
+                  <mat-icon>delete</mat-icon>
+                </button>
               </td>
             </ng-container>
 

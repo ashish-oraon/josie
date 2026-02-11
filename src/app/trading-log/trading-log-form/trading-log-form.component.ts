@@ -128,15 +128,76 @@ export class TradingLogFormComponent implements OnInit {
   ngOnInit(): void {
     this.loadMasterData();
 
-    // Check if editing existing trade
-    const navigationExtras = this.router.getCurrentNavigation()?.extras;
-    const state = navigationExtras?.state;
-    if (state && state['trade']) {
-      this.selectedTrade = state['trade'];
-      this.rowIndex = state['rowIndex'] as number | null;
-      this.formType = 'edit';
-      this.setFormData();
-    }
+    // Check route parameters to determine if editing
+    this.route.params.subscribe((params) => {
+      const id = params['id'];
+      if (id) {
+        this.formType = 'edit';
+        // Check history.state which persists after navigation
+        const state = history.state;
+        
+        if (state && state['trade']) {
+          // Use trade data from navigation state
+          this.selectedTrade = state['trade'];
+          this.rowIndex = state['rowIndex'] as number | null;
+          this.setFormData();
+        } else {
+          // If no navigation state, fetch from backend using the id
+          // Note: id here is the row index from the route
+          this.loadTradeForEdit(parseInt(id));
+        }
+      }
+    });
+  }
+
+  loadTradeForEdit(rowIndex: number): void {
+    this.loaderService.show();
+    this.googleSheetService.readSingleTradingLog(rowIndex).subscribe({
+      next: (response) => {
+        if (response && response.data) {
+          // The response.data contains the row values as an array
+          // We need to map it to our TradingLogEntry format
+          const rowData = response.data[0];
+          if (rowData && rowData.length > 0) {
+            // Map the array data to object format
+            // Assuming the order matches the sheet columns
+            this.selectedTrade = {
+              id: rowIndex,
+              List: rowData[0] || '',
+              Stock: rowData[1] || '',
+              'Buy Date': rowData[2] || new Date(),
+              'Buy Price': rowData[3] || 0,
+              Qty: rowData[4] || 0,
+              'Buy Value': rowData[5] || '0',
+              CMP: rowData[6] || 0,
+              'Current Value': rowData[7] || '0',
+              'Gain Amount': rowData[8] || '0',
+              '% Gain': rowData[9] || '0%',
+              'Strategy Name': rowData[10] || '',
+              'Target Price': rowData[11] || '0',
+              'Total Potential Gain': rowData[12] || '0',
+              'Remaining Gain': rowData[13] || '0',
+              'Target Value': rowData[14] || '0',
+              'Time Frame': rowData[15] || 0,
+              'Account Owner': rowData[16] || '',
+              Exchange: rowData[17] || '',
+              Status: rowData[18] || 'Active',
+            };
+            this.rowIndex = rowIndex;
+            this.setFormData();
+          }
+        }
+        this.loaderService.hide();
+      },
+      error: (error) => {
+        console.error('Error loading trade for edit:', error);
+        this.snackBar.open('Error loading trade data. Please try again.', '', {
+          duration: 3000,
+        });
+        this.loaderService.hide();
+        this.goBack();
+      },
+    });
   }
 
   onListChange(event: any): void {

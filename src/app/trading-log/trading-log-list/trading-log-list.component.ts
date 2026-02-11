@@ -10,8 +10,11 @@ import { RouterModule } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { Router } from '@angular/router';
 import { environment } from '../../../environments/environment';
 import { TradeDetailsModalComponent } from '../trade-details-modal/trade-details-modal.component';
+import { DialogConfirmationComponent } from '../../shared/component/dialog-confirmation/dialog-confirmation.component';
 
 interface TradingLogEntry {
   id?: number;
@@ -49,6 +52,7 @@ interface TradingLogEntry {
     RouterModule,
     MatDialogModule,
     MatTooltipModule,
+    MatSnackBarModule,
   ],
   templateUrl: './trading-log-list.component.html',
   styleUrl: './trading-log-list.component.scss',
@@ -71,7 +75,9 @@ export class TradingLogListComponent implements OnInit {
 
   constructor(
     private googleSheetService: GoogleSheetService,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private router: Router,
+    private snackBar: MatSnackBar
   ) {}
 
   ngOnInit(): void {
@@ -221,8 +227,58 @@ export class TradingLogListComponent implements OnInit {
       panelClass: 'trade-details-dialog'
     });
 
-    dialogRef.afterClosed().subscribe(() => {
-      // Optionally refresh data after closing
+    dialogRef.afterClosed().subscribe((result) => {
+      // Refresh data if trade was deleted from modal
+      if (result?.action === 'deleted') {
+        this.loadTradingLogs();
+      }
+    });
+  }
+
+  editTrade(trade: TradingLogEntry, index: number): void {
+    // Find the actual row index in the trading logs array
+    const rowIndex = this.tradingLogs().findIndex(t => t.id === trade.id) + 1; // +1 because sheet rows are 1-indexed
+    
+    this.router.navigate(['/trading-log/edit', trade.id], {
+      state: { trade, rowIndex },
+    });
+  }
+
+  deleteTrade(trade: TradingLogEntry, index: number): void {
+    // Find the actual row index in the trading logs array
+    const rowIndex = this.tradingLogs().findIndex(t => t.id === trade.id) + 1; // +1 because sheet rows are 1-indexed
+    
+    const dialogRef = this.dialog.open(DialogConfirmationComponent, {
+      data: `Are you sure you want to delete the trade for ${trade.Stock}?`,
+      width: '400px',
+      maxWidth: '90vw',
+      panelClass: 'light-theme-dialog',
+    });
+
+    dialogRef.afterClosed().subscribe((confirmed: boolean) => {
+      if (confirmed) {
+        this.isLoading.set(true);
+        this.googleSheetService.deleteTradingLog(rowIndex).subscribe({
+          next: (response) => {
+            this.snackBar.open(
+              response.message || 'Trade deleted successfully',
+              '',
+              { duration: 3000 }
+            );
+            // Reload the trading logs list
+            this.loadTradingLogs();
+          },
+          error: (error) => {
+            console.error('Error deleting trade:', error);
+            this.snackBar.open(
+              'Error deleting trade. Please try again.',
+              '',
+              { duration: 3000 }
+            );
+            this.isLoading.set(false);
+          },
+        });
+      }
     });
   }
 }
