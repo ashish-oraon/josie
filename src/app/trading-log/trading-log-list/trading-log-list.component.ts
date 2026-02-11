@@ -1,4 +1,4 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { GoogleSheetService } from '../../shared/gsheet.service';
 import { MatCardModule } from '@angular/material/card';
@@ -14,7 +14,9 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatDividerModule } from '@angular/material/divider';
-import { FormsModule } from '@angular/forms';
+import { MatSelectModule } from '@angular/material/select';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { environment } from '../../../environments/environment';
 import { TradeDetailsModalComponent } from '../trade-details-modal/trade-details-modal.component';
@@ -60,7 +62,10 @@ interface TradingLogEntry {
     MatMenuModule,
     MatCheckboxModule,
     MatDividerModule,
+    MatSelectModule,
+    MatFormFieldModule,
     FormsModule,
+    ReactiveFormsModule,
   ],
   templateUrl: './trading-log-list.component.html',
   styleUrl: './trading-log-list.component.scss',
@@ -87,7 +92,27 @@ export class TradingLogListComponent implements OnInit {
   displayedColumns = signal<string[]>([]);
   
   tradingLogs = signal<TradingLogEntry[]>([]);
+  filteredTradingLogs = computed(() => {
+    const logs = this.tradingLogs();
+    const exchangeFilter = this.selectedExchange();
+    const ownerFilter = this.selectedOwner();
+    
+    return logs.filter(log => {
+      const matchesExchange = !exchangeFilter || exchangeFilter === 'all' || log.Exchange === exchangeFilter;
+      const matchesOwner = !ownerFilter || ownerFilter === 'all' || log['Account Owner'] === ownerFilter;
+      return matchesExchange && matchesOwner;
+    });
+  });
+  
   isLoading = signal<boolean>(false);
+  
+  // Filter state
+  selectedExchange = signal<string>('all');
+  selectedOwner = signal<string>('all');
+  
+  // Master data for filters
+  exchanges: any[] = [];
+  accountOwners: any[] = [];
 
   constructor(
     private googleSheetService: GoogleSheetService,
@@ -98,7 +123,43 @@ export class TradingLogListComponent implements OnInit {
 
   ngOnInit(): void {
     this.initializeColumnVisibility();
+    this.loadMasterData();
     this.loadTradingLogs();
+  }
+
+  loadMasterData(): void {
+    // Load exchanges
+    this.googleSheetService.readExchanges().subscribe({
+      next: (data) => {
+        this.exchanges = data || [];
+      },
+      error: (error) => {
+        console.error('Error loading exchanges:', error);
+      },
+    });
+
+    // Load account owners
+    this.googleSheetService.readAccountOwners().subscribe({
+      next: (data) => {
+        this.accountOwners = data || [];
+      },
+      error: (error) => {
+        console.error('Error loading account owners:', error);
+      },
+    });
+  }
+
+  onExchangeFilterChange(value: string): void {
+    this.selectedExchange.set(value);
+  }
+
+  onOwnerFilterChange(value: string): void {
+    this.selectedOwner.set(value);
+  }
+
+  clearFilters(): void {
+    this.selectedExchange.set('all');
+    this.selectedOwner.set('all');
   }
 
   initializeColumnVisibility(): void {

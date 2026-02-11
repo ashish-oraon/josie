@@ -58,6 +58,36 @@ mat-card-title {
   font-weight: 500;
 }
 
+.filters-section {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  margin-bottom: 1rem;
+  padding: 0.75rem;
+  background-color: rgba(0, 0, 0, 0.02);
+  border-radius: 0.25rem;
+  flex-wrap: wrap;
+
+  .filter-field {
+    min-width: 9.375rem; // 150px
+    flex: 0 1 auto;
+  }
+
+  .clear-filters-btn {
+    margin-left: auto;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    padding: 0.25rem 0.75rem;
+    
+    mat-icon {
+      font-size: 1.125rem; // 18px
+      width: 1.125rem;
+      height: 1.125rem;
+      margin-right: 0.25rem;
+    }
+  }
+}
+
 .loading-container,
 .no-data-container {
   display: flex;
