@@ -70,6 +70,31 @@
           </mat-select>
         </mat-form-field>
 
+        <mat-form-field class="filter-field">
+          <mat-label>Sort By</mat-label>
+          <mat-select [value]="selectedSortBy()" (selectionChange)="onSortChange($event.value)">
+            @for (option of sortOptions; track option.value) {
+              <mat-option [value]="option.value">
+                {{ option.label }}
+                @if (selectedSortBy() === option.value) {
+                  <span class="sort-indicator">
+                    ({{ sortOrder() === 'asc' ? '↑' : '↓' }})
+                  </span>
+                }
+              </mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+
+        <button
+          mat-icon-button
+          [matTooltip]="sortOrder() === 'asc' ? 'Sort Descending' : 'Sort Ascending'"
+          (click)="sortOrder.set(sortOrder() === 'asc' ? 'desc' : 'asc')"
+          class="sort-toggle-btn"
+        >
+          <mat-icon>{{ sortOrder() === 'asc' ? 'arrow_upward' : 'arrow_downward' }}</mat-icon>
+        </button>
+
         @if (selectedExchange() !== 'all' || selectedOwner() !== 'all') {
           <button
             mat-button

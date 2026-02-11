@@ -73,6 +73,16 @@ mat-card-title {
     flex: 0 1 auto;
   }
 
+  .sort-toggle-btn {
+    flex-shrink: 0;
+  }
+
+  .sort-indicator {
+    margin-left: 0.5rem;
+    color: rgba(0, 0, 0, 0.6);
+    font-size: 0.75rem;
+  }
+
   .clear-filters-btn {
     margin-left: auto;
     font-size: 0.875rem;

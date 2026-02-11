@@ -97,11 +97,18 @@ export class TradingLogListComponent implements OnInit {
     const exchangeFilter = this.selectedExchange();
     const ownerFilter = this.selectedOwner();
     
-    return logs.filter(log => {
+    // Apply filters
+    let filtered = logs.filter(log => {
       const matchesExchange = !exchangeFilter || exchangeFilter === 'all' || log.Exchange === exchangeFilter;
       const matchesOwner = !ownerFilter || ownerFilter === 'all' || log['Account Owner'] === ownerFilter;
       return matchesExchange && matchesOwner;
     });
+    
+    // Apply sorting
+    const sortBy = this.selectedSortBy();
+    const sortOrder = this.sortOrder();
+    
+    return this.sortTradingLogs(filtered, sortBy, sortOrder);
   });
   
   isLoading = signal<boolean>(false);
@@ -110,9 +117,21 @@ export class TradingLogListComponent implements OnInit {
   selectedExchange = signal<string>('all');
   selectedOwner = signal<string>('all');
   
+  // Sort state
+  selectedSortBy = signal<string>('% Gain');
+  sortOrder = signal<'asc' | 'desc'>('desc');
+  
   // Master data for filters
   exchanges: any[] = [];
   accountOwners: any[] = [];
+  
+  // Sort options
+  sortOptions = [
+    { value: '% Gain', label: '% Gain/Loss' },
+    { value: 'Buy Date', label: 'Buy Date' },
+    { value: 'Stock', label: 'Stock Name' },
+    { value: 'Current Value', label: 'Current Value' },
+  ];
 
   constructor(
     private googleSheetService: GoogleSheetService,
@@ -160,6 +179,73 @@ export class TradingLogListComponent implements OnInit {
   clearFilters(): void {
     this.selectedExchange.set('all');
     this.selectedOwner.set('all');
+  }
+
+  onSortChange(sortBy: string): void {
+    // If clicking the same sort option, toggle order; otherwise set new sort and default to desc
+    if (this.selectedSortBy() === sortBy) {
+      this.sortOrder.set(this.sortOrder() === 'asc' ? 'desc' : 'asc');
+    } else {
+      this.selectedSortBy.set(sortBy);
+      // Default order: desc for % Gain and Current Value, asc for Stock Name, desc for Buy Date
+      const defaultOrder = sortBy === 'Stock' ? 'asc' : 'desc';
+      this.sortOrder.set(defaultOrder);
+    }
+  }
+
+  sortTradingLogs(logs: TradingLogEntry[], sortBy: string, order: 'asc' | 'desc'): TradingLogEntry[] {
+    const sorted = [...logs].sort((a, b) => {
+      let comparison = 0;
+      
+      switch (sortBy) {
+        case '% Gain':
+          const gainA = this.parsePercentGain(a['% Gain']);
+          const gainB = this.parsePercentGain(b['% Gain']);
+          comparison = gainA - gainB;
+          break;
+          
+        case 'Buy Date':
+          const dateA = a['Buy Date'] instanceof Date ? a['Buy Date'] : new Date(a['Buy Date']);
+          const dateB = b['Buy Date'] instanceof Date ? b['Buy Date'] : new Date(b['Buy Date']);
+          comparison = dateA.getTime() - dateB.getTime();
+          break;
+          
+        case 'Stock':
+          comparison = (a.Stock || '').localeCompare(b.Stock || '');
+          break;
+          
+        case 'Current Value':
+          const valueA = this.parseCurrency(a['Current Value']);
+          const valueB = this.parseCurrency(b['Current Value']);
+          comparison = valueA - valueB;
+          break;
+          
+        default:
+          return 0;
+      }
+      
+      return order === 'asc' ? comparison : -comparison;
+    });
+    
+    return sorted;
+  }
+
+  parsePercentGain(gainPercent: string | number | undefined): number {
+    if (gainPercent === undefined || gainPercent === null) {
+      return 0;
+    }
+    
+    const gainStr = typeof gainPercent === 'string' ? gainPercent : String(gainPercent);
+    return parseFloat(gainStr.replace('%', '').replace(/,/g, '')) || 0;
+  }
+
+  parseCurrency(value: string | number | undefined): number {
+    if (value === undefined || value === null) {
+      return 0;
+    }
+    
+    const valueStr = typeof value === 'string' ? value : String(value);
+    return parseFloat(valueStr.replace(/[₹€$,\s]/g, '')) || 0;
   }
 
   initializeColumnVisibility(): void {
