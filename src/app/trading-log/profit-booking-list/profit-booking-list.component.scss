@@ -7,10 +7,15 @@
 mat-card-header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 0.5rem;
-  margin-bottom: 1rem;
-  flex-wrap: wrap;
+  margin-bottom: 0;
+}
+
+.header-actions-container {
+  display: flex;
+  justify-content: flex-end;
+  padding: 0 1rem 1rem 1rem;
+  margin-top: -0.5rem;
 }
 
 .header-actions {
@@ -54,10 +59,15 @@ mat-card {
 mat-card-header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 0.5rem;
-  margin-bottom: 1rem;
-  flex-wrap: wrap;
+  margin-bottom: 0;
+}
+
+.header-actions-container {
+  display: flex;
+  justify-content: flex-end;
+  padding: 0 1rem 1rem 1rem;
+  margin-top: -0.5rem;
 }
 
 .header-actions {
@@ -195,6 +205,13 @@ mat-menu {
 
   .sort-toggle-btn {
     flex-shrink: 0;
+  }
+
+  .column-visibility-btn {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
   }
 
   .sort-indicator {

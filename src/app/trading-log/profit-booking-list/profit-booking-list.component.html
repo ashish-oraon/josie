@@ -10,39 +10,6 @@
         <mat-icon>monetization_on</mat-icon>
         Profit Bookings Report
       </mat-card-title>
-      <div class="header-actions">
-        <button
-          mat-icon-button
-          [matMenuTriggerFor]="columnMenu"
-          matTooltip="Column Visibility"
-        >
-          <mat-icon>view_column</mat-icon>
-        </button>
-        <mat-menu #columnMenu="matMenu">
-          <div class="column-menu-header">
-            <span>Show/Hide Columns</span>
-            <button
-              mat-icon-button
-              (click)="resetColumnVisibility()"
-              matTooltip="Reset to Default"
-              class="reset-button"
-            >
-              <mat-icon>refresh</mat-icon>
-            </button>
-          </div>
-          <mat-divider></mat-divider>
-          @for (column of allColumns; track column.key) {
-            <button mat-menu-item (click)="toggleColumnVisibility(column.key)">
-              <mat-checkbox
-                [checked]="columnVisibility()[column.key]"
-                (click)="$event.stopPropagation()"
-                (change)="toggleColumnVisibility(column.key)"
-              ></mat-checkbox>
-              <span>{{ column.label }}</span>
-            </button>
-          }
-        </mat-menu>
-      </div>
     </mat-card-header>
     <mat-card-content>
       <!-- Summary Cards -->
@@ -170,6 +137,40 @@
         >
           <mat-icon>{{ sortOrder() === 'asc' ? 'arrow_upward' : 'arrow_downward' }}</mat-icon>
         </button>
+
+        <button
+          mat-button
+          [matMenuTriggerFor]="columnMenu"
+          matTooltip="Column Visibility"
+          class="column-visibility-btn"
+        >
+          <mat-icon>view_column</mat-icon>
+          Edit Columns
+        </button>
+        <mat-menu #columnMenu="matMenu">
+          <div class="column-menu-header">
+            <span>Show/Hide Columns</span>
+            <button
+              mat-icon-button
+              (click)="resetColumnVisibility()"
+              matTooltip="Reset to Default"
+              class="reset-button"
+            >
+              <mat-icon>refresh</mat-icon>
+            </button>
+          </div>
+          <mat-divider></mat-divider>
+          @for (column of allColumns; track column.key) {
+            <button mat-menu-item (click)="toggleColumnVisibility(column.key)">
+              <mat-checkbox
+                [checked]="columnVisibility()[column.key]"
+                (click)="$event.stopPropagation()"
+                (change)="toggleColumnVisibility(column.key)"
+              ></mat-checkbox>
+              <span>{{ column.label }}</span>
+            </button>
+          }
+        </mat-menu>
 
         @if (selectedExchange() !== 'all' || selectedOwner() !== 'all') {
           <button

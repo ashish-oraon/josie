@@ -79,6 +79,13 @@ mat-card-title {
     flex-shrink: 0;
   }
 
+  .column-visibility-btn {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+  }
+
   .sort-indicator {
     margin-left: 0.5rem;
     color: rgba(0, 0, 0, 0.6);
@@ -90,7 +97,7 @@ mat-card-title {
     font-size: 0.875rem;
     line-height: 1.5;
     padding: 0.25rem 0.75rem;
-    
+
     mat-icon {
       font-size: 1.125rem; // 18px
       width: 1.125rem;
@@ -120,6 +127,7 @@ mat-card-title {
 .table-container {
   overflow-x: auto;
   max-width: 100%;
+  padding-bottom: 3rem;
 }
 
 .trading-table {
