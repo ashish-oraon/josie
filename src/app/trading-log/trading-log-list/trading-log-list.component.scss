@@ -14,12 +14,14 @@ mat-card-header {
   justify-content: space-between;
   gap: 0.5rem;
   margin-bottom: 1rem;
+  flex-wrap: wrap;
 }
 
 .header-actions {
   display: flex;
   gap: 0.5rem;
   align-items: center;
+  flex-wrap: wrap;
 }
 
 .column-menu-header {
@@ -201,6 +203,16 @@ mat-card-title {
 @media (max-width: 768px) {
   .trading-log-container {
     padding: 0.5rem;
+  }
+
+  mat-card-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .header-actions {
+    width: 100%;
+    justify-content: flex-start;
   }
 
   .trading-table {

@@ -12,6 +12,7 @@ import { DietComponent } from './diet/diet.component';
 import { TradingLogComponent } from './trading-log/trading-log.component';
 import { TradingLogListComponent } from './trading-log/trading-log-list/trading-log-list.component';
 import { TradingLogFormComponent } from './trading-log/trading-log-form/trading-log-form.component';
+import { ProfitBookingFormComponent } from './trading-log/profit-booking-form/profit-booking-form.component';
 
 export const routes: Routes = [
   {
@@ -80,6 +81,10 @@ export const routes: Routes = [
       {
         path: 'edit/:id',
         component: TradingLogFormComponent,
+      },
+      {
+        path: 'profit-booking',
+        component: ProfitBookingFormComponent,
       },
     ],
   },

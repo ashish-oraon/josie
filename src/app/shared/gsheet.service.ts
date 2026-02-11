@@ -112,6 +112,33 @@ export class GoogleSheetService {
   readStrategyNames(): Observable<any[]> {
     return this.http.get<any[]>(`${this.apiUrl}?action=readStrategyNames`);
   }
+
+  // ==================== Profit Booking Methods ====================
+
+  readActiveTrades(): Observable<{ data: any[]; length: number }> {
+    return this.http.get<{ data: any[]; length: number }>(
+      `${this.apiUrl}?action=readActiveTrades`
+    );
+  }
+
+  readProfitBookings(): Observable<{ data: any[]; length: number }> {
+    return this.http.get<{ data: any[]; length: number }>(
+      `${this.apiUrl}?action=readProfitBookings`
+    );
+  }
+
+  readSingleProfitBooking(id: number): Observable<any> {
+    return this.http.get<any>(
+      `${this.apiUrl}?action=readSingleProfitBooking&id=${id}`
+    );
+  }
+
+  createProfitBooking(data: any): Observable<any> {
+    return this.http.post<any>(
+      `${this.apiUrl}?action=createProfitBooking`,
+      JSON.stringify(data)
+    );
+  }
 }
 
 //https://script.google.com/macros/s/AKfycbwLM3S5PsUBR5Jf1lUrGPtAdanLxDUWqgbfaTQ-FdZn4E2f1J5p-5IxzIS9LFaNVEem/exec

@@ -1,0 +1,179 @@
+<mat-card class="form-card">
+  <mat-card-header>
+    <div mat-card-avatar>
+      <button mat-icon-button (click)="goBack()">
+        <mat-icon>arrow_back</mat-icon>
+      </button>
+    </div>
+    <mat-card-title>Add Profit Booking</mat-card-title>
+  </mat-card-header>
+  <form
+    [formGroup]="profitBookingForm"
+    (ngSubmit)="onSubmit()"
+    class="profit-booking-form"
+  >
+    <!-- Input Fields Section -->
+    <div class="form-section">
+      <h3>Profit Booking Information</h3>
+
+      <div class="form-row">
+        <mat-form-field class="form-field">
+          <mat-label>Select Trade</mat-label>
+          <mat-select formControlName="Trade ID" required>
+            @for (trade of activeTrades; track trade.id) {
+            <mat-option [value]="trade.id">
+              {{ getTradeDisplayName(trade) }}
+            </mat-option>
+            } @empty {
+            <mat-option disabled>No active trades available</mat-option>
+            }
+          </mat-select>
+          @if (profitBookingForm.get('Trade ID')?.hasError('required') && profitBookingForm.get('Trade ID')?.touched) {
+          <mat-error>Trade selection is required</mat-error>
+          }
+        </mat-form-field>
+      </div>
+
+      @if (selectedTrade) {
+      <div class="form-row">
+        <mat-form-field class="form-field">
+          <mat-label>Sell Date</mat-label>
+          <input
+            matInput
+            [matDatepicker]="picker"
+            formControlName="Sell Date"
+            required
+            (click)="picker.open()"
+          />
+          <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+          <mat-datepicker touchUi #picker></mat-datepicker>
+          @if (profitBookingForm.get('Sell Date')?.hasError('required') && profitBookingForm.get('Sell Date')?.touched) {
+          <mat-error>Sell date is required</mat-error>
+          }
+        </mat-form-field>
+      </div>
+
+      <div class="form-row">
+        <mat-form-field class="form-field">
+          <mat-label>Sell Price</mat-label>
+          <input
+            matInput
+            formControlName="Sell Price"
+            type="number"
+            step="0.01"
+            required
+          />
+          <span matPrefix>{{ getCurrencySymbol() }}&nbsp;</span>
+          @if (profitBookingForm.get('Sell Price')?.hasError('required') && profitBookingForm.get('Sell Price')?.touched) {
+          <mat-error>Sell price is required</mat-error>
+          }
+          @if (profitBookingForm.get('Sell Price')?.hasError('min') && profitBookingForm.get('Sell Price')?.touched) {
+          <mat-error>Sell price must be greater than 0</mat-error>
+          }
+        </mat-form-field>
+      </div>
+
+      <div class="form-row">
+        <mat-form-field class="form-field">
+          <mat-label>Quantity Sold</mat-label>
+          <input
+            matInput
+            formControlName="Quantity Sold"
+            type="number"
+            required
+          />
+          @if (selectedTrade) {
+          <mat-hint>Available: {{ selectedTrade.Qty }}</mat-hint>
+          }
+          @if (profitBookingForm.get('Quantity Sold')?.hasError('required') && profitBookingForm.get('Quantity Sold')?.touched) {
+          <mat-error>Quantity sold is required</mat-error>
+          }
+          @if (profitBookingForm.get('Quantity Sold')?.hasError('min') && profitBookingForm.get('Quantity Sold')?.touched) {
+          <mat-error>Quantity must be at least 1</mat-error>
+          }
+          @if (profitBookingForm.get('Quantity Sold')?.hasError('max') && profitBookingForm.get('Quantity Sold')?.touched) {
+          <mat-error>Quantity cannot exceed available quantity ({{ selectedTrade.Qty }})</mat-error>
+          }
+        </mat-form-field>
+      </div>
+
+      <div class="form-row">
+        <mat-form-field class="form-field">
+          <mat-label>Notes</mat-label>
+          <textarea
+            matInput
+            formControlName="Notes"
+            rows="3"
+            placeholder="Optional notes about this profit booking"
+          ></textarea>
+        </mat-form-field>
+      </div>
+      }
+
+      <!-- Calculated Values Section -->
+      @if (selectedTrade) {
+      <div class="form-section">
+        <mat-expansion-panel [expanded]="false">
+          <mat-expansion-panel-header>
+            <mat-panel-title><mat-icon>calculate</mat-icon> Calculated Values</mat-panel-title>
+            <mat-panel-description>View computed profit booking metrics</mat-panel-description>
+          </mat-expansion-panel-header>
+          <div class="calculated-grid">
+            <div class="calculated-item">
+              <label>Sell Value</label>
+              <div class="calculated-value">{{ getCurrencySymbol() }}{{ calculatedFields.sellValue | number: '1.2-2' }}</div>
+            </div>
+            <div class="calculated-item">
+              <label>Buy Value (Sold Portion)</label>
+              <div class="calculated-value">{{ getCurrencySymbol() }}{{ calculatedFields.buyValue | number: '1.2-2' }}</div>
+            </div>
+            <div class="calculated-item">
+              <label>Profit/Loss Amount</label>
+              <div class="calculated-value" [class.positive]="calculatedFields.profitLossAmount >= 0" [class.negative]="calculatedFields.profitLossAmount < 0">
+                {{ getCurrencySymbol() }}{{ calculatedFields.profitLossAmount | number: '1.2-2' }}
+              </div>
+            </div>
+            <div class="calculated-item">
+              <label>Profit/Loss %</label>
+              <div class="calculated-value" [class.positive]="calculatedFields.profitLossPercent >= 0" [class.negative]="calculatedFields.profitLossPercent < 0">
+                {{ calculatedFields.profitLossPercent | number: '1.2-2' }}%
+              </div>
+            </div>
+            <div class="calculated-item">
+              <label>Holding Period</label>
+              <div class="calculated-value">{{ calculatedFields.holdingPeriod }} days</div>
+            </div>
+            <div class="calculated-item">
+              <label>Remaining Quantity</label>
+              <div class="calculated-value">{{ calculatedFields.remainingQuantity }}</div>
+            </div>
+            <div class="calculated-item">
+              <label>Remaining Buy Value</label>
+              <div class="calculated-value">{{ getCurrencySymbol() }}{{ calculatedFields.remainingBuyValue | number: '1.2-2' }}</div>
+            </div>
+          </div>
+        </mat-expansion-panel>
+      </div>
+      }
+    </div>
+
+    <!-- Submit Button -->
+    <div class="form-actions">
+      <button mat-raised-button color="primary" type="submit" [disabled]="!profitBookingForm.valid || isLoading()">
+        <mat-icon>save</mat-icon>
+        Add Profit Booking
+      </button>
+      <button mat-button type="button" (click)="goBack()">
+        <mat-icon>cancel</mat-icon>
+        Cancel
+      </button>
+    </div>
+
+    <!-- Loading Spinner -->
+    @if (isLoading$ | async) {
+    <div class="loading-overlay">
+      <mat-spinner diameter="50"></mat-spinner>
+    </div>
+    }
+  </form>
+</mat-card>

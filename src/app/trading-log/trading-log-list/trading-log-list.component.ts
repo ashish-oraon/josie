@@ -94,6 +94,11 @@ export class TradingLogListComponent implements OnInit {
   tradingLogs = signal<TradingLogEntry[]>([]);
   filteredTradingLogs = computed(() => {
     const logs = this.tradingLogs();
+    // Ensure logs is always an array
+    if (!Array.isArray(logs)) {
+      return [];
+    }
+    
     const exchangeFilter = this.selectedExchange();
     const ownerFilter = this.selectedOwner();
     
@@ -150,20 +155,22 @@ export class TradingLogListComponent implements OnInit {
     // Load exchanges
     this.googleSheetService.readExchanges().subscribe({
       next: (data) => {
-        this.exchanges = data || [];
+        this.exchanges = Array.isArray(data) ? data : [];
       },
       error: (error) => {
         console.error('Error loading exchanges:', error);
+        this.exchanges = [];
       },
     });
 
     // Load account owners
     this.googleSheetService.readAccountOwners().subscribe({
       next: (data) => {
-        this.accountOwners = data || [];
+        this.accountOwners = Array.isArray(data) ? data : [];
       },
       error: (error) => {
         console.error('Error loading account owners:', error);
+        this.accountOwners = [];
       },
     });
   }
@@ -194,6 +201,11 @@ export class TradingLogListComponent implements OnInit {
   }
 
   sortTradingLogs(logs: TradingLogEntry[], sortBy: string, order: 'asc' | 'desc'): TradingLogEntry[] {
+    // Ensure logs is an array
+    if (!Array.isArray(logs)) {
+      return [];
+    }
+    
     const sorted = [...logs].sort((a, b) => {
       let comparison = 0;
       
@@ -315,7 +327,7 @@ export class TradingLogListComponent implements OnInit {
         console.log('Trading logs response:', response);
         console.log('Number of entries received:', response?.data?.length);
 
-        if (response && response.data) {
+        if (response && response.data && Array.isArray(response.data)) {
           // Convert Buy Date strings to Date objects if needed and ensure % Gain is string
           const processedLogs = response.data
             .map((entry: any, index: number) => {

@@ -50,6 +50,7 @@ function createSheetAndSelect(sheetName) {
         sheetName !== 'Exchange' &&
         sheetName !== 'AccountOwners' &&
         sheetName !== 'StrategyNames' &&
+        sheetName !== 'ProfitBookings' &&
         !sheetName.includes('Creds')) {
       sheet.appendRow(['ID', 'Amount', 'Category', 'Note', 'Date', 'Payment Method', 'Paid By', 'Type', 'Is Deleted']);
     }
@@ -108,6 +109,17 @@ function initializeTradingLogSheets() {
     strategyNames.appendRow(['=row()', '67 ka Funda']);
     strategyNames.appendRow(['=row()', 'ABCD']);
   }
+  
+  // Initialize ProfitBookings sheet
+  let profitBookings = spreadsheet.getSheetByName('ProfitBookings');
+  if (!profitBookings) {
+    profitBookings = spreadsheet.insertSheet('ProfitBookings');
+    profitBookings.appendRow([
+      'ID', 'Trade ID', 'Stock', 'Sell Date', 'Sell Price', 'Quantity Sold', 
+      'Buy Price', 'Buy Value', 'Sell Value', 'Profit/Loss Amount', 'Profit/Loss %', 
+      'Holding Period', 'Notes', 'Account Owner', 'Exchange'
+    ]);
+  }
 }
 
 const name = getSheetNameAccordingToMonthAndYear();
@@ -162,6 +174,17 @@ function doGet(e) {
       break;
     case 'readStrategyNames':
       data = readStrategyNames();
+      break;
+    case 'readProfitBookings':
+      data = readProfitBookings();
+      break;
+    case 'readSingleProfitBooking':
+      const profitBookingId = e.parameter.id;
+      data = readSingleProfitBooking(profitBookingId);
+      break;
+    case 'readActiveTrades':
+      // Get only active trades (Status = 'Active' or 'Partial') for profit booking
+      data = readActiveTrades();
       break;
     default:
       data = { error: 'Invalid action' };
@@ -224,6 +247,9 @@ function doPost(e) {
       break;
     case 'deleteTradingLog':
       result = deleteTradingLog(data.rowIndex);
+      break;
+    case 'createProfitBooking':
+      result = createProfitBooking(data);
       break;
     default:
       result = { error: 'Invalid action' };
@@ -927,6 +953,188 @@ function readStrategyNames() {
     id,
     name: name || ''
   })).filter(item => item.name);
+}
+
+function readActiveTrades() {
+  // Get only active trades (Status = 'Active' or 'Partial') for profit booking dropdown
+  const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = spreadsheet.getSheetByName('TradingLog');
+  
+  if (!sheet) {
+    return { data: [], length: 0 };
+  }
+  
+  const values = sheet.getDataRange().getValues();
+  if (values.length <= 1) {
+    return { data: [], length: 0 };
+  }
+  
+  const headers = values[0];
+  const dataRows = values.slice(1).filter(row => row && row.length > 0 && row[2]); // Filter out empty rows and ensure Stock exists
+  
+  const trades = dataRows.map((row, index) => {
+    const trade = {};
+    headers.forEach((header, colIndex) => {
+      trade[header] = row[colIndex];
+    });
+    trade.id = index + 2; // Row index (1-indexed, +1 for header)
+    return trade;
+  }).filter(trade => {
+    const status = trade.Status || 'Active';
+    return status === 'Active' || status === 'Partial';
+  });
+  
+  return { data: trades, length: trades.length };
+}
+
+function createProfitBooking(data) {
+  const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+  
+  // Ensure ProfitBookings sheet exists
+  initializeTradingLogSheets();
+  const profitBookingsSheet = spreadsheet.getSheetByName('ProfitBookings');
+  const tradingLogSheet = spreadsheet.getSheetByName('TradingLog');
+  
+  if (!profitBookingsSheet || !tradingLogSheet) {
+    return { error: 'Required sheets not found' };
+  }
+  
+  // Get original trade details
+  const tradeRowIndex = data.tradeRowIndex;
+  if (!tradeRowIndex || tradeRowIndex < 2) {
+    return { error: 'Invalid trade row index' };
+  }
+  
+  const tradeRow = tradingLogSheet.getRange(tradeRowIndex, 1, 1, tradingLogSheet.getLastColumn()).getValues()[0];
+  const headers = tradingLogSheet.getRange(1, 1, 1, tradingLogSheet.getLastColumn()).getValues()[0];
+  
+  // Map trade row to object
+  const trade = {};
+  headers.forEach((header, index) => {
+    trade[header] = tradeRow[index];
+  });
+  
+  const originalQty = parseInt(trade.Qty) || 0;
+  const quantitySold = parseInt(data['Quantity Sold']) || 0;
+  const sellPrice = parseFloat(data['Sell Price']) || 0;
+  const buyPrice = parseFloat(trade['Buy Price']) || 0;
+  
+  // Validation
+  if (quantitySold <= 0) {
+    return { error: 'Quantity sold must be greater than 0' };
+  }
+  if (quantitySold > originalQty) {
+    return { error: 'Quantity sold cannot exceed original quantity' };
+  }
+  
+  // Calculate profit booking fields
+  const sellDate = data['Sell Date'] instanceof Date 
+    ? data['Sell Date'] 
+    : parseDateFromSheet(data['Sell Date']);
+  const buyDate = trade['Buy Date'] instanceof Date 
+    ? trade['Buy Date'] 
+    : parseDateFromSheet(trade['Buy Date']);
+  
+  const buyValue = buyPrice * quantitySold;
+  const sellValue = sellPrice * quantitySold;
+  const profitLossAmount = sellValue - buyValue;
+  const profitLossPercent = buyValue !== 0 ? (profitLossAmount / buyValue) * 100 : 0;
+  const holdingPeriod = Math.floor((sellDate - buyDate) / (1000 * 60 * 60 * 24)); // Days
+  
+  // Create profit booking entry
+  const nextRow = profitBookingsSheet.getLastRow() + 1;
+  profitBookingsSheet.appendRow([
+    "=row()", // ID
+    tradeRowIndex, // Trade ID (reference to original trade)
+    trade.Stock || '', // Stock
+    sellDate, // Sell Date
+    sellPrice, // Sell Price
+    quantitySold, // Quantity Sold
+    buyPrice, // Buy Price
+    buyValue.toFixed(2), // Buy Value
+    sellValue.toFixed(2), // Sell Value
+    profitLossAmount.toFixed(2), // Profit/Loss Amount
+    profitLossPercent.toFixed(2), // Profit/Loss %
+    holdingPeriod, // Holding Period
+    data.Notes || '', // Notes
+    trade['Account Owner'] || '', // Account Owner
+    trade.Exchange || '' // Exchange
+  ]);
+  
+  // Update original trade
+  const remainingQty = originalQty - quantitySold;
+  let newStatus;
+  if (remainingQty === 0) {
+    newStatus = 'Sold';
+  } else {
+    newStatus = 'Partial';
+  }
+  
+  // Update quantity and status in original trade
+  tradingLogSheet.getRange(tradeRowIndex, 6).setValue(remainingQty); // Qty column (F = 6)
+  tradingLogSheet.getRange(tradeRowIndex, 20).setValue(newStatus); // Status column (T = 20)
+  
+  // Recalculate Buy Value for remaining quantity
+  const newBuyValue = buyPrice * remainingQty;
+  tradingLogSheet.getRange(tradeRowIndex, 7).setFormula(`=E${tradeRowIndex}*F${tradeRowIndex}`); // Buy Value = Buy Price * Qty
+  
+  // Recalculate other dependent fields
+  tradingLogSheet.getRange(tradeRowIndex, 9).setFormula(`=H${tradeRowIndex}*F${tradeRowIndex}`); // Current Value = CMP * Qty
+  tradingLogSheet.getRange(tradeRowIndex, 10).setFormula(`=I${tradeRowIndex}-G${tradeRowIndex}`); // Gain Amount = Current Value - Buy Value
+  tradingLogSheet.getRange(tradeRowIndex, 11).setFormula(`=IF(G${tradeRowIndex}<>0, (J${tradeRowIndex}/G${tradeRowIndex})*100, 0)`); // % Gain
+  tradingLogSheet.getRange(tradeRowIndex, 16).setFormula(`=M${tradeRowIndex}*F${tradeRowIndex}`); // Target Value = Target Price * Qty
+  
+  return { message: 'Profit booking created successfully' };
+}
+
+function readProfitBookings() {
+  const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = spreadsheet.getSheetByName('ProfitBookings');
+  
+  if (!sheet) {
+    return { data: [], length: 0 };
+  }
+  
+  const values = sheet.getDataRange().getValues();
+  if (values.length <= 1) {
+    return { data: [], length: 0 };
+  }
+  
+  const headers = values[0];
+  const dataRows = values.slice(1).filter(row => row && row.length > 0 && row[2]); // Filter out empty rows and ensure Stock exists
+  
+  const bookings = dataRows.map((row) => {
+    const booking = {};
+    headers.forEach((header, colIndex) => {
+      booking[header] = row[colIndex];
+    });
+    return booking;
+  });
+  
+  return { data: bookings, length: bookings.length };
+}
+
+function readSingleProfitBooking(id) {
+  const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = spreadsheet.getSheetByName('ProfitBookings');
+  
+  if (!sheet) {
+    return { error: 'ProfitBookings sheet not found', data: null };
+  }
+  
+  if (!id || id < 2) {
+    return { error: 'Invalid row index', data: null };
+  }
+  
+  const lastRow = sheet.getLastRow();
+  if (id > lastRow) {
+    return { error: 'Row not found', data: null };
+  }
+  
+  const lastColumn = sheet.getLastColumn();
+  const dataRange = sheet.getRange(id, 1, 1, lastColumn);
+  const values = dataRange.getValues();
+  return { data: values };
 }
 
 
