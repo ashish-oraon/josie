@@ -87,10 +87,10 @@ export class TradingLogListComponent implements OnInit {
 
   // Column visibility state
   columnVisibility = signal<{ [key: string]: boolean }>({});
-  
+
   // Computed displayed columns based on visibility
   displayedColumns = signal<string[]>([]);
-  
+
   tradingLogs = signal<TradingLogEntry[]>([]);
   filteredTradingLogs = computed(() => {
     const logs = this.tradingLogs();
@@ -98,11 +98,11 @@ export class TradingLogListComponent implements OnInit {
     if (!Array.isArray(logs)) {
       return [];
     }
-    
+
     const exchangeFilter = this.selectedExchange();
     const ownerFilter = this.selectedOwner();
     const statusFilter = this.selectedStatus();
-    
+
     // Apply filters
     let filtered = logs.filter(log => {
       const matchesExchange = !exchangeFilter || exchangeFilter === 'all' || log.Exchange === exchangeFilter;
@@ -110,29 +110,29 @@ export class TradingLogListComponent implements OnInit {
       const matchesStatus = !statusFilter || statusFilter === 'all' || (log.Status || 'Active') === statusFilter;
       return matchesExchange && matchesOwner && matchesStatus;
     });
-    
+
     // Apply sorting
     const sortBy = this.selectedSortBy();
     const sortOrder = this.sortOrder();
-    
+
     return this.sortTradingLogs(filtered, sortBy, sortOrder);
   });
-  
+
   isLoading = signal<boolean>(false);
-  
+
   // Filter state
   selectedExchange = signal<string>('all');
   selectedOwner = signal<string>('all');
   selectedStatus = signal<string>('Active');
-  
+
   // Sort state
   selectedSortBy = signal<string>('% Gain');
   sortOrder = signal<'asc' | 'desc'>('desc');
-  
+
   // Master data for filters
   exchanges: any[] = [];
   accountOwners: any[] = [];
-  
+
   // Sort options
   sortOptions = [
     { value: '% Gain', label: '% Gain/Loss' },
@@ -213,40 +213,40 @@ export class TradingLogListComponent implements OnInit {
     if (!Array.isArray(logs)) {
       return [];
     }
-    
+
     const sorted = [...logs].sort((a, b) => {
       let comparison = 0;
-      
+
       switch (sortBy) {
         case '% Gain':
           const gainA = this.parsePercentGain(a['% Gain']);
           const gainB = this.parsePercentGain(b['% Gain']);
           comparison = gainA - gainB;
           break;
-          
+
         case 'Buy Date':
           const dateA = a['Buy Date'] instanceof Date ? a['Buy Date'] : new Date(a['Buy Date']);
           const dateB = b['Buy Date'] instanceof Date ? b['Buy Date'] : new Date(b['Buy Date']);
           comparison = dateA.getTime() - dateB.getTime();
           break;
-          
+
         case 'Stock':
           comparison = (a.Stock || '').localeCompare(b.Stock || '');
           break;
-          
+
         case 'Current Value':
           const valueA = this.parseCurrency(a['Current Value']);
           const valueB = this.parseCurrency(b['Current Value']);
           comparison = valueA - valueB;
           break;
-          
+
         default:
           return 0;
       }
-      
+
       return order === 'asc' ? comparison : -comparison;
     });
-    
+
     return sorted;
   }
 
@@ -254,7 +254,7 @@ export class TradingLogListComponent implements OnInit {
     if (gainPercent === undefined || gainPercent === null) {
       return 0;
     }
-    
+
     const gainStr = typeof gainPercent === 'string' ? gainPercent : String(gainPercent);
     return parseFloat(gainStr.replace('%', '').replace(/,/g, '')) || 0;
   }
@@ -263,7 +263,7 @@ export class TradingLogListComponent implements OnInit {
     if (value === undefined || value === null) {
       return 0;
     }
-    
+
     const valueStr = typeof value === 'string' ? value : String(value);
     return parseFloat(valueStr.replace(/[₹€$,\s]/g, '')) || 0;
   }
@@ -272,7 +272,7 @@ export class TradingLogListComponent implements OnInit {
     // Load from localStorage or use defaults
     const savedVisibility = localStorage.getItem('tradingLogColumnVisibility');
     let visibility: { [key: string]: boolean };
-    
+
     if (savedVisibility) {
       try {
         visibility = JSON.parse(savedVisibility);
@@ -288,7 +288,7 @@ export class TradingLogListComponent implements OnInit {
     } else {
       visibility = this.getDefaultVisibility();
     }
-    
+
     this.columnVisibility.set(visibility);
     this.updateDisplayedColumns();
   }
@@ -316,7 +316,7 @@ export class TradingLogListComponent implements OnInit {
     };
     this.columnVisibility.set(newVisibility);
     this.updateDisplayedColumns();
-    
+
     // Save to localStorage
     localStorage.setItem('tradingLogColumnVisibility', JSON.stringify(newVisibility));
   }
@@ -332,9 +332,6 @@ export class TradingLogListComponent implements OnInit {
     this.isLoading.set(true);
     this.googleSheetService.readTradingLogs().subscribe({
       next: (response: { data: TradingLogEntry[]; length: number }) => {
-        console.log('Trading logs response:', response);
-        console.log('Number of entries received:', response?.data?.length);
-
         if (response && response.data && Array.isArray(response.data)) {
           // Convert Buy Date strings to Date objects if needed and ensure % Gain is string
           const processedLogs = response.data
@@ -373,8 +370,6 @@ export class TradingLogListComponent implements OnInit {
             })
             .filter((entry: TradingLogEntry) => entry && entry.Stock); // Filter out invalid entries
 
-          console.log('Processed trading logs:', processedLogs.length);
-          console.log('Sample entry:', processedLogs[0]);
           this.tradingLogs.set(processedLogs);
         } else {
           this.tradingLogs.set([]);
@@ -463,7 +458,7 @@ export class TradingLogListComponent implements OnInit {
   viewTrade(trade: TradingLogEntry, index: number): void {
     // Find the actual row index in the trading logs array
     const rowIndex = this.tradingLogs().findIndex(t => t.id === trade.id) + 1; // +1 because sheet rows are 1-indexed
-    
+
     const dialogRef = this.dialog.open(TradeDetailsModalComponent, {
       width: '600px',
       maxWidth: '90vw',
@@ -482,7 +477,7 @@ export class TradingLogListComponent implements OnInit {
   editTrade(trade: TradingLogEntry, index: number): void {
     // Find the actual row index in the trading logs array
     const rowIndex = this.tradingLogs().findIndex(t => t.id === trade.id) + 1; // +1 because sheet rows are 1-indexed
-    
+
     this.router.navigate(['/trading-log/edit', trade.id], {
       state: { trade, rowIndex },
     });
@@ -491,7 +486,7 @@ export class TradingLogListComponent implements OnInit {
   deleteTrade(trade: TradingLogEntry, index: number): void {
     // Find the actual row index in the trading logs array
     const rowIndex = this.tradingLogs().findIndex(t => t.id === trade.id) + 1; // +1 because sheet rows are 1-indexed
-    
+
     const dialogRef = this.dialog.open(DialogConfirmationComponent, {
       data: `Are you sure you want to delete the trade for ${trade.Stock}?`,
       width: '400px',

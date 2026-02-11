@@ -74,15 +74,15 @@ interface ActiveTrade {
 })
 export class ProfitBookingFormComponent implements OnInit {
   profitBookingForm: FormGroup;
-  
+
   // Active trades for dropdown
   private _activeTrades: ActiveTrade[] = [];
   selectedTrade: ActiveTrade | null = null;
-  
+
   get activeTrades(): ActiveTrade[] {
     return Array.isArray(this._activeTrades) ? this._activeTrades : [];
   }
-  
+
   // Calculated fields (read-only)
   calculatedFields = {
     sellValue: 0,
@@ -115,26 +115,26 @@ export class ProfitBookingFormComponent implements OnInit {
       'Base Currency': ['INR', Validators.required], // Default to INR for reporting
       Notes: [''],
     });
-    
+
   }
 
   ngOnInit(): void {
     this.loadActiveTrades();
-    
+
     // Watch for trade selection changes
     this.profitBookingForm.get('Trade ID')?.valueChanges.subscribe(() => {
       this.onTradeSelectionChange();
     });
-    
+
     // Watch for quantity and price changes to recalculate
     this.profitBookingForm.get('Quantity Sold')?.valueChanges.subscribe(() => {
       this.calculateFields();
     });
-    
+
     this.profitBookingForm.get('Sell Price')?.valueChanges.subscribe(() => {
       this.calculateFields();
     });
-    
+
     this.profitBookingForm.get('Sell Date')?.valueChanges.subscribe(() => {
       this.calculateFields();
     });
@@ -144,7 +144,6 @@ export class ProfitBookingFormComponent implements OnInit {
     this.loaderService.show();
     this.googleSheetService.readActiveTrades().subscribe({
       next: (response) => {
-        console.log('Active trades response:', response);
         // Ensure response.data is an array
         if (response && Array.isArray(response.data)) {
           this._activeTrades = response.data;
@@ -155,7 +154,6 @@ export class ProfitBookingFormComponent implements OnInit {
           console.warn('Unexpected response format:', response);
           this._activeTrades = [];
         }
-        console.log('Active trades array:', this._activeTrades);
         this.loaderService.hide();
         if (this._activeTrades.length === 0) {
           this.snackBar.open('No active trades found', 'Close', { duration: 3000 });
@@ -175,7 +173,7 @@ export class ProfitBookingFormComponent implements OnInit {
     if (tradeId) {
       this.selectedTrade = this._activeTrades.find(t => t.id === parseInt(String(tradeId))) || null;
       this.calculateFields();
-      
+
       // Set max quantity validation
       if (this.selectedTrade) {
         const maxQty = this.selectedTrade.Qty || 0;
@@ -203,12 +201,12 @@ export class ProfitBookingFormComponent implements OnInit {
     const quantitySold = parseInt(String(quantitySoldValue || 0)) || 0;
     const buyPrice = parseFloat(String(this.selectedTrade['Buy Price'] || 0)) || 0;
     const originalQty = parseInt(String(this.selectedTrade.Qty || 0)) || 0;
-    
+
     // Parse dates
     const sellDate = this.profitBookingForm.get('Sell Date')?.value;
     const buyDateStr = this.selectedTrade['Buy Date'];
     let buyDate: Date;
-    
+
     if (buyDateStr instanceof Date) {
       buyDate = buyDateStr;
     } else if (typeof buyDateStr === 'string') {
@@ -216,22 +214,22 @@ export class ProfitBookingFormComponent implements OnInit {
     } else {
       buyDate = new Date();
     }
-    
+
     const sellDateObj = sellDate instanceof Date ? sellDate : new Date(sellDate);
-    
+
     // Calculate fields
     const sellValue = sellPrice * quantitySold;
     const buyValue = buyPrice * quantitySold;
     const profitLossAmount = sellValue - buyValue;
     const profitLossPercent = buyValue !== 0 ? (profitLossAmount / buyValue) * 100 : 0;
-    
+
     // Calculate holding period in days
     const holdingPeriod = Math.floor((sellDateObj.getTime() - buyDate.getTime()) / (1000 * 60 * 60 * 24));
-    
+
     // Calculate remaining
     const remainingQuantity = originalQty - quantitySold;
     const remainingBuyValue = buyPrice * remainingQuantity;
-    
+
     this.calculatedFields = {
       sellValue,
       buyValue,
@@ -279,7 +277,7 @@ export class ProfitBookingFormComponent implements OnInit {
     const formValue = this.profitBookingForm.value;
     const selectedTradeId = parseInt(String(formValue['Trade ID']));
     const selectedTrade = this._activeTrades.find(t => t.id === selectedTradeId);
-    
+
     if (!selectedTrade) {
       this.snackBar.open('Please select a valid trade', 'Close', { duration: 3000 });
       return;

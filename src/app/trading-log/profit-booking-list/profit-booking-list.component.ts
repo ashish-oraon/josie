@@ -63,15 +63,15 @@ interface ProfitBookingEntry {
 export class ProfitBookingListComponent implements OnInit {
   profitBookings = signal<ProfitBookingEntry[]>([]);
   isLoading = signal<boolean>(false);
-  
+
   // Filter state
   selectedExchange = signal<string>('all');
   selectedOwner = signal<string>('all');
-  
+
   // Master data for filters
   exchanges: any[] = [];
   accountOwners: any[] = [];
-  
+
   // Displayed columns
   displayedColumns: string[] = [
     'Stock',
@@ -85,20 +85,20 @@ export class ProfitBookingListComponent implements OnInit {
     'Exchange',
     'Account Owner',
   ];
-  
+
   // Summary statistics (computed) - using INR converted values
   summaryStats = computed(() => {
     const bookings = this.profitBookings();
     const filtered = this.getFilteredBookings();
-    
+
     // Always use INR converted values for accurate cross-currency comparison
     const totalProfit = filtered.reduce((sum: number, booking: ProfitBookingEntry) => {
       // Get original profit amount
       const originalProfit = parseFloat(String(booking['Profit/Loss Amount'] || 0));
-      
+
       // Prioritize INR converted value if available
       const profitInrValue: any = booking['Profit/Loss Amount (INR)'];
-      
+
       // Check if INR value exists and is a valid number
       if (profitInrValue !== undefined && profitInrValue !== null) {
         // Skip empty strings
@@ -107,10 +107,10 @@ export class ProfitBookingListComponent implements OnInit {
           // Fall through to use original profit
         } else {
           // Convert to number if it's a string, or use directly if it's already a number
-          const profitInr = typeof profitInrValue === 'number' 
-            ? profitInrValue 
+          const profitInr = typeof profitInrValue === 'number'
+            ? profitInrValue
             : parseFloat(profitInrStr);
-          
+
           // Use INR value if it's valid and not NaN
           // If both are 0, use INR (0). If INR is 0 but original is not, use original (conversion missing)
           if (!isNaN(profitInr) && isFinite(profitInr)) {
@@ -122,61 +122,38 @@ export class ProfitBookingListComponent implements OnInit {
           }
         }
       }
-      
+
       // Fallback: Use original profit
       // For India exchange, original profit is already in INR
       // For other exchanges, we use original (less accurate but better than 0)
       return sum + originalProfit;
     }, 0);
-    
-    // Debug log to help troubleshoot
-    console.log('Total Profit Calculation:', {
-      totalProfit,
-      filteredCount: filtered.length,
-      bookings: filtered.map(b => ({
-        stock: b.Stock,
-        exchange: b.Exchange,
-        profitOriginal: b['Profit/Loss Amount'],
-        profitInr: b['Profit/Loss Amount (INR)'],
-        usedValue: (() => {
-          const profitInr: any = b['Profit/Loss Amount (INR)'];
-          if (profitInr !== undefined && profitInr !== null) {
-            const profitInrStr = String(profitInr);
-            if (profitInrStr.trim() === '') {
-              return b['Profit/Loss Amount'];
-            }
-            const profitInrNum = typeof profitInr === 'number' ? profitInr : parseFloat(profitInrStr);
-            return isNaN(profitInrNum) ? b['Profit/Loss Amount'] : profitInrNum;
-          }
-          return b['Profit/Loss Amount'];
-        })()
-      }))
-    });
-    
+
+
     const totalBookings = filtered.length;
     const profitableBookings = filtered.filter(b => {
       // Use INR converted value for accurate comparison
       const profitInrStr = String(b['Profit/Loss Amount (INR)'] || '');
-      const profitInr = profitInrStr !== '' && profitInrStr !== 'null' && profitInrStr !== 'undefined' 
-        ? parseFloat(profitInrStr) 
+      const profitInr = profitInrStr !== '' && profitInrStr !== 'null' && profitInrStr !== 'undefined'
+        ? parseFloat(profitInrStr)
         : parseFloat(String(b['Profit/Loss Amount'] || 0));
       return profitInr > 0;
     }).length;
-    
+
     const avgProfitPercent = filtered.length > 0
       ? filtered.reduce((sum, booking) => {
           const percent = parseFloat(String(booking['Profit/Loss %'] || 0));
           return sum + percent;
         }, 0) / filtered.length
       : 0;
-    
+
     const avgHoldingPeriod = filtered.length > 0
       ? filtered.reduce((sum, booking) => {
           const days = parseInt(String(booking['Holding Period'] || 0));
           return sum + days;
         }, 0) / filtered.length
       : 0;
-    
+
     return {
       totalProfit,
       totalBookings,
@@ -186,7 +163,7 @@ export class ProfitBookingListComponent implements OnInit {
       avgHoldingPeriod: Math.round(avgHoldingPeriod),
     };
   });
-  
+
   filteredBookings = computed(() => {
     return this.getFilteredBookings();
   });
@@ -236,23 +213,23 @@ export class ProfitBookingListComponent implements OnInit {
             try {
               // Check if INR columns exist in the entry (for older bookings without currency conversion)
               const profitInrRaw = entry['Profit/Loss Amount (INR)'];
-              const hasInrConversion = entry.hasOwnProperty('Profit/Loss Amount (INR)') && 
-                                       profitInrRaw !== undefined && 
-                                       profitInrRaw !== null && 
+              const hasInrConversion = entry.hasOwnProperty('Profit/Loss Amount (INR)') &&
+                                       profitInrRaw !== undefined &&
+                                       profitInrRaw !== null &&
                                        (typeof profitInrRaw !== 'string' || profitInrRaw.trim() !== '');
-              
+
               const buyValueInrRaw = entry['Buy Value (INR)'];
-              const hasBuyValueInr = entry.hasOwnProperty('Buy Value (INR)') && 
-                                    buyValueInrRaw !== undefined && 
-                                    buyValueInrRaw !== null && 
+              const hasBuyValueInr = entry.hasOwnProperty('Buy Value (INR)') &&
+                                    buyValueInrRaw !== undefined &&
+                                    buyValueInrRaw !== null &&
                                     (typeof buyValueInrRaw !== 'string' || buyValueInrRaw.trim() !== '');
-              
+
               const sellValueInrRaw = entry['Sell Value (INR)'];
-              const hasSellValueInr = entry.hasOwnProperty('Sell Value (INR)') && 
-                                     sellValueInrRaw !== undefined && 
-                                     sellValueInrRaw !== null && 
+              const hasSellValueInr = entry.hasOwnProperty('Sell Value (INR)') &&
+                                     sellValueInrRaw !== undefined &&
+                                     sellValueInrRaw !== null &&
                                      (typeof sellValueInrRaw !== 'string' || sellValueInrRaw.trim() !== '');
-              
+
               const processedEntry = {
                 ...entry,
                 id: entry.id || index + 1,
@@ -262,7 +239,7 @@ export class ProfitBookingListComponent implements OnInit {
                 'Profit/Loss Amount': parseFloat(String(entry['Profit/Loss Amount'] || 0)),
                 'Profit/Loss %': parseFloat(String(entry['Profit/Loss %'] || 0)),
                 'Holding Period': parseInt(String(entry['Holding Period'] || 0)),
-                'Profit/Loss Amount (INR)': hasInrConversion 
+                'Profit/Loss Amount (INR)': hasInrConversion
                   ? parseFloat(String(profitInrRaw))
                   : undefined, // Keep as undefined if column doesn't exist
                 'Buy Value (INR)': hasBuyValueInr
@@ -272,12 +249,7 @@ export class ProfitBookingListComponent implements OnInit {
                   ? parseFloat(String(sellValueInrRaw))
                   : undefined,
               } as ProfitBookingEntry;
-              
-              // Debug: Log Exchange value for Germany trades
-              if (processedEntry.Exchange && processedEntry.Exchange.toLowerCase().includes('germany')) {
-                console.log('Profit booking entry Exchange:', processedEntry.Exchange, 'Stock:', processedEntry.Stock, 'Sell Price:', processedEntry['Sell Price']);
-              }
-              
+
               return processedEntry;
             } catch (error) {
               console.error('Error processing booking:', entry, error);
@@ -291,7 +263,7 @@ export class ProfitBookingListComponent implements OnInit {
               } as ProfitBookingEntry;
             }
           }).filter((entry: ProfitBookingEntry) => entry && entry.Stock);
-          
+
           this.profitBookings.set(processedBookings);
         } else {
           this.profitBookings.set([]);
@@ -313,10 +285,10 @@ export class ProfitBookingListComponent implements OnInit {
     if (!Array.isArray(bookings)) {
       return [];
     }
-    
+
     const exchangeFilter = this.selectedExchange();
     const ownerFilter = this.selectedOwner();
-    
+
     return bookings.filter(booking => {
       const matchesExchange = !exchangeFilter || exchangeFilter === 'all' || booking.Exchange === exchangeFilter;
       const matchesOwner = !ownerFilter || ownerFilter === 'all' || booking['Account Owner'] === ownerFilter;
@@ -346,7 +318,6 @@ export class ProfitBookingListComponent implements OnInit {
     // Handle various possible exchange name formats
     if (exchangeLower === 'india' || exchangeLower.includes('india')) return '₹';
     if (exchangeLower === 'germany' || exchangeLower.includes('germany')) {
-      console.log('getCurrencySymbol: Exchange is Germany, returning €');
       return '€';
     }
     if (exchangeLower === 'us' || exchangeLower === 'usa' || exchangeLower.includes('us')) return '$';
