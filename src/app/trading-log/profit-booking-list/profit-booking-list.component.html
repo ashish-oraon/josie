@@ -1,0 +1,226 @@
+<div class="profit-booking-container">
+  <mat-card>
+    <mat-card-header>
+      <div mat-card-avatar>
+        <button mat-icon-button (click)="goBack()">
+          <mat-icon>arrow_back</mat-icon>
+        </button>
+      </div>
+      <mat-card-title>
+        <mat-icon>monetization_on</mat-icon>
+        Profit Bookings Report
+      </mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <!-- Summary Cards -->
+      <div class="summary-cards">
+        <mat-card class="summary-card profit-card">
+          <mat-card-content>
+            <div class="summary-icon profit-icon">
+              <mat-icon>trending_up</mat-icon>
+            </div>
+            <div class="summary-content">
+              <h3>Total Profit/Loss (INR)</h3>
+              <div class="summary-value" [class]="getProfitClass(summaryStats().totalProfit)">
+                {{ formatCurrency(summaryStats().totalProfit, 'India') }}
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <mat-card class="summary-card">
+          <mat-card-content>
+            <div class="summary-icon">
+              <mat-icon>receipt_long</mat-icon>
+            </div>
+            <div class="summary-content">
+              <h3>Total Bookings</h3>
+              <div class="summary-value">{{ summaryStats().totalBookings }}</div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <mat-card class="summary-card success-card">
+          <mat-card-content>
+            <div class="summary-icon success-icon">
+              <mat-icon>check_circle</mat-icon>
+            </div>
+            <div class="summary-content">
+              <h3>Profitable</h3>
+              <div class="summary-value">{{ summaryStats().profitableBookings }}</div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <mat-card class="summary-card warning-card">
+          <mat-card-content>
+            <div class="summary-icon warning-icon">
+              <mat-icon>cancel</mat-icon>
+            </div>
+            <div class="summary-content">
+              <h3>Loss Making</h3>
+              <div class="summary-value">{{ summaryStats().lossBookings }}</div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <mat-card class="summary-card">
+          <mat-card-content>
+            <div class="summary-icon">
+              <mat-icon>percent</mat-icon>
+            </div>
+            <div class="summary-content">
+              <h3>Avg Profit %</h3>
+              <div class="summary-value" [class]="getProfitClass(summaryStats().avgProfitPercent)">
+                {{ summaryStats().avgProfitPercent.toFixed(2) }}%
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <mat-card class="summary-card">
+          <mat-card-content>
+            <div class="summary-icon">
+              <mat-icon>schedule</mat-icon>
+            </div>
+            <div class="summary-content">
+              <h3>Avg Holding Period</h3>
+              <div class="summary-value">{{ summaryStats().avgHoldingPeriod }} days</div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+
+      <!-- Filters Section -->
+      <div class="filters-section">
+        <mat-form-field class="filter-field">
+          <mat-label>Filter by Exchange</mat-label>
+          <mat-select [value]="selectedExchange()" (selectionChange)="onExchangeFilterChange($event.value)">
+            <mat-option value="all">All Exchanges</mat-option>
+            @for (exchange of exchanges; track exchange.id) {
+              <mat-option [value]="exchange.name">{{ exchange.name }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field class="filter-field">
+          <mat-label>Filter by Account Owner</mat-label>
+          <mat-select [value]="selectedOwner()" (selectionChange)="onOwnerFilterChange($event.value)">
+            <mat-option value="all">All Owners</mat-option>
+            @for (owner of accountOwners; track owner.id) {
+              <mat-option [value]="owner.name">{{ owner.name }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+
+        @if (selectedExchange() !== 'all' || selectedOwner() !== 'all') {
+          <button
+            mat-button
+            color="accent"
+            (click)="clearFilters()"
+            class="clear-filters-btn"
+          >
+            <mat-icon>clear</mat-icon>
+            Clear Filters
+          </button>
+        }
+      </div>
+
+      <!-- Loading State -->
+      @if (isLoading()) {
+        <div class="loading-container">
+          <mat-spinner [diameter]="50"></mat-spinner>
+          <p>Loading profit bookings...</p>
+        </div>
+      } @else if (filteredBookings().length === 0) {
+        <div class="no-data-container">
+          <mat-icon>info</mat-icon>
+          <p>
+            @if (selectedExchange() !== 'all' || selectedOwner() !== 'all') {
+              No profit bookings match the selected filters
+            } @else {
+              No profit bookings available
+            }
+          </p>
+        </div>
+      } @else {
+        <!-- Profit Bookings Table -->
+        <div class="table-container">
+          <table mat-table [dataSource]="filteredBookings()" class="profit-table">
+            <ng-container matColumnDef="Stock">
+              <th mat-header-cell *matHeaderCellDef class="col-stock">Stock</th>
+              <td mat-cell *matCellDef="let entry" class="col-stock">{{ entry.Stock }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="Sell Date">
+              <th mat-header-cell *matHeaderCellDef class="col-date">Sell Date</th>
+              <td mat-cell *matCellDef="let entry" class="col-date">
+                {{ formatDate(entry['Sell Date']) }}
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="Quantity Sold">
+              <th mat-header-cell *matHeaderCellDef class="col-qty">Qty Sold</th>
+              <td mat-cell *matCellDef="let entry" class="col-qty">{{ entry['Quantity Sold'] }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="Buy Price">
+              <th mat-header-cell *matHeaderCellDef class="col-price">Buy Price</th>
+              <td mat-cell *matCellDef="let entry" class="col-price">
+                {{ formatCurrency(entry['Buy Price'], entry.Exchange) }}
+                @if (entry['Buy Value (INR)'] && entry['Buy Value (INR)'] !== entry['Buy Value']) {
+                  <span class="original-currency">({{ formatCurrency(entry['Buy Value (INR)'] / entry['Quantity Sold'], 'India') }})</span>
+                }
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="Sell Price">
+              <th mat-header-cell *matHeaderCellDef class="col-price">Sell Price</th>
+              <td mat-cell *matCellDef="let entry" class="col-price">
+                {{ formatCurrency(entry['Sell Price'], entry.Exchange) }}
+                @if (entry['Sell Value (INR)'] && entry['Sell Value (INR)'] !== entry['Sell Value']) {
+                  <span class="original-currency">({{ formatCurrency(entry['Sell Value (INR)'] / entry['Quantity Sold'], 'India') }})</span>
+                }
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="Profit/Loss Amount">
+              <th mat-header-cell *matHeaderCellDef class="col-profit">Profit/Loss (INR)</th>
+              <td mat-cell *matCellDef="let entry" class="col-profit" [class]="getProfitClass(entry['Profit/Loss Amount (INR)'] || entry['Profit/Loss Amount'])">
+                {{ formatCurrency(entry['Profit/Loss Amount (INR)'] || entry['Profit/Loss Amount'], 'India') }}
+                @if (entry['Profit/Loss Amount (INR)'] && entry['Profit/Loss Amount (INR)'] !== entry['Profit/Loss Amount']) {
+                  <span class="original-currency">({{ formatCurrency(entry['Profit/Loss Amount'], entry.Exchange) }})</span>
+                }
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="Profit/Loss %">
+              <th mat-header-cell *matHeaderCellDef class="col-percent">Profit/Loss %</th>
+              <td mat-cell *matCellDef="let entry" class="col-percent" [class]="getProfitClass(entry['Profit/Loss %'])">
+                {{ entry['Profit/Loss %'].toFixed(2) }}%
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="Holding Period">
+              <th mat-header-cell *matHeaderCellDef class="col-period">Holding Period</th>
+              <td mat-cell *matCellDef="let entry" class="col-period">{{ entry['Holding Period'] }} days</td>
+            </ng-container>
+
+            <ng-container matColumnDef="Exchange">
+              <th mat-header-cell *matHeaderCellDef class="col-exchange">Exchange</th>
+              <td mat-cell *matCellDef="let entry" class="col-exchange">{{ entry.Exchange }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="Account Owner">
+              <th mat-header-cell *matHeaderCellDef class="col-owner">Account Owner</th>
+              <td mat-cell *matCellDef="let entry" class="col-owner">{{ entry['Account Owner'] }}</td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+          </table>
+        </div>
+      }
+    </mat-card-content>
+  </mat-card>
+</div>

@@ -112,6 +112,7 @@ export class ProfitBookingFormComponent implements OnInit {
       'Sell Date': [new Date(), Validators.required],
       'Sell Price': ['', [Validators.required, Validators.min(0.01)]],
       'Quantity Sold': ['', [Validators.required, Validators.min(1)]],
+      'Base Currency': ['INR', Validators.required], // Default to INR for reporting
       Notes: [''],
     });
     
@@ -290,6 +291,7 @@ export class ProfitBookingFormComponent implements OnInit {
       'Sell Date': formValue['Sell Date'],
       'Sell Price': parseFloat(formValue['Sell Price']),
       'Quantity Sold': parseInt(formValue['Quantity Sold']),
+      baseCurrency: formValue['Base Currency'] || 'INR', // Base currency for reporting
       Notes: formValue['Notes'] || '',
     };
 

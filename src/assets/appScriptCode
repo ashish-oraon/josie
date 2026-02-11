@@ -117,9 +117,93 @@ function initializeTradingLogSheets() {
     profitBookings.appendRow([
       'ID', 'Trade ID', 'Stock', 'Sell Date', 'Sell Price', 'Quantity Sold', 
       'Buy Price', 'Buy Value', 'Sell Value', 'Profit/Loss Amount', 'Profit/Loss %', 
-      'Holding Period', 'Notes', 'Account Owner', 'Exchange'
+      'Holding Period', 'Notes', 'Account Owner', 'Exchange', 'Base Currency',
+      'EUR to INR Rate', 'USD to INR Rate', 'EUR to USD Rate',
+      'Buy Value (INR)', 'Sell Value (INR)', 'Profit/Loss Amount (INR)'
     ]);
   }
+}
+
+function getCurrencyExchangeRate(fromCurrency, toCurrency) {
+  // Normalize currency names
+  const from = fromCurrency.toUpperCase().trim();
+  const to = toCurrency.toUpperCase().trim();
+  
+  // If same currency, return 1
+  if (from === to) {
+    return 1;
+  }
+  
+  // Get exchange rate using Google Finance
+  // Use a temporary cell that's unlikely to have data (Z9999) to avoid overwriting user data
+  const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+  const tempCell = spreadsheet.getRange('Z9999');
+  
+  // Store original value/formula if any
+  const originalValue = tempCell.getValue();
+  const originalFormula = tempCell.getFormula();
+  const hadFormula = originalFormula !== '';
+  
+  let rate = 1;
+  try {
+    let formula = '';
+    if (from === 'EUR' && to === 'INR') {
+      formula = '=GOOGLEFINANCE("CURRENCY:EURINR")';
+    } else if (from === 'EUR' && to === 'USD') {
+      formula = '=GOOGLEFINANCE("CURRENCY:EURUSD")';
+    } else if (from === 'USD' && to === 'INR') {
+      formula = '=GOOGLEFINANCE("CURRENCY:USDINR")';
+    } else if (from === 'USD' && to === 'EUR') {
+      formula = '=GOOGLEFINANCE("CURRENCY:USDEUR")';
+    } else if (from === 'INR' && to === 'EUR') {
+      formula = '=GOOGLEFINANCE("CURRENCY:INREUR")';
+    } else if (from === 'INR' && to === 'USD') {
+      formula = '=GOOGLEFINANCE("CURRENCY:INRUSD")';
+    }
+    
+    if (formula) {
+      // Set formula and wait for calculation
+      tempCell.setFormula(formula);
+      SpreadsheetApp.flush(); // Force calculation
+      
+      // Get the calculated value
+      const calculatedValue = tempCell.getValue();
+      rate = parseFloat(calculatedValue) || 1;
+      
+      // Restore original value/formula
+      if (hadFormula) {
+        tempCell.setFormula(originalFormula);
+      } else if (originalValue !== '') {
+        tempCell.setValue(originalValue);
+      } else {
+        tempCell.clearContent();
+      }
+    }
+  } catch (error) {
+    Logger.log('Error fetching exchange rate: ' + error);
+    // Try to restore original value/formula on error
+    try {
+      if (hadFormula) {
+        tempCell.setFormula(originalFormula);
+      } else if (originalValue !== '') {
+        tempCell.setValue(originalValue);
+      } else {
+        tempCell.clearContent();
+      }
+    } catch (restoreError) {
+      Logger.log('Error restoring cell value: ' + restoreError);
+    }
+    // Return 1 if error (no conversion)
+    rate = 1;
+  }
+  
+  return rate || 1;
+}
+
+function convertCurrency(amount, fromCurrency, toCurrency) {
+  if (!amount || amount === 0) return 0;
+  const rate = getCurrencyExchangeRate(fromCurrency, toCurrency);
+  return amount * rate;
 }
 
 const name = getSheetNameAccordingToMonthAndYear();
@@ -1041,6 +1125,28 @@ function createProfitBooking(data) {
   const profitLossPercent = buyValue !== 0 ? (profitLossAmount / buyValue) * 100 : 0;
   const holdingPeriod = Math.floor((sellDate - buyDate) / (1000 * 60 * 60 * 24)); // Days
   
+  // Get exchange currency from trade
+  const exchangeCurrency = (trade.Exchange || 'India').toLowerCase().trim();
+  let currency = 'INR';
+  if (exchangeCurrency === 'germany') {
+    currency = 'EUR';
+  } else if (exchangeCurrency === 'us') {
+    currency = 'USD';
+  }
+  
+  // Base currency for reporting (default: INR)
+  const baseCurrency = data.baseCurrency || 'INR';
+  
+  // Get exchange rates
+  const eurToInrRate = getCurrencyExchangeRate('EUR', 'INR');
+  const usdToInrRate = getCurrencyExchangeRate('USD', 'INR');
+  const eurToUsdRate = getCurrencyExchangeRate('EUR', 'USD');
+  
+  // Convert amounts to base currency (INR)
+  const buyValueInr = convertCurrency(buyValue, currency, 'INR');
+  const sellValueInr = convertCurrency(sellValue, currency, 'INR');
+  const profitLossAmountInr = sellValueInr - buyValueInr;
+  
   // Create profit booking entry
   const nextRow = profitBookingsSheet.getLastRow() + 1;
   profitBookingsSheet.appendRow([
@@ -1051,14 +1157,21 @@ function createProfitBooking(data) {
     sellPrice, // Sell Price
     quantitySold, // Quantity Sold
     buyPrice, // Buy Price
-    buyValue.toFixed(2), // Buy Value
-    sellValue.toFixed(2), // Sell Value
-    profitLossAmount.toFixed(2), // Profit/Loss Amount
+    buyValue.toFixed(2), // Buy Value (original currency)
+    sellValue.toFixed(2), // Sell Value (original currency)
+    profitLossAmount.toFixed(2), // Profit/Loss Amount (original currency)
     profitLossPercent.toFixed(2), // Profit/Loss %
     holdingPeriod, // Holding Period
     data.Notes || '', // Notes
     trade['Account Owner'] || '', // Account Owner
-    trade.Exchange || '' // Exchange
+    trade.Exchange || '', // Exchange
+    baseCurrency, // Base Currency
+    eurToInrRate.toFixed(4), // EUR to INR Rate
+    usdToInrRate.toFixed(4), // USD to INR Rate
+    eurToUsdRate.toFixed(4), // EUR to USD Rate
+    buyValueInr.toFixed(2), // Buy Value (INR)
+    sellValueInr.toFixed(2), // Sell Value (INR)
+    profitLossAmountInr.toFixed(2) // Profit/Loss Amount (INR)
   ]);
   
   // Update original trade

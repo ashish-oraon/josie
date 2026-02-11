@@ -9,7 +9,7 @@ export const environment = {
   apiUrlLast180825:
     'https://script.google.com/macros/s/AKfycbxdFM3F6AQ5NSJ_HIGVI0Evcj2u2voc2Wo06YlHKcIY3yAo8Kbfu2aBtASYhyLEqI5d/exec',
   apiUrl:
-    'https://script.google.com/macros/s/AKfycbxQ-0D8jM0Om-6hN0B_X81GsKHlcvbF5Wi7KHBkX1lgdrZFuaSPuhYf4mLWDgiOQSGp/exec',
+    'https://script.google.com/macros/s/AKfycbz5dXMKlQcm3NsVUHzy47PhMvyAzSOWUn_2D00BX-FqGM0dlMTqcX2t2u_L7s3e9sSa/exec',
   previousMonthsToShow: 4,
   apiVersion: 'v1',
   currency: 'EUR',

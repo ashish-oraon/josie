@@ -13,6 +13,7 @@ import { TradingLogComponent } from './trading-log/trading-log.component';
 import { TradingLogListComponent } from './trading-log/trading-log-list/trading-log-list.component';
 import { TradingLogFormComponent } from './trading-log/trading-log-form/trading-log-form.component';
 import { ProfitBookingFormComponent } from './trading-log/profit-booking-form/profit-booking-form.component';
+import { ProfitBookingListComponent } from './trading-log/profit-booking-list/profit-booking-list.component';
 
 export const routes: Routes = [
   {
@@ -85,6 +86,10 @@ export const routes: Routes = [
       {
         path: 'profit-booking',
         component: ProfitBookingFormComponent,
+      },
+      {
+        path: 'profit-bookings',
+        component: ProfitBookingListComponent,
       },
     ],
   },

@@ -99,6 +99,18 @@
 
       <div class="form-row">
         <mat-form-field class="form-field">
+          <mat-label>Base Currency for Reporting</mat-label>
+          <mat-select formControlName="Base Currency" required>
+            <mat-option value="INR">INR (Indian Rupee)</mat-option>
+            <mat-option value="USD">USD (US Dollar)</mat-option>
+            <mat-option value="EUR">EUR (Euro)</mat-option>
+          </mat-select>
+          <mat-hint>All profits will be converted to this currency for reporting</mat-hint>
+        </mat-form-field>
+      </div>
+
+      <div class="form-row">
+        <mat-form-field class="form-field">
           <mat-label>Notes</mat-label>
           <textarea
             matInput
