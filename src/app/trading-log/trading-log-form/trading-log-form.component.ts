@@ -110,7 +110,7 @@ export class TradingLogFormComponent implements OnInit {
       Stock: ['', Validators.required],
       'Buy Date': [new Date(), Validators.required],
       'Buy Price': [null, [Validators.required, Validators.min(0.01)]],
-      Qty: [null, [Validators.required, Validators.min(1)]],
+      Qty: [null, [Validators.required, Validators.min(0.01)]],
       CMP: [null],
       'Strategy Name': ['', Validators.required],
       'Target Price': [null, [Validators.required, Validators.min(0.01)]],
@@ -286,7 +286,7 @@ export class TradingLogFormComponent implements OnInit {
   calculateFields(): void {
     const formValue = this.tradingLogForm.value;
     const buyPrice = parseFloat(formValue['Buy Price']) || 0;
-    const qty = parseInt(formValue.Qty) || 0;
+    const qty = parseFloat(formValue.Qty) || 0;
     const cmp = parseFloat(formValue.CMP) || buyPrice;
     const targetPrice = parseFloat(formValue['Target Price']) || 0;
     const buyDate = formValue['Buy Date']
@@ -343,7 +343,7 @@ export class TradingLogFormComponent implements OnInit {
         Stock: (formValue.Stock || '').toUpperCase().trim(),
         'Buy Date': formValue['Buy Date'],
         'Buy Price': parseFloat(formValue['Buy Price']),
-        Qty: parseInt(formValue.Qty),
+        Qty: parseFloat(formValue.Qty),
         CMP: formValue.CMP ? parseFloat(formValue.CMP) : null,
         'Target Price': parseFloat(formValue['Target Price']),
       };

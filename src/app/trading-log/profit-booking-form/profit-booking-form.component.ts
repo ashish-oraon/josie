@@ -111,7 +111,7 @@ export class ProfitBookingFormComponent implements OnInit {
       'Trade ID': ['', Validators.required],
       'Sell Date': [new Date(), Validators.required],
       'Sell Price': ['', [Validators.required, Validators.min(0.01)]],
-      'Quantity Sold': ['', [Validators.required, Validators.min(1)]],
+      'Quantity Sold': ['', [Validators.required, Validators.min(0.01)]],
       'Base Currency': ['INR', Validators.required], // Default to INR for reporting
       Notes: [''],
     });
@@ -179,7 +179,7 @@ export class ProfitBookingFormComponent implements OnInit {
         const maxQty = this.selectedTrade.Qty || 0;
         this.profitBookingForm.get('Quantity Sold')?.setValidators([
           Validators.required,
-          Validators.min(1),
+          Validators.min(0.01),
           Validators.max(maxQty)
         ]);
         this.profitBookingForm.get('Quantity Sold')?.updateValueAndValidity();
@@ -198,9 +198,9 @@ export class ProfitBookingFormComponent implements OnInit {
     const sellPriceValue = this.profitBookingForm.get('Sell Price')?.value;
     const quantitySoldValue = this.profitBookingForm.get('Quantity Sold')?.value;
     const sellPrice = parseFloat(String(sellPriceValue || 0)) || 0;
-    const quantitySold = parseInt(String(quantitySoldValue || 0)) || 0;
+    const quantitySold = parseFloat(String(quantitySoldValue || 0)) || 0;
     const buyPrice = parseFloat(String(this.selectedTrade['Buy Price'] || 0)) || 0;
-    const originalQty = parseInt(String(this.selectedTrade.Qty || 0)) || 0;
+    const originalQty = parseFloat(String(this.selectedTrade.Qty || 0)) || 0;
 
     // Parse dates
     const sellDate = this.profitBookingForm.get('Sell Date')?.value;
@@ -288,7 +288,7 @@ export class ProfitBookingFormComponent implements OnInit {
       tradeRowIndex: selectedTradeId, // This is the row index in TradingLog sheet
       'Sell Date': formValue['Sell Date'],
       'Sell Price': parseFloat(formValue['Sell Price']),
-      'Quantity Sold': parseInt(formValue['Quantity Sold']),
+      'Quantity Sold': parseFloat(formValue['Quantity Sold']),
       baseCurrency: formValue['Base Currency'] || 'INR', // Base currency for reporting
       Notes: formValue['Notes'] || '',
     };

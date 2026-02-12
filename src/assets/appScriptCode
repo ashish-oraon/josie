@@ -677,7 +677,7 @@ function calculateTradingLogFields(trade) {
   // This function is used for initial calculations when creating/updating
   // Note: When CMP uses GOOGLEFINANCE formula, the sheet will calculate values automatically
   const buyPrice = parseFloat(trade['Buy Price']) || 0;
-  const qty = parseInt(trade.Qty) || 0;
+  const qty = parseFloat(trade.Qty) || 0;
   const cmp = parseFloat(trade.CMP) || buyPrice; // Default to Buy Price if CMP not provided (for initial calculation)
   const targetPrice = parseFloat(trade['Target Price']) || 0;
   const buyDate = trade['Buy Date'] instanceof Date
@@ -752,7 +752,7 @@ function readTradingLogs() {
     Stock: stock || '',
     'Buy Date': buyDate ? parseDateFromSheet(buyDate) : new Date(),
     'Buy Price': parseFloat(buyPrice) || 0,
-    Qty: parseInt(qty) || 0,
+    Qty: parseFloat(qty) || 0,
     'Buy Value': buyValue || '',
     CMP: parseFloat(cmp) || 0,
     'Current Value': currentValue || '',
@@ -860,7 +860,7 @@ function createTradingLog(data) {
     data.Stock || '', // Column C
     buyDate, // Column D
     parseFloat(data['Buy Price']) || 0, // Column E
-    parseInt(data.Qty) || 0, // Column F
+    parseFloat(data.Qty) || 0, // Column F
     calculated['Buy Value'], // Column G
     cmpValue, // Column H (CMP - formula or value)
     calculated['Current Value'], // Column I
@@ -933,7 +933,7 @@ function updateTradingLog(data) {
 
   // Calculate static fields
   const buyPrice = parseFloat(data['Buy Price']) || 0;
-  const qty = parseInt(data.Qty) || 0;
+  const qty = parseFloat(data.Qty) || 0;
   const buyValue = buyPrice * qty;
   const targetPrice = parseFloat(data['Target Price']) || 0;
   const targetValue = targetPrice * qty;
@@ -1098,8 +1098,8 @@ function createProfitBooking(data) {
     trade[header] = tradeRow[index];
   });
 
-  const originalQty = parseInt(trade.Qty) || 0;
-  const quantitySold = parseInt(data['Quantity Sold']) || 0;
+  const originalQty = parseFloat(trade.Qty) || 0;
+  const quantitySold = parseFloat(data['Quantity Sold']) || 0;
   const sellPrice = parseFloat(data['Sell Price']) || 0;
   const buyPrice = parseFloat(trade['Buy Price']) || 0;
 

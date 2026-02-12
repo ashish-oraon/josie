@@ -80,6 +80,7 @@
             matInput
             formControlName="Quantity Sold"
             type="number"
+            step="any"
             required
           />
           @if (selectedTrade) {
@@ -89,7 +90,7 @@
           <mat-error>Quantity sold is required</mat-error>
           }
           @if (profitBookingForm.get('Quantity Sold')?.hasError('min') && profitBookingForm.get('Quantity Sold')?.touched) {
-          <mat-error>Quantity must be at least 1</mat-error>
+          <mat-error>Quantity must be at least 0.01</mat-error>
           }
           @if (profitBookingForm.get('Quantity Sold')?.hasError('max') && profitBookingForm.get('Quantity Sold')?.touched) {
           <mat-error>Quantity cannot exceed available quantity ({{ selectedTrade.Qty }})</mat-error>
