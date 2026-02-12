@@ -7,6 +7,15 @@
       </mat-card-title>
       <div class="header-actions">
         <button
+          mat-icon-button
+          color="primary"
+          (click)="refreshData()"
+          [disabled]="isLoading()"
+          matTooltip="Refresh data from Google Sheets"
+        >
+          <mat-icon>refresh</mat-icon>
+        </button>
+        <button
           mat-raised-button
           color="accent"
           routerLink="/trading-log/profit-booking"

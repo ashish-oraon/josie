@@ -174,9 +174,14 @@ export class TradingLogListComponent implements OnInit {
     this.loadTradingLogs();
   }
 
-  loadMasterData(): void {
+  refreshData(): void {
+    this.loadMasterData(true);
+    this.loadTradingLogs(true);
+  }
+
+  loadMasterData(forceRefresh: boolean = false): void {
     // Load exchanges
-    this.googleSheetService.readExchanges().subscribe({
+    this.googleSheetService.readExchanges(forceRefresh).subscribe({
       next: (data) => {
         this.exchanges = Array.isArray(data) ? data : [];
       },
@@ -187,7 +192,7 @@ export class TradingLogListComponent implements OnInit {
     });
 
     // Load account owners
-    this.googleSheetService.readAccountOwners().subscribe({
+    this.googleSheetService.readAccountOwners(forceRefresh).subscribe({
       next: (data) => {
         this.accountOwners = Array.isArray(data) ? data : [];
       },
@@ -380,9 +385,9 @@ export class TradingLogListComponent implements OnInit {
     localStorage.setItem('tradingLogColumnVisibility', JSON.stringify(defaultVisibility));
   }
 
-  loadTradingLogs(): void {
+  loadTradingLogs(forceRefresh: boolean = false): void {
     this.isLoading.set(true);
-    this.googleSheetService.readTradingLogs().subscribe({
+    this.googleSheetService.readTradingLogs(forceRefresh).subscribe({
       next: (response: { data: TradingLogEntry[]; length: number }) => {
         if (response && response.data && Array.isArray(response.data)) {
           // Convert Buy Date strings to Date objects

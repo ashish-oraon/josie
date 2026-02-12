@@ -10,6 +10,17 @@
         <mat-icon>monetization_on</mat-icon>
         Profit Bookings Report
       </mat-card-title>
+      <div class="header-actions">
+        <button
+          mat-icon-button
+          color="primary"
+          (click)="refreshData()"
+          [disabled]="isLoading()"
+          matTooltip="Refresh data from Google Sheets"
+        >
+          <mat-icon>refresh</mat-icon>
+        </button>
+      </div>
     </mat-card-header>
     <mat-card-content>
       <!-- Summary Cards -->

@@ -226,9 +226,9 @@ export class ProfitBookingListComponent implements OnInit {
     localStorage.setItem('profitBookingColumnVisibility', JSON.stringify(defaultVisibility));
   }
 
-  loadMasterData(): void {
+  loadMasterData(forceRefresh: boolean = false): void {
     // Load exchanges
-    this.googleSheetService.readExchanges().subscribe({
+    this.googleSheetService.readExchanges(forceRefresh).subscribe({
       next: (data) => {
         this.exchanges = Array.isArray(data) ? data : [];
       },
@@ -239,7 +239,7 @@ export class ProfitBookingListComponent implements OnInit {
     });
 
     // Load account owners
-    this.googleSheetService.readAccountOwners().subscribe({
+    this.googleSheetService.readAccountOwners(forceRefresh).subscribe({
       next: (data) => {
         this.accountOwners = Array.isArray(data) ? data : [];
       },
@@ -250,10 +250,15 @@ export class ProfitBookingListComponent implements OnInit {
     });
   }
 
-  loadProfitBookings(): void {
+  refreshData(): void {
+    this.loadMasterData(true);
+    this.loadProfitBookings(true);
+  }
+
+  loadProfitBookings(forceRefresh: boolean = false): void {
     this.isLoading.set(true);
     this.loaderService.show();
-    this.googleSheetService.readProfitBookings().subscribe({
+    this.googleSheetService.readProfitBookings(forceRefresh).subscribe({
       next: (response) => {
         if (response && response.data && Array.isArray(response.data)) {
           const processedBookings = response.data.map((entry: any, index: number) => {
