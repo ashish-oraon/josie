@@ -148,6 +148,15 @@ mat-card-title {
   text-align: left;
 }
 
+.trading-table tr.highlight-low-gain {
+  background-color: rgba(244, 67, 54, 0.1); // Light red background
+  border-left: 3px solid #f44336; // Red left border
+}
+
+.trading-table tr.highlight-low-gain:hover {
+  background-color: rgba(244, 67, 54, 0.15); // Slightly darker on hover
+}
+
 // Column-specific widths using percentages
 .col-stock {
   width: 8%;

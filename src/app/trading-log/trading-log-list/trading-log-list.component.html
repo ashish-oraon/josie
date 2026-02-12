@@ -90,6 +90,19 @@
           <mat-icon>{{ sortOrder() === 'asc' ? 'arrow_upward' : 'arrow_downward' }}</mat-icon>
         </button>
 
+        <mat-form-field class="filter-field">
+          <mat-label>Highlight for &lt;</mat-label>
+          <input
+            matInput
+            type="number"
+            step="any"
+            placeholder="e.g., 10"
+            [value]="remainingGainThreshold() ?? ''"
+            (input)="onThresholdChange($any($event.target).value)"
+          />
+          <span matSuffix>%</span>
+        </mat-form-field>
+
         <button
           mat-button
           [matMenuTriggerFor]="columnMenu"
@@ -124,7 +137,7 @@
           }
         </mat-menu>
 
-        @if (selectedExchange() !== 'all' || selectedOwner() !== 'all' || selectedStatus() !== 'Active') {
+        @if (selectedExchange() !== 'all' || selectedOwner() !== 'all' || selectedStatus() !== 'Active' || remainingGainThreshold() !== null) {
           <button
             mat-button
             color="accent"
@@ -275,7 +288,11 @@
             </ng-container>
 
             <tr mat-header-row *matHeaderRowDef="displayedColumns()"></tr>
-            <tr mat-row *matRowDef="let row; columns: displayedColumns()"></tr>
+            <tr
+              mat-row
+              *matRowDef="let row; columns: displayedColumns()"
+              [class.highlight-low-gain]="shouldHighlightRow(row)"
+            ></tr>
           </table>
         </div>
       }

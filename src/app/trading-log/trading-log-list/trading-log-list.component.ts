@@ -16,6 +16,7 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatSelectModule } from '@angular/material/select';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { environment } from '../../../environments/environment';
@@ -64,6 +65,7 @@ interface TradingLogEntry {
     MatDividerModule,
     MatSelectModule,
     MatFormFieldModule,
+    MatInputModule,
     FormsModule,
     ReactiveFormsModule,
   ],
@@ -143,6 +145,9 @@ export class TradingLogListComponent implements OnInit {
   selectedSortBy = signal<string>('% Gain');
   sortOrder = signal<'asc' | 'desc'>('desc');
 
+  // Highlight threshold for Remaining Gain
+  remainingGainThreshold = signal<number | null>(null);
+
   // Master data for filters
   exchanges: any[] = [];
   accountOwners: any[] = [];
@@ -150,6 +155,7 @@ export class TradingLogListComponent implements OnInit {
   // Sort options
   sortOptions = [
     { value: '% Gain', label: '% Gain/Loss' },
+    { value: 'Remaining Gain', label: 'Remaining Gain' },
     { value: 'Buy Date', label: 'Buy Date' },
     { value: 'Stock', label: 'Stock Name' },
     { value: 'Current Value', label: 'Current Value' },
@@ -204,6 +210,25 @@ export class TradingLogListComponent implements OnInit {
     this.selectedExchange.set('all');
     this.selectedOwner.set('all');
     this.selectedStatus.set('Active');
+    this.remainingGainThreshold.set(null);
+  }
+
+  onThresholdChange(value: string): void {
+    const numValue = parseFloat(value);
+    if (!isNaN(numValue) && numValue !== null) {
+      this.remainingGainThreshold.set(numValue);
+    } else {
+      this.remainingGainThreshold.set(null);
+    }
+  }
+
+  shouldHighlightRow(entry: TradingLogEntry): boolean {
+    const threshold = this.remainingGainThreshold();
+    if (threshold === null || threshold === undefined) {
+      return false;
+    }
+    const remainingGain = this.parsePercentGain(entry['Remaining Gain']);
+    return remainingGain < threshold;
   }
 
   onStatusFilterChange(value: string): void {
@@ -216,7 +241,7 @@ export class TradingLogListComponent implements OnInit {
       this.sortOrder.set(this.sortOrder() === 'asc' ? 'desc' : 'asc');
     } else {
       this.selectedSortBy.set(sortBy);
-      // Default order: desc for % Gain and Current Value, asc for Stock Name, desc for Buy Date
+      // Default order: desc for % Gain, Remaining Gain and Current Value, asc for Stock Name, desc for Buy Date
       const defaultOrder = sortBy === 'Stock' ? 'asc' : 'desc';
       this.sortOrder.set(defaultOrder);
     }
@@ -236,6 +261,12 @@ export class TradingLogListComponent implements OnInit {
           const gainA = this.parsePercentGain(a['% Gain']);
           const gainB = this.parsePercentGain(b['% Gain']);
           comparison = gainA - gainB;
+          break;
+
+        case 'Remaining Gain':
+          const remainingGainA = this.parsePercentGain(a['Remaining Gain']);
+          const remainingGainB = this.parsePercentGain(b['Remaining Gain']);
+          comparison = remainingGainA - remainingGainB;
           break;
 
         case 'Buy Date':
