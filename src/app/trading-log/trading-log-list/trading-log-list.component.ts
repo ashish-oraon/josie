@@ -75,6 +75,7 @@ interface TradingLogEntry {
 export class TradingLogListComponent implements OnInit {
   // All available columns
   allColumns: { key: string; label: string; defaultVisible: boolean }[] = [
+    { key: 'Row No', label: 'Sl', defaultVisible: true },
     { key: 'Stock', label: 'Stock', defaultVisible: true },
     { key: 'Buy Date', label: 'Buy Date', defaultVisible: true },
     { key: 'Buy Price', label: 'Buy Price', defaultVisible: true },
@@ -111,10 +112,10 @@ export class TradingLogListComponent implements OnInit {
     let filtered = logs.filter(log => {
       const matchesExchange = !exchangeFilter || exchangeFilter === 'all' || log.Exchange === exchangeFilter;
       const matchesOwner = !ownerFilter || ownerFilter === 'all' || log['Account Owner'] === ownerFilter;
-      
+
       const logStatus = log.Status || 'Active';
       let matchesStatus = false;
-      
+
       if (!statusFilter || statusFilter === 'all') {
         matchesStatus = true;
       } else if (statusFilter === 'Active') {
@@ -123,7 +124,7 @@ export class TradingLogListComponent implements OnInit {
       } else {
         matchesStatus = logStatus === statusFilter;
       }
-      
+
       return matchesExchange && matchesOwner && matchesStatus;
     });
 
@@ -402,7 +403,7 @@ export class TradingLogListComponent implements OnInit {
                     ? entry['Buy Date']
                     : new Date(entry['Buy Date']),
                   // Keep percentage values as numbers (they're decimals from percentage-formatted columns)
-                  '% Gain': entry['% Gain'] !== undefined && entry['% Gain'] !== null 
+                  '% Gain': entry['% Gain'] !== undefined && entry['% Gain'] !== null
                     ? (typeof entry['% Gain'] === 'number' ? entry['% Gain'] : parseFloat(String(entry['% Gain']).replace('%', '').replace(/,/g, '')) || 0)
                     : 0,
                   'Remaining Gain': entry['Remaining Gain'] !== undefined && entry['Remaining Gain'] !== null
@@ -446,7 +447,7 @@ export class TradingLogListComponent implements OnInit {
     }
 
     let numValue: number;
-    
+
     // If it's already a number, use it directly
     if (typeof gainPercent === 'number') {
       numValue = gainPercent;
@@ -472,7 +473,7 @@ export class TradingLogListComponent implements OnInit {
     }
 
     let numValue: number;
-    
+
     // If it's already a number, it's from percentage-formatted column (0.27 for 27%, 1.4397 for 143.97%)
     // Always multiply by 100 to convert to percentage
     if (typeof gainPercent === 'number') {

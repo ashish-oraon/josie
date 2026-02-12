@@ -158,6 +158,12 @@ mat-card-title {
 }
 
 // Column-specific widths using percentages
+.col-row-no {
+  width: 5%;
+  min-width: 3.5rem;
+  text-align: center;
+}
+
 .col-stock {
   width: 8%;
   min-width: 5rem;
