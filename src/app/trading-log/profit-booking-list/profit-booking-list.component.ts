@@ -72,6 +72,7 @@ export class ProfitBookingListComponent implements OnInit {
 
   selectedExchange = signal<string>('all');
   selectedOwner = signal<string>('all');
+  selectedCurrency = signal<string>('INR'); // Default to INR
 
   selectedSortBy = signal<string>('Sell Date');
   sortOrder = signal<'asc' | 'desc'>('desc');
@@ -87,74 +88,45 @@ export class ProfitBookingListComponent implements OnInit {
     { value: 'Stock', label: 'Stock Name' },
   ];
 
-  allColumns: { key: string; label: string; defaultVisible: boolean }[] = [
+  allColumns = computed(() => [
     { key: 'Stock', label: 'Stock', defaultVisible: true },
     { key: 'Sell Date', label: 'Sell Date', defaultVisible: true },
     { key: 'Quantity Sold', label: 'Quantity Sold', defaultVisible: true },
     { key: 'Buy Price', label: 'Buy Price', defaultVisible: true },
     { key: 'Sell Price', label: 'Sell Price', defaultVisible: true },
-    { key: 'Profit/Loss Amount', label: 'Profit/Loss (INR)', defaultVisible: true },
+    { key: 'Profit/Loss Amount', label: `Profit/Loss (${this.selectedCurrency()})`, defaultVisible: true },
     { key: 'Profit/Loss %', label: 'Profit/Loss %', defaultVisible: true },
     { key: 'Holding Period', label: 'Holding Period', defaultVisible: true },
     { key: 'Exchange', label: 'Exchange', defaultVisible: true },
     { key: 'Account Owner', label: 'Account Owner', defaultVisible: true },
-  ];
+  ]);
 
   columnVisibility = signal<{ [key: string]: boolean }>({});
-  displayedColumns = signal<string[]>([]);
+  displayedColumns = computed(() => {
+    return this.allColumns()
+      .filter(col => this.columnVisibility()[col.key])
+      .map(col => col.key);
+  });
 
-  // Summary statistics (computed) - using INR converted values
+  // Summary statistics (computed) - using selected currency
   summaryStats = computed(() => {
     const bookings = this.profitBookings();
     const filtered = this.getFilteredBookings();
+    const selectedCurr = this.selectedCurrency();
 
-    // Always use INR converted values for accurate cross-currency comparison
+    // Calculate total profit in selected currency
     const totalProfit = filtered.reduce((sum: number, booking: ProfitBookingEntry) => {
-      // Get original profit amount
-      const originalProfit = parseFloat(String(booking['Profit/Loss Amount'] || 0));
-
-      // Prioritize INR converted value if available
-      const profitInrValue: any = booking['Profit/Loss Amount (INR)'];
-
-      // Check if INR value exists and is a valid number
-      if (profitInrValue !== undefined && profitInrValue !== null) {
-        // Skip empty strings
-        const profitInrStr = String(profitInrValue);
-        if (profitInrStr.trim() === '') {
-          // Fall through to use original profit
-        } else {
-          // Convert to number if it's a string, or use directly if it's already a number
-          const profitInr = typeof profitInrValue === 'number'
-            ? profitInrValue
-            : parseFloat(profitInrStr);
-
-          // Use INR value if it's valid and not NaN
-          // If both are 0, use INR (0). If INR is 0 but original is not, use original (conversion missing)
-          if (!isNaN(profitInr) && isFinite(profitInr)) {
-            if (profitInr === 0 && originalProfit !== 0) {
-              // INR conversion missing, use original profit
-              return sum + originalProfit;
-            }
-            return sum + profitInr;
-          }
-        }
-      }
-
-      // Fallback: Use original profit
-      // For India exchange, original profit is already in INR
-      // For other exchanges, we use original (less accurate but better than 0)
-      return sum + originalProfit;
+      // Get profit in selected currency
+      const profitInSelectedCurr = this.getValueInSelectedCurrency(booking, 'Profit/Loss Amount');
+      return sum + profitInSelectedCurr;
     }, 0);
 
 
     const totalBookings = filtered.length;
     const profitableBookings = filtered.filter(b => {
-      // Use INR converted value for accurate comparison
-      const profitInrStr = String(b['Profit/Loss Amount (INR)'] || '');
-      const profitInr = profitInrStr !== '' && profitInrStr !== 'null' && profitInrStr !== 'undefined'
-        ? parseFloat(profitInrStr)
-        : parseFloat(String(b['Profit/Loss Amount'] || 0));
-      return profitInr > 0;
+      // Use value in selected currency for comparison
+      const profitInSelectedCurr = this.getValueInSelectedCurrency(b, 'Profit/Loss Amount');
+      return profitInSelectedCurr > 0;
     }).length;
 
     const avgProfitPercent = filtered.length > 0
@@ -207,7 +179,7 @@ export class ProfitBookingListComponent implements OnInit {
     if (savedVisibility) {
       try {
         visibility = JSON.parse(savedVisibility);
-        this.allColumns.forEach(col => {
+        this.allColumns().forEach(col => {
           if (visibility[col.key] === undefined) {
             visibility[col.key] = col.defaultVisible;
           }
@@ -225,17 +197,15 @@ export class ProfitBookingListComponent implements OnInit {
 
   getDefaultVisibility(): { [key: string]: boolean } {
     const visibility: { [key: string]: boolean } = {};
-    this.allColumns.forEach(col => {
+    this.allColumns().forEach(col => {
       visibility[col.key] = col.defaultVisible;
     });
     return visibility;
   }
 
   updateDisplayedColumns(): void {
-    const visible = this.allColumns
-      .filter(col => this.columnVisibility()[col.key])
-      .map(col => col.key);
-    this.displayedColumns.set(visible);
+    // displayedColumns is now computed, so it updates automatically
+    // This method is kept for compatibility but doesn't need to do anything
   }
 
   toggleColumnVisibility(columnKey: string): void {
@@ -462,26 +432,101 @@ export class ProfitBookingListComponent implements OnInit {
     return parseFloat(String(booking['Profit/Loss Amount'] || 0));
   }
 
-  getCurrencySymbol(exchange?: string): string {
-    if (!exchange) {
-      console.warn('getCurrencySymbol: exchange is undefined, using default:', environment.currencySymbol || '₹');
-      return environment.currencySymbol || '₹';
-    }
-    const exchangeLower = exchange.toLowerCase().trim();
-    // Handle various possible exchange name formats
-    if (exchangeLower === 'india' || exchangeLower.includes('india')) return '₹';
-    if (exchangeLower === 'germany' || exchangeLower.includes('germany')) {
-      return '€';
-    }
-    if (exchangeLower === 'us' || exchangeLower === 'usa' || exchangeLower.includes('us')) return '$';
-    // Log warning for unknown exchange
-    console.warn('Unknown exchange for currency symbol:', exchange, 'using default:', environment.currencySymbol || '₹');
-    return environment.currencySymbol || '₹';
+  getCurrencySymbol(currency?: string): string {
+    const selected = currency || this.selectedCurrency();
+    if (selected === 'INR') return '₹';
+    if (selected === 'EUR') return '€';
+    if (selected === 'USD') return '$';
+    return '₹'; // Default
   }
 
-  formatCurrency(value: number | string | undefined, exchange?: string): string {
+  // Convert value from INR to target currency
+  convertCurrency(valueInInr: number, targetCurrency: string, entry: ProfitBookingEntry): number {
+    if (targetCurrency === 'INR' || !valueInInr) return valueInInr || 0;
+    
+    const eurToInr = entry['EUR to INR Rate'] || 0;
+    const usdToInr = entry['USD to INR Rate'] || 0;
+    
+    if (targetCurrency === 'EUR' && eurToInr > 0) {
+      return valueInInr / eurToInr;
+    }
+    if (targetCurrency === 'USD' && usdToInr > 0) {
+      return valueInInr / usdToInr;
+    }
+    
+    // Fallback: if rates not available, return original value
+    return valueInInr;
+  }
+
+  // Get value in selected currency (handles both INR converted values and original values)
+  getValueInSelectedCurrency(entry: ProfitBookingEntry, field: 'Buy Price' | 'Sell Price' | 'Profit/Loss Amount' | 'Buy Value' | 'Sell Value'): number {
+    const selectedCurr = this.selectedCurrency();
+    
+    // For Profit/Loss Amount, prioritize INR converted value
+    if (field === 'Profit/Loss Amount') {
+      const inrValue: any = entry['Profit/Loss Amount (INR)'];
+      if (inrValue !== undefined && inrValue !== null) {
+        const inrValueStr = String(inrValue);
+        if (inrValueStr.trim() !== '') {
+          return this.convertCurrency(parseFloat(inrValueStr), selectedCurr, entry);
+        }
+      }
+      // Fallback to original value
+      const originalValue = entry['Profit/Loss Amount'] || 0;
+      // If exchange is India, original is already in INR
+      if (entry.Exchange?.toLowerCase().includes('india')) {
+        return this.convertCurrency(originalValue, selectedCurr, entry);
+      }
+      // For other exchanges, we need to convert from original currency to INR first, then to target
+      // This is complex, so for now, use original value (less accurate)
+      return originalValue;
+    }
+    
+    // For Buy/Sell Price and Values
+    if (field === 'Buy Price' || field === 'Buy Value') {
+      const inrValue: any = entry['Buy Value (INR)'];
+      if (inrValue !== undefined && inrValue !== null) {
+        const inrValueStr = String(inrValue);
+        if (inrValueStr.trim() !== '') {
+          const priceInr = field === 'Buy Price' 
+            ? parseFloat(inrValueStr) / (entry['Quantity Sold'] || 1)
+            : parseFloat(inrValueStr);
+          return this.convertCurrency(priceInr, selectedCurr, entry);
+        }
+      }
+      // Fallback to original value
+      const originalValue = entry[field] || 0;
+      if (entry.Exchange?.toLowerCase().includes('india')) {
+        return this.convertCurrency(originalValue, selectedCurr, entry);
+      }
+      return originalValue;
+    }
+    
+    if (field === 'Sell Price' || field === 'Sell Value') {
+      const inrValue: any = entry['Sell Value (INR)'];
+      if (inrValue !== undefined && inrValue !== null) {
+        const inrValueStr = String(inrValue);
+        if (inrValueStr.trim() !== '') {
+          const priceInr = field === 'Sell Price'
+            ? parseFloat(inrValueStr) / (entry['Quantity Sold'] || 1)
+            : parseFloat(inrValueStr);
+          return this.convertCurrency(priceInr, selectedCurr, entry);
+        }
+      }
+      // Fallback to original value
+      const originalValue = entry[field] || 0;
+      if (entry.Exchange?.toLowerCase().includes('india')) {
+        return this.convertCurrency(originalValue, selectedCurr, entry);
+      }
+      return originalValue;
+    }
+    
+    return 0;
+  }
+
+  formatCurrency(value: number | string | undefined, currency?: string): string {
     const numValue = typeof value === 'string' ? parseFloat(value.replace(/[₹€$,\s]/g, '')) : (value || 0);
-    const symbol = this.getCurrencySymbol(exchange);
+    const symbol = this.getCurrencySymbol(currency);
     return `${symbol}${numValue.toFixed(2)}`;
   }
 
