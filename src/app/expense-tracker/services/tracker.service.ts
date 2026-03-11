@@ -285,6 +285,7 @@ export class TrackerService {
       paymentMethod: transactionDetails.paymentMethod,
       paidBy: transactionDetails.paidBy,
       sheetName: this.commonService.getSheetName(dt),
+      type: transactionDetails.type,
     };
 
     // Set loading state with specific message for updating
